@@ -165,6 +165,6 @@ class Fmi2Slave(ABC):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Real):
-                refs[i] = setattr(self, var.name, values[i])
+                setattr(self, var.name, values[i])
             else:
                 print(f"Variable with valueReference {vr} is not of type Real!")
