@@ -3,12 +3,6 @@ from uuid import uuid1
 from enum import Enum
 
 
-class Accessor:
-
-    def __init__(self, getter):
-        self.getter = getter
-
-
 class Fmi2Causality(Enum):
     parameter = 0,
     calculatedParameter = 1,
@@ -27,13 +21,14 @@ class Fmi2Variability(Enum):
 
 class ScalarVariable(ABC):
 
-    vr_counter = -1
+    vr_counter = 0
 
     def __init__(self, name):
         self.name = name
         self.causality = None
         self.variability = None
-        self.value_reference = ++ScalarVariable.vr_counter
+        self.value_reference = ScalarVariable.vr_counter
+        ScalarVariable.vr_counter += 1
 
     def set_causality(self, causality: Fmi2Causality):
         self.causality = causality
@@ -44,14 +39,14 @@ class ScalarVariable(ABC):
         return self
 
     def string_repr(self):
-        str = f"<ScalarVariable valueReference={self.value_reference} name={self.name}"
+        strRepr = f"<ScalarVariable valueReference={self.value_reference} name={self.name}"
         if self.causality is not None:
-            str += f" causality={self.causality}"
+            strRepr += f" causality={self.causality}"
         if self.variability is not None:
-            str += f" variability={self.variability}"
-        str += ">\n"
-        str += "\t\t\t" + self.sub_string_repr() + "\n"
-        return str + "\t\t</ScalarVariable>"
+            strRepr += f" variability={self.variability}"
+        strRepr += ">\n"
+        strRepr += "\t\t\t" + self.sub_string_repr() + "\n"
+        return strRepr + "\t\t</ScalarVariable>"
 
     @abstractmethod
     def sub_string_repr(self):
