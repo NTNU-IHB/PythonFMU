@@ -1,0 +1,71 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id "cpp-library"
+}
+
+def pythonHome = System.getenv("PYTHONHOME")
+if (pythonHome == null) {
+    throw new GradleException("No PYTHONHOME set!")
+}
+def pythonLib = new File(pythonHome).name.toLowerCase()
+
+library { CppLibrary lib ->
+
+    baseName.set("pythonfmu-export")
+
+    targetMachines.set([
+            machines.windows.x86_64,
+            machines.linux.x86_64,
+    ])
+
+    lib.binaries.whenElementFinalized { CppBinary binary ->
+        project.dependencies {
+
+            add(binary.runtimeLibraries.name, files("$pythonHome"))
+            add(binary.includePathConfiguration.name, files("$pythonHome/include"))
+            add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$pythonHome/libs/$pythonLib")))
+
+        }
+
+    }
+
+}
+
+def assembleAllRelease = []
+
+tasks.all {
+    if (it.name.contains("assembleRelease")) {
+        assembleAllRelease.add(it)
+    }
+}
+
+tasks.register("assembleAllRelease")
+
+tasks.register("copyNativeLibs") {
+
+    doLast {
+        copy {
+
+            into "$rootDir/fmu-builder/src/main/resources/binaries/"
+
+            if (OperatingSystem.current().isLinux()) {
+                into("linux64") {
+                    from "$buildDir/lib/main/release/linux"
+                    include "*.so"
+                }
+            } else if (OperatingSystem.current().isWindows()) {
+                into("win64") {
+                    from "$buildDir/lib/main/release/windows/"
+                    include "*.dll"
+                }
+            } else {
+                throw new Exception("Unsupported OS: " + OperatingSystem.current().name)
+            }
+
+        }
+    }
+
+    dependsOn assembleAllRelease
+
+}

@@ -1,0 +1,5 @@
+
+rootProject.name = 'PythonFMU'
+
+include 'fmu-builder'
+include 'fmi-native-export'
