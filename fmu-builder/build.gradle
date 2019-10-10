@@ -39,17 +39,17 @@ compileTestKotlin {
 
 
 shadowJar {
-    archiveBaseName.set("fmu-builder")
+    archiveBaseName.set("pythonfmu-builder")
     archiveClassifier.set(null)
     archiveVersion.set(null)
 }
 
 distributions {
     main {
-        baseName = 'fmu-builder'
+        baseName = 'pythonfmu-builder'
     }
 }
 
 startScripts {
-    applicationName = 'fmu-builder'
+    applicationName = 'pythonfmu-builder'
 }

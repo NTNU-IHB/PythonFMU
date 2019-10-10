@@ -39,7 +39,7 @@ class ScalarVariable(ABC):
         return self
 
     def string_repr(self):
-        strRepr = f"<ScalarVariable valueReference={self.value_reference} name=\"{self.name}\""
+        strRepr = f"<ScalarVariable valueReference=\"{self.value_reference}\" name=\"{self.name}\""
         if self.causality is not None:
             strRepr += f" causality=\"{self.causality.name}\""
         if self.variability is not None:
@@ -106,28 +106,26 @@ class Fmi2Slave(ABC):
     def define(self):
         print("define")
 
-        var_str = "\n".join(list(map(lambda v: v.string_repr() + "\n", self.vars)))
+        var_str = "\n".join(list(map(lambda v: v.string_repr(), self.vars)))
         outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
         structure_str = ""
         if len(outputs) > 0:
             structure_str += "<Outputs>\n"
             for i in range(len(outputs)):
-                structure_str += f"<Unknown index={i+1} />\n"
-            structure_str += "</Outputs>\n"
+                structure_str += f"\t\t\t<Unknown index=\"{i+1}\" />\n"
+            structure_str += "\t\t</Outputs>"
 
-        self.xml = f"""
-        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <fmiModelDescription fmiVersion="2.0" modelName={Fmi2Slave.modelName} guid="{uuid1()}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
-            <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="false" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
-            <ModelVariables>
-                {var_str}
-            </ModelVariables>
-            <ModelStructure>
-                {structure_str}
-            </ModelStructure>
-        </fmiModelDescription>
-        """
-        print(self.xml)
+        self.xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{uuid1()}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
+    <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="false" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
+    <ModelVariables>
+        {var_str}
+    </ModelVariables>
+    <ModelStructure>
+        {structure_str}
+    </ModelStructure>
+</fmiModelDescription>
+"""
 
     def register_variable(self, var):
         self.vars.append(var)

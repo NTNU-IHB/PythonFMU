@@ -6,7 +6,7 @@
 
 extern "C" {
 
-JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_Native_getModelDescription(JNIEnv* env, jobject obj, jstring jScriptPath)
+JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetcher_getModelDescription(JNIEnv* env, jobject obj, jstring jScriptPath)
 {
 
     Py_Initialize();
