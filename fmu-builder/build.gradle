@@ -10,6 +10,7 @@ mainClassName = "${group}.FmuBuilder"
 
 repositories {
     mavenCentral()
+    maven { url  "https://dl.bintray.com/ntnu-ihb/mvn"  }
 }
 
 dependencies {
@@ -21,6 +22,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+
+    testCompile 'no.ntnu.ihb.fmi4j:fmi-import:0.24.2'
 
 }
 

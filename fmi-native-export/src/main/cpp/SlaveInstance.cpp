@@ -5,18 +5,16 @@
 #include <cppfmu/cppfmu_cs.hpp>
 
 #include <fstream>
+#include <iostream>
 
 namespace pythonfmu
 {
 
 SlaveInstance::SlaveInstance(
     const cppfmu::Memory& memory,
-    const PyObjectWrapper& instance,
     const std::string& resources)
-    : instance_(instance)
-{
-    instance_.define();
-}
+    : instance_(PyObjectWrapper(resources))
+{}
 
 void SlaveInstance::SetupExperiment(cppfmu::FMIBoolean, cppfmu::FMIReal, cppfmu::FMIReal tStart, cppfmu::FMIBoolean, cppfmu::FMIReal)
 {
@@ -40,8 +38,8 @@ bool SlaveInstance::DoStep(cppfmu::FMIReal currentCommunicationPoint, cppfmu::FM
 
 void SlaveInstance::Reset()
 {
+    instance_.reset();
 }
-
 
 void SlaveInstance::Terminate()
 {
@@ -86,7 +84,7 @@ SlaveInstance::~SlaveInstance() = default;
 
 } // namespace pythonfmu
 
-pythonfmu::PythonState pythonState = pythonfmu::PythonState();
+pythonfmu::PythonState pythonState;
 
 cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIString,
@@ -100,16 +98,12 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::Logger)
 {
 
-    std::string resources = std::string(fmuResourceLocation);
+    auto resources = std::string(fmuResourceLocation);
     auto find = resources.find("file:///");
     if (find != std::string::npos) {
         resources.replace(find, 8, "");
     }
 
-    PyObject* pModule = PyImport_ImportModule("model");
-    PyObject* pClass = PyObject_GetAttrString(pModule, "Model");
-    PyObject* pInstance = PyObject_CallFunctionObjArgs(pClass, nullptr);
-
     return cppfmu::AllocateUnique<pythonfmu::SlaveInstance>(
-        memory, memory, pythonfmu::PyObjectWrapper(pModule, pClass, pInstance), resources);
+        memory, memory, resources);
 }

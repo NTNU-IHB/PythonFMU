@@ -1,6 +1,6 @@
 
-#ifndef FMI4J_SLAVEINSTANCE_HPP
-#define FMI4J_SLAVEINSTANCE_HPP
+#ifndef PYTHONFMU_SLAVEINSTANCE_HPP
+#define PYTHONFMU_SLAVEINSTANCE_HPP
 
 #include <pythonfmu/PyObjectWrapper.hpp>
 
@@ -16,7 +16,7 @@ class SlaveInstance : public cppfmu::SlaveInstance
 {
 
 public:
-    SlaveInstance(const cppfmu::Memory& memory, const PyObjectWrapper& instance, const std::string& resources);
+    SlaveInstance(const cppfmu::Memory& memory, const std::string& resources);
 
     void SetupExperiment(cppfmu::FMIBoolean toleranceDefined, cppfmu::FMIReal tolerance, cppfmu::FMIReal tStart, cppfmu::FMIBoolean stopTimeDefined, cppfmu::FMIReal tStop) override;
     void EnterInitializationMode() override;
@@ -39,7 +39,6 @@ public:
 
 private:
     PyObjectWrapper instance_;
-
 };
 
 } // namespace pythonfmu

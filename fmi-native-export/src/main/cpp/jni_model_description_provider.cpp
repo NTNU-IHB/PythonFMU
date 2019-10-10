@@ -14,7 +14,7 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
     const char* scriptPath = env->GetStringUTFChars(jScriptPath, nullptr);
     std::ostringstream oss;
     oss << "import sys\n";
-    oss << "sys.path.append('" << scriptPath << "')\n";
+    oss << "sys.path.append(r'" << scriptPath << "')\n";
 
     PyRun_SimpleString(oss.str().c_str());
 
@@ -24,17 +24,15 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
     PyObject* modelClass = PyObject_GetAttrString(pModule, "Model");
     PyObject* modelInstance = PyObject_CallFunctionObjArgs(modelClass, nullptr);
 
-    PyObject* pFunc;
-    pFunc = PyObject_CallMethod(modelInstance, "define", nullptr);
-    Py_XDECREF(pFunc);
+    Py_XDECREF(PyObject_CallMethod(modelInstance, "define", nullptr));
 
     PyObject* pyXml = PyObject_GetAttrString(modelInstance, "xml");
     const char* xml = PyUnicode_AsUTF8(pyXml);
 
-    Py_FinalizeEx();
+    Py_XDECREF(pyXml);
 
+    Py_FinalizeEx();
 
     return env->NewStringUTF(xml);
 }
-
 }

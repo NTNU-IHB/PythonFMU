@@ -3,8 +3,10 @@
 #define PYTHONFMU_PYTHONSTATE_HPP
 
 #include <Python.h>
+#include <iostream>
 
-namespace pythonfmu {
+namespace pythonfmu
+{
 
 class PythonState
 {
@@ -20,6 +22,6 @@ public:
     }
 };
 
-}
+} // namespace pythonfmu
 
 #endif //PYTHONFMU_PYTHONSTATE_HPP

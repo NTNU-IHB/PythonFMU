@@ -2,6 +2,8 @@
 #ifndef PYTHONFMU_PYOBJECTWRAPPER_HPP
 #define PYTHONFMU_PYOBJECTWRAPPER_HPP
 
+#include <pythonfmu/thread_worker.hpp>
+
 #include <Python.h>
 
 namespace pythonfmu
@@ -11,11 +13,7 @@ class PyObjectWrapper
 {
 
 public:
-    PyObjectWrapper(PyObject* pModule, PyObject* pClass, PyObject* pInstance);
-
-    ~PyObjectWrapper();
-
-    void define();
+    PyObjectWrapper(const std::string& resources);
 
     void setupExperiment(double startTime);
 
@@ -25,7 +23,11 @@ public:
 
     bool doStep(double currentTime, double steSize);
 
+    void reset();
+
     void terminate();
+
+    ~PyObjectWrapper();
 
 private:
     PyObject* pModule_;
