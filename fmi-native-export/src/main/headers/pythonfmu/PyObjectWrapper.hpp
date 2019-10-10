@@ -15,7 +15,7 @@ public:
 
     ~PyObjectWrapper();
 
-    void initialize();
+    void define();
 
     void setupExperiment(double startTime);
 

@@ -7,8 +7,8 @@ class Model(Fmi2Slave):
         super(Model, self).__init__("PythonSlave")
 
         self.author = "Lars Ivar Hatledal"
-        self.realOut = 2.0
-        self.register_variable(Real("realOut"))
+        self.realOut = 3.0
+        self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))
 
     def doStep(self, currentTime: float, stepSize: float):
         print(f"doStep, currentTime={currentTime}, stepSize={stepSize}")

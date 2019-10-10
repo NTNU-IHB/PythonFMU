@@ -10,7 +10,7 @@ PyObjectWrapper::PyObjectWrapper(PyObject* pModule, PyObject* pClass, PyObject* 
     , pInstance_(pInstance)
 {}
 
-void PyObjectWrapper::initialize()
+void PyObjectWrapper::define()
 {
     Py_XDECREF(PyObject_CallMethod(pInstance_, "initialize", nullptr));
 }
@@ -32,7 +32,10 @@ void PyObjectWrapper::exitInitializationMode()
 
 bool PyObjectWrapper::doStep(double currentTime, double stepSize)
 {
-    Py_XDECREF(PyObject_CallMethod(pInstance_, "setupExperiment", "(dd)", currentTime, stepSize));
+    PyObject* pyStatus = PyObject_CallMethod(pInstance_, "setupExperiment", "(dd)", currentTime, stepSize);
+    bool status = static_cast<bool>(PyObject_IsTrue(pyStatus));
+    Py_XDECREF(pyStatus);
+    return status;
 }
 
 void PyObjectWrapper::terminate()

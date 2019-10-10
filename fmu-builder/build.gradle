@@ -17,6 +17,16 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile group: 'info.picocli', name: 'picocli', version: '3.9.2'
 
+    def junit_version = '5.3.2'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+
+}
+
+test {
+    failFast = true
+    useJUnitPlatform()
 }
 
 compileKotlin {

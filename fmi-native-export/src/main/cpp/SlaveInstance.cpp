@@ -1,4 +1,5 @@
 
+#include <pythonfmu/PythonState.hpp>
 #include <pythonfmu/SlaveInstance.hpp>
 
 #include <cppfmu/cppfmu_cs.hpp>
@@ -14,7 +15,7 @@ SlaveInstance::SlaveInstance(
     const std::string& resources)
     : instance_(instance)
 {
-    instance_.initialize();
+    instance_.define();
 }
 
 void SlaveInstance::SetupExperiment(cppfmu::FMIBoolean, cppfmu::FMIReal, cppfmu::FMIReal tStart, cppfmu::FMIBoolean, cppfmu::FMIReal)
@@ -85,7 +86,7 @@ SlaveInstance::~SlaveInstance() = default;
 
 } // namespace pythonfmu
 
-bool pyInit = false;
+pythonfmu::PythonState pythonState = pythonfmu::PythonState();
 
 cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIString,
@@ -98,11 +99,6 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::Memory memory,
     cppfmu::Logger)
 {
-
-    if (!pyInit) {
-        Py_Initialize();
-        pyInit = true;
-    }
 
     std::string resources = std::string(fmuResourceLocation);
     auto find = resources.find("file:///");
