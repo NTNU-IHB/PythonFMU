@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <utility>
+#include <fstream>
 
 namespace pythonfmu
 {
@@ -11,13 +12,17 @@ namespace pythonfmu
 PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 {
 
+    std::string scriptModule;
+    std::ifstream infile(resources + "/slavemodule.txt");
+    std::getline(infile, scriptModule);
+
     std::ostringstream oss;
     oss << "import sys\n";
     oss << "sys.path.append(r'" << resources << "')\n";
 
     PyRun_SimpleString(oss.str().c_str());
 
-    pModule_ = PyImport_ImportModule("model");
+    pModule_ = PyImport_ImportModule(scriptModule.c_str());
     pClass_ = PyObject_GetAttrString(pModule_, "Model");
     pInstance_ = PyObject_CallFunctionObjArgs(pClass_, nullptr);
 

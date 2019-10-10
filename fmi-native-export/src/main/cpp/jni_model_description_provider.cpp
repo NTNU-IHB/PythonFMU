@@ -6,7 +6,7 @@
 
 extern "C" {
 
-JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetcher_getModelDescription(JNIEnv* env, jobject obj, jstring jScriptPath)
+JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetcher_getModelDescription(JNIEnv* env, jobject obj, jstring jScriptPath, jstring jModuleName)
 {
 
     Py_Initialize();
@@ -15,12 +15,12 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
     std::ostringstream oss;
     oss << "import sys\n";
     oss << "sys.path.append(r'" << scriptPath << "')\n";
-
     PyRun_SimpleString(oss.str().c_str());
-
     env->ReleaseStringUTFChars(jScriptPath, scriptPath);
 
-    PyObject* pModule = PyImport_ImportModule("model");
+    const char* moduleName = env->GetStringUTFChars(jModuleName, nullptr);
+    PyObject* pModule = PyImport_ImportModule(moduleName);
+    env->ReleaseStringUTFChars(jModuleName, moduleName);
     PyObject* modelClass = PyObject_GetAttrString(pModule, "Model");
     PyObject* modelInstance = PyObject_CallFunctionObjArgs(modelClass, nullptr);
 
