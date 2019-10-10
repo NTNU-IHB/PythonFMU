@@ -94,12 +94,14 @@ class Fmi2Slave(ABC):
 
     author = ""
     license = ""
-    modelName = ""
+    modelName = None
     version = ""
 
     def __init__(self):
         self.vars = []
         self.xml = None
+        if Fmi2Slave.modelName == None:
+            raise Exception ("No modelName has been specified!")
 
     def define(self):
         print("define")
