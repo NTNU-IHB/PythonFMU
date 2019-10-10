@@ -92,10 +92,12 @@ class String(ScalarVariable):
 
 class Fmi2Slave(ABC):
 
-    def __init__(self, modelName):
-        self.author = ""
-        self.license = ""
-        self.modelName = modelName
+    author = ""
+    license = ""
+    modelName = ""
+    version = ""
+
+    def __init__(self):
         self.vars = []
         self.xml = None
 
@@ -113,8 +115,8 @@ class Fmi2Slave(ABC):
 
         self.xml = f"""
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <fmiModelDescription fmiVersion="2.0" modelName={self.modelName} guid="{uuid1()}" author="{self.author}" license="{self.license}" generationTool="PythonFMU" variableNamingConvention="structured">
-            <CoSimulation modelIdentifier="{self.modelName}" needsExecutionTool="false" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
+        <fmiModelDescription fmiVersion="2.0" modelName={Fmi2Slave.modelName} guid="{uuid1()}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
+            <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="false" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
             <ModelVariables>
                 {var_str}
             </ModelVariables>
@@ -145,41 +147,37 @@ class Fmi2Slave(ABC):
         print("terminate")
 
     def getInteger(self, vrs, refs):
-        print("getInteger")
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Integer):
                 refs[i] = getattr(self, var.name)
             else:
-                print(f"Variable with valueReference {vr} is not of type Integer!")
+                print(f"Variable with valueReference={vr} is not of type Integer!")
 
     def getReal(self, vrs, refs):
-        print("getReal")
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Real):
                 refs[i] = getattr(self, var.name)
             else:
-                print(f"Variable with valueReference {vr} is not of type Real!")
+                print(f"Variable with valueReference={vr} is not of type Real!")
 
     def setInteger(self, vrs, values):
-        print("setInteger")
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Integer):
                 setattr(self, var.name, values[i])
             else:
-                print(f"Variable with valueReference {vr} is not of type Integer!")
+                print(f"Variable with valueReference={vr} is not of type Integer!")
 
     def setReal(self, vrs, values):
-        print("setReal")
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Real):
                 setattr(self, var.name, values[i])
             else:
-                print(f"Variable with valueReference {vr} is not of type Real!")
+                print(f"Variable with valueReference={vr} is not of type Real!")

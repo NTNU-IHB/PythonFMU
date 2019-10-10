@@ -3,10 +3,12 @@ from Fmi2Slave import *
 
 class Model(Fmi2Slave):
 
-    def __init__(self):
-        super(Model, self).__init__("PythonSlave")
+    Fmi2Slave.modelName = "PythonSlave"
+    Fmi2Slave.author = "Lars Ivar Hatledal"
 
-        self.author = "Lars Ivar Hatledal"
+    def __init__(self):
+        super().__init__()
+
         self.realOut = 3.0
         self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))
 
