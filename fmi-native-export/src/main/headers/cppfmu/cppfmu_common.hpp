@@ -14,7 +14,7 @@
 #include <stdexcept>    // std::runtime_error
 #include <string>       // std::basic_string, std::char_traits
 #include <utility>      // std::forward
-
+#include <vector>
 
 extern "C"
 {
