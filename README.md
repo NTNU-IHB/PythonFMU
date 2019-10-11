@@ -9,7 +9,7 @@ Export Python3 code as FMUs
 
 ### How do I build an FMU from python code?
 
-1) Download the `Fmi2Slave.py` source file.
+1) Download the [Fmi2Slave.py](Fmi2Slave.py) source file.
 2) In a new file, create a new class called `Model` extending the `Fmi2Slave` class declared in `Fmi2Slave.py`.
 3) Run the `pythonfmu-builder.jar` (Built by Github Actions).
 
