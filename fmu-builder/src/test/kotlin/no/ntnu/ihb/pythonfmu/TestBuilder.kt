@@ -1,10 +1,7 @@
 package no.ntnu.ihb.pythonfmu
 
+import no.ntnu.ihb.fmi4j.*
 import no.ntnu.ihb.fmi4j.importer.fmi2.Fmu
-import no.ntnu.ihb.fmi4j.readInteger
-import no.ntnu.ihb.fmi4j.readReal
-import no.ntnu.ihb.fmi4j.writeInteger
-import no.ntnu.ihb.fmi4j.writeReal
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -26,10 +23,11 @@ class TestBuilder {
 
             fmu.asCoSimulationFmu().newInstance().use { slave ->
 
-                slave.simpleSetup()
+                Assertions.assertTrue(slave.simpleSetup())
 
+                val dt = 1.0/100
                 for (i in 0 until 10) {
-                    slave.doStep(1.0/100)
+                    Assertions.assertTrue(slave.doStep(dt))
                 }
 
                 Assertions.assertEquals(1, slave.readInteger(0).value)
@@ -40,6 +38,8 @@ class TestBuilder {
 
                 Assertions.assertTrue(slave.writeReal("realOut", 6.0).isOK())
                 Assertions.assertEquals(6.0, slave.readReal("realOut").value)
+
+                Assertions.assertTrue(slave.readBoolean("booleanVariable").value)
 
                 slave.terminate()
 

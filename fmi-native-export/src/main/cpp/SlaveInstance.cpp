@@ -4,8 +4,6 @@
 
 #include <cppfmu/cppfmu_cs.hpp>
 
-#include <iostream>
-
 namespace pythonfmu
 {
 
@@ -57,6 +55,7 @@ void SlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_t 
 
 void SlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* value)
 {
+    instance_.setBoolean(vr, nvr, value);
 }
 
 void SlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString const* value)
@@ -75,6 +74,7 @@ void SlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_t 
 
 void SlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* value) const
 {
+    instance_.getBoolean(vr, nvr, value);
 }
 
 void SlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* value) const

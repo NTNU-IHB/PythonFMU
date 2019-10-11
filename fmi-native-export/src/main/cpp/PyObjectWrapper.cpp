@@ -31,25 +31,25 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 
 void PyObjectWrapper::setupExperiment(double startTime)
 {
-    auto f = PyObject_CallMethod(pInstance_, "setupExperiment", "(d)", startTime);
+    auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(d)", startTime);
     Py_XDECREF(f);
 }
 
 void PyObjectWrapper::enterInitializationMode()
 {
-    auto f = PyObject_CallMethod(pInstance_, "enterInitializationMode", nullptr);
+    auto f = PyObject_CallMethod(pInstance_, "enter_initialization_mode", nullptr);
     Py_XDECREF(f);
 }
 
 void PyObjectWrapper::exitInitializationMode()
 {
-    auto f = PyObject_CallMethod(pInstance_, "exitInitializationMode", nullptr);
+    auto f = PyObject_CallMethod(pInstance_, "exit_initialization_mode", nullptr);
     Py_XDECREF(f);
 }
 
 bool PyObjectWrapper::doStep(double currentTime, double stepSize)
 {
-    auto pyStatus = PyObject_CallMethod(pInstance_, "doStep", "(dd)", currentTime, stepSize);
+    auto pyStatus = PyObject_CallMethod(pInstance_, "do_step", "(dd)", currentTime, stepSize);
     bool status = static_cast<bool>(PyObject_IsTrue(pyStatus));
     Py_XDECREF(pyStatus);
     return status;
@@ -75,7 +75,7 @@ void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_
         PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
         PyList_SetItem(refs, i, Py_BuildValue("i", 0));
     }
-    auto f = PyObject_CallMethod(pInstance_, "getInteger", "(OO)", vrs, refs);
+    auto f = PyObject_CallMethod(pInstance_, "get_integer", "(OO)", vrs, refs);
     Py_XDECREF(f);
 
     for (int i = 0; i < nvr; i++) {
@@ -97,7 +97,7 @@ void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t n
         PyList_SetItem(refs, i, Py_BuildValue("d", 0.0));
     }
 
-    auto f = PyObject_CallMethod(pInstance_, "getReal", "(OO)", vrs, refs);
+    auto f = PyObject_CallMethod(pInstance_, "get_real", "(OO)", vrs, refs);
     Py_XDECREF(f);
 
     for (int i = 0; i < nvr; i++) {
@@ -110,6 +110,27 @@ void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t n
     Py_DECREF(refs);
 }
 
+void PyObjectWrapper::getBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* values)
+{
+    PyObject* vrs = PyList_New(nvr);
+    PyObject* refs = PyList_New(nvr);
+    for (int i = 0; i < nvr; i++) {
+        PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
+        PyList_SetItem(refs, i, Py_BuildValue("i", 0));
+    }
+    auto f = PyObject_CallMethod(pInstance_, "get_boolean", "(OO)", vrs, refs);
+    Py_XDECREF(f);
+
+    for (int i = 0; i < nvr; i++) {
+        PyObject* value = PyList_GetItem(refs, i);
+        values[i] = PyObject_IsTrue(value);
+        Py_DECREF(value);
+    }
+
+    Py_XDECREF(vrs);
+    Py_XDECREF(refs);
+}
+
 void PyObjectWrapper::setInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* values)
 {
     PyObject* vrs = PyList_New(nvr);
@@ -119,7 +140,7 @@ void PyObjectWrapper::setInteger(const cppfmu::FMIValueReference* vr, std::size_
         PyList_SetItem(refs, i, Py_BuildValue("i", values[i]));
     }
 
-    auto f = PyObject_CallMethod(pInstance_, "setInteger", "(OO)", vrs, refs);
+    auto f = PyObject_CallMethod(pInstance_, "set_integer", "(OO)", vrs, refs);
     Py_XDECREF(f);
 
     Py_DECREF(vrs);
@@ -135,7 +156,23 @@ void PyObjectWrapper::setReal(const cppfmu::FMIValueReference* vr, std::size_t n
         PyList_SetItem(refs, i, Py_BuildValue("d", values[i]));
     }
 
-    auto f = PyObject_CallMethod(pInstance_, "setReal", "(OO)", vrs, refs);
+    auto f = PyObject_CallMethod(pInstance_, "set_real", "(OO)", vrs, refs);
+    Py_XDECREF(f);
+
+    Py_DECREF(vrs);
+    Py_DECREF(refs);
+}
+
+void PyObjectWrapper::setBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* values)
+{
+    PyObject* vrs = PyList_New(nvr);
+    PyObject* refs = PyList_New(nvr);
+    for (int i = 0; i < nvr; i++) {
+        PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
+        PyList_SetItem(refs, i, PyBool_FromLong(values[i]));
+    }
+
+    auto f = PyObject_CallMethod(pInstance_, "set_boolean", "(OO)", vrs, refs);
     Py_XDECREF(f);
 
     Py_DECREF(vrs);

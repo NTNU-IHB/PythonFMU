@@ -12,8 +12,10 @@ class Model(Fmi2Slave):
 
         self.intOut = 1
         self.realOut = 3.0
+        self.booleanVariable = True
         self.register_variable(Integer("intOut").set_causality(Fmi2Causality.output))
         self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))
+        self.register_variable(Boolean("booleanVariable").set_causality(Fmi2Causality.local))
 
-    def doStep(self, currentTime: float, stepSize: float):
-        print(f"doStep, currentTime={currentTime}, stepSize={stepSize}")
+    def do_step(self, current_time, step_size):
+        return True

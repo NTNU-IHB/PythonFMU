@@ -92,20 +92,19 @@ class String(ScalarVariable):
 
 class Fmi2Slave(ABC):
 
+    guid = uuid1()
     author = ""
     license = ""
-    modelName = None
     version = ""
+    modelName = None
 
     def __init__(self):
         self.vars = []
         self.xml = None
-        if Fmi2Slave.modelName == None:
-            raise Exception ("No modelName has been specified!")
+        if Fmi2Slave.modelName is None:
+            raise Exception("No modelName has been specified!")
 
     def define(self):
-        print("define")
-
         var_str = "\n".join(list(map(lambda v: v.string_repr(), self.vars)))
         outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
         structure_str = ""
@@ -116,7 +115,7 @@ class Fmi2Slave(ABC):
             structure_str += "\t\t</Outputs>"
 
         self.xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{uuid1()}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
+<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
     <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="false" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
     <ModelVariables>
         {var_str}
@@ -130,54 +129,75 @@ class Fmi2Slave(ABC):
     def register_variable(self, var):
         self.vars.append(var)
 
-    def setupExperiment(self, startTime: float):
-        print(f"setupExperiment, startTime={startTime}")
+    def setup_experiment(self, start_time: float):
+        pass
 
-    def enterInitializationMode(self):
-        print("enterInitializationMode")
+    def enter_initialization_mode(self):
+        pass
 
-    def exitInitializationMode(self):
-        print("exitInitializationMode")
+    def exit_initialization_mode(self):
+        pass
 
     @abstractmethod
-    def doStep(self, currentTime: float, stepSize: float):
+    def do_step(self, current_time: float, step_size: float) -> bool:
+        pass
+
+    def reset(self):
         pass
 
     def terminate(self):
-        print("terminate")
+        pass
 
-    def getInteger(self, vrs, refs):
+    def get_integer(self, vrs, refs):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Integer):
                 refs[i] = getattr(self, var.name)
             else:
-                print(f"Variable with valueReference={vr} is not of type Integer!")
+                raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def getReal(self, vrs, refs):
+    def get_real(self, vrs, refs):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Real):
                 refs[i] = getattr(self, var.name)
             else:
-                print(f"Variable with valueReference={vr} is not of type Real!")
+                raise Exception(f"Variable with valueReference={vr} is not of type Real!")
 
-    def setInteger(self, vrs, values):
+    def get_boolean(self, vrs, refs):
+        for i in range(len(vrs)):
+            vr = vrs[i]
+            var = self.vars[vr]
+            if isinstance(var, Boolean):
+                refs[i] = getattr(self, var.name)
+            else:
+                raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
+
+    def set_integer(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Integer):
                 setattr(self, var.name, values[i])
             else:
-                print(f"Variable with valueReference={vr} is not of type Integer!")
+                raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def setReal(self, vrs, values):
+    def set_real(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
             if isinstance(var, Real):
                 setattr(self, var.name, values[i])
             else:
-                print(f"Variable with valueReference={vr} is not of type Real!")
+                raise Exception(f"Variable with valueReference={vr} is not of type Real!")
+
+    def set_boolean(self, vrs, values):
+        for i in range(len(vrs)):
+            vr = vrs[i]
+            var = self.vars[vr]
+            if isinstance(var, Real):
+                setattr(self, var.name, values[i])
+            else:
+                raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")

@@ -27,21 +27,21 @@ from pythonfmu.Fmi2Slave import *
 
 class Model(Fmi2Slave):
 
-    Fmi2Slave.modelName = "PythonSlave"  # REQUIRED
+    Fmi2Slave.modelName = "PythonSlave"
     Fmi2Slave.author = "John Doe"
-    # Additional model information can be added
 
     def __init__(self):
         super().__init__()
 
         self.intOut = 1
         self.realOut = 3.0
-        self.register_variable(Integer("intOut").set_causality(Fmi2Causality.output))  # register self.intOut as output
-        self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))  # register self.realOut as output
+        self.booleanVariable = True
+        self.register_variable(Integer("intOut").set_causality(Fmi2Causality.output))
+        self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))
+        self.register_variable(Boolean("booleanVariable").set_causality(Fmi2Causality.local))
 
-    def doStep(self, currentTime, stepSize):
-        print(f"doStep, currentTime={currentTime}, stepSize={stepSize}")
-
+    def do_step(self, current_time, step_size):
+        return True
 ```
 
 ####### Create the FMU 
