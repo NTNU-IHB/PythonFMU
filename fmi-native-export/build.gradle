@@ -5,7 +5,7 @@ plugins {
     id "cpp-library"
 }
 
-if (!project.getProperties().get("skipBuildNative", false)) {
+if (project.getProperties().get("skipBuildNative", false) != "true") {
 
     def pythonHome = System.getenv("PYTHONHOME")
     if (pythonHome == null) {
