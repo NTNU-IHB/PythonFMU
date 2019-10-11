@@ -32,6 +32,10 @@ public:
 
     void getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value);
 
+    void setReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* value);
+
+    void setInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* value);
+
     ~PyObjectWrapper();
 
 private:

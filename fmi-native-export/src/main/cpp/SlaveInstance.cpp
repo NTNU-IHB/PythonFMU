@@ -47,10 +47,12 @@ void SlaveInstance::Terminate()
 
 void SlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* value)
 {
+    instance_.setReal(vr, nvr, value);
 }
 
 void SlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* value)
 {
+    instance_.setInteger(vr, nvr, value);
 }
 
 void SlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* value)

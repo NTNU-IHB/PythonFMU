@@ -76,7 +76,6 @@ void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_
         PyList_SetItem(refs, i, Py_BuildValue("i", 0));
     }
     auto f = PyObject_CallMethod(pInstance_, "getInteger", "(OO)", vrs, refs);
-    std::cout << f << std::endl;
     Py_XDECREF(f);
 
     for (int i = 0; i < nvr; i++) {
@@ -88,6 +87,7 @@ void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_
     Py_XDECREF(vrs);
     Py_XDECREF(refs);
 }
+
 void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* values)
 {
     PyObject* vrs = PyList_New(nvr);
@@ -109,6 +109,39 @@ void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t n
     Py_DECREF(vrs);
     Py_DECREF(refs);
 }
+
+void PyObjectWrapper::setInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* values)
+{
+    PyObject* vrs = PyList_New(nvr);
+    PyObject* refs = PyList_New(nvr);
+    for (int i = 0; i < nvr; i++) {
+        PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
+        PyList_SetItem(refs, i, Py_BuildValue("i", values[i]));
+    }
+
+    auto f = PyObject_CallMethod(pInstance_, "setInteger", "(OO)", vrs, refs);
+    Py_XDECREF(f);
+
+    Py_DECREF(vrs);
+    Py_DECREF(refs);
+}
+
+void PyObjectWrapper::setReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* values)
+{
+    PyObject* vrs = PyList_New(nvr);
+    PyObject* refs = PyList_New(nvr);
+    for (int i = 0; i < nvr; i++) {
+        PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
+        PyList_SetItem(refs, i, Py_BuildValue("d", values[i]));
+    }
+
+    auto f = PyObject_CallMethod(pInstance_, "setReal", "(OO)", vrs, refs);
+    Py_XDECREF(f);
+
+    Py_DECREF(vrs);
+    Py_DECREF(refs);
+}
+
 
 PyObjectWrapper::~PyObjectWrapper()
 {
