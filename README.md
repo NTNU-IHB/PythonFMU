@@ -19,7 +19,7 @@ Usage: pythonfmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
 
 ##### Example: 
 
-####### Write the script
+###### Write the script
 
 ```python
 from pythonfmu.Fmi2Slave import *
@@ -44,7 +44,7 @@ class Model(Fmi2Slave):
         return True
 ```
 
-####### Create the FMU 
+###### Create the FMU 
 
 ```
 java -jar pythonfmu-builder.jar -f model.py pythonfmu
