@@ -4,7 +4,6 @@
 
 #include <cppfmu/cppfmu_cs.hpp>
 
-#include <fstream>
 #include <iostream>
 
 namespace pythonfmu
@@ -64,11 +63,12 @@ void SlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t n
 
 void SlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value) const
 {
+    instance_.getReal(vr, nvr, value);
 }
-
 
 void SlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* value) const
 {
+    instance_.getInteger(vr, nvr, value);
 }
 
 void SlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* value) const

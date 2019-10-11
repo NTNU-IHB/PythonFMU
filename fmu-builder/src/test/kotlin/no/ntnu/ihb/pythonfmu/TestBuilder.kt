@@ -1,6 +1,8 @@
 package no.ntnu.ihb.pythonfmu
 
 import no.ntnu.ihb.fmi4j.importer.fmi2.Fmu
+import no.ntnu.ihb.fmi4j.readInteger
+import no.ntnu.ihb.fmi4j.readReal
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -27,6 +29,9 @@ class TestBuilder {
                 for (i in 0 until 10) {
                     slave.doStep(1.0/100)
                 }
+
+                Assertions.assertEquals(1, slave.readInteger(0).value)
+                Assertions.assertEquals(3.0, slave.readReal("realOut").value)
 
                 slave.terminate()
 

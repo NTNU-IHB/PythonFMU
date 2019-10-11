@@ -3,6 +3,7 @@
 #define PYTHONFMU_PYOBJECTWRAPPER_HPP
 
 #include <pythonfmu/thread_worker.hpp>
+#include <cppfmu/cppfmu_common.hpp>
 
 #include <Python.h>
 
@@ -13,7 +14,7 @@ class PyObjectWrapper
 {
 
 public:
-    PyObjectWrapper(const std::string& resources);
+    explicit PyObjectWrapper(const std::string& resources);
 
     void setupExperiment(double startTime);
 
@@ -26,6 +27,10 @@ public:
     void reset();
 
     void terminate();
+
+    void getInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* value);
+
+    void getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value);
 
     ~PyObjectWrapper();
 
