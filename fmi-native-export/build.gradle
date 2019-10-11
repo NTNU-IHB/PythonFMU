@@ -7,7 +7,8 @@ plugins {
 
 def pythonHome = System.getenv("PYTHONHOME")
 if (pythonHome == null) {
-    throw new GradleException("No PYTHONHOME set!")
+    logger.warn('No PYTHONHOME set! Native project will not be built..')
+    return
 }
 def pythonLib = new File(pythonHome).name.toLowerCase()
 
