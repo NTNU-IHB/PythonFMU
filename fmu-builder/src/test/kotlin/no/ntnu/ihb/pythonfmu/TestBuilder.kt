@@ -3,7 +3,6 @@ package no.ntnu.ihb.pythonfmu
 import no.ntnu.ihb.fmi4j.importer.fmi2.Fmu
 import no.ntnu.ihb.fmi4j.readInteger
 import no.ntnu.ihb.fmi4j.readReal
-import no.ntnu.ihb.fmi4j.write
 import no.ntnu.ihb.fmi4j.writeInteger
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
