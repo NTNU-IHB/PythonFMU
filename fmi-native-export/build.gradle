@@ -5,87 +5,91 @@ plugins {
     id "cpp-library"
 }
 
-def pythonHome = System.getenv("PYTHONHOME")
-if (pythonHome == null) {
-    throw new GradleException("No PYTHONHOME set!")
-}
-def pythonLib = new File(pythonHome).name.toLowerCase()
+if (!project.getProperties().get("skipBuildNative", false)) {
 
-def javaHome = Jvm.current().javaHome
+    def pythonHome = System.getenv("PYTHONHOME")
+    if (pythonHome == null) {
+        throw new GradleException("No PYTHONHOME set!")
+    }
+    def pythonLib = new File(pythonHome).name.toLowerCase()
 
-library { CppLibrary lib ->
+    def javaHome = Jvm.current().javaHome
 
-    baseName.set("pythonfmu-export")
+    library { CppLibrary lib ->
 
-    targetMachines.set([
-            machines.windows.x86_64,
-            machines.linux.x86_64,
-    ])
+        baseName.set("pythonfmu-export")
 
-    lib.binaries.whenElementFinalized { CppBinary binary ->
-        project.dependencies {
+        targetMachines.set([
+                machines.windows.x86_64,
+                machines.linux.x86_64,
+        ])
 
-            //python
-            add(binary.runtimeLibraries.name, files("$pythonHome"))
-            add(binary.includePathConfiguration.name, files("$pythonHome/include"))
-            add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$pythonHome/libs/$pythonLib")))
+        lib.binaries.whenElementFinalized { CppBinary binary ->
+            project.dependencies {
 
-            //jni
-            add(binary.runtimeLibraries.name, files("$javaHome/jre/bin/server"))
-            add(binary.includePathConfiguration.name, files("$javaHome/include"))
+                //python
+                add(binary.runtimeLibraries.name, files("$pythonHome"))
+                add(binary.includePathConfiguration.name, files("$pythonHome/include"))
+                add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$pythonHome/libs/$pythonLib")))
 
-            if (OperatingSystem.current().isLinux()) {
-                add(binary.includePathConfiguration.name, files("$javaHome/include/linux"))
-                def libjvm = OperatingSystem.current().getLinkLibraryName("$javaHome/lib/server/jvm")
-                Runtime.getRuntime().exec("sh", "-c", "sudo chmod +x $libjvm")
-                add(binary.linkLibraries.name, files(libjvm))
-            } else if (OperatingSystem.current().isWindows()) {
-                add(binary.includePathConfiguration.name, files("$javaHome/include/win32"))
-                add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$javaHome/lib/jvm")))
-            } else {
-                throw new IllegalStateException("Unsupported OS: " + OperatingSystem.current().name)
+                //jni
+                add(binary.runtimeLibraries.name, files("$javaHome/jre/bin/server"))
+                add(binary.includePathConfiguration.name, files("$javaHome/include"))
+
+                if (OperatingSystem.current().isLinux()) {
+                    add(binary.includePathConfiguration.name, files("$javaHome/include/linux"))
+                    def libjvm = OperatingSystem.current().getLinkLibraryName("$javaHome/lib/server/jvm")
+                    Runtime.getRuntime().exec("sh", "-c", "sudo chmod +x $libjvm")
+                    add(binary.linkLibraries.name, files(libjvm))
+                } else if (OperatingSystem.current().isWindows()) {
+                    add(binary.includePathConfiguration.name, files("$javaHome/include/win32"))
+                    add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$javaHome/lib/jvm")))
+                } else {
+                    throw new IllegalStateException("Unsupported OS: " + OperatingSystem.current().name)
+                }
+
             }
 
         }
 
     }
 
-}
+    def assembleAllRelease = []
 
-def assembleAllRelease = []
-
-tasks.all {
-    if (it.name.contains("assembleRelease")) {
-        assembleAllRelease.add(it)
-    }
-}
-
-tasks.register("assembleAllRelease")
-
-tasks.register("copyNativeLibs") {
-
-    doLast {
-        copy {
-
-            into "$rootDir/fmu-builder/src/main/resources/binaries/"
-
-            if (OperatingSystem.current().isLinux()) {
-                into("linux64") {
-                    from "$buildDir/lib/main/release/linux"
-                    include "*.so"
-                }
-            } else if (OperatingSystem.current().isWindows()) {
-                into("win64") {
-                    from "$buildDir/lib/main/release/windows/"
-                    include "*.dll"
-                }
-            } else {
-                throw new Exception("Unsupported OS: " + OperatingSystem.current().name)
-            }
-
+    tasks.all {
+        if (it.name.contains("assembleRelease")) {
+            assembleAllRelease.add(it)
         }
     }
 
-    dependsOn assembleAllRelease
+    tasks.register("assembleAllRelease")
+
+    tasks.register("copyNativeLibs") {
+
+        doLast {
+            copy {
+
+                into "$rootDir/fmu-builder/src/main/resources/binaries/"
+
+                if (OperatingSystem.current().isLinux()) {
+                    into("linux64") {
+                        from "$buildDir/lib/main/release/linux"
+                        include "*.so"
+                    }
+                } else if (OperatingSystem.current().isWindows()) {
+                    into("win64") {
+                        from "$buildDir/lib/main/release/windows/"
+                        include "*.dll"
+                    }
+                } else {
+                    throw new Exception("Unsupported OS: " + OperatingSystem.current().name)
+                }
+
+            }
+        }
+
+        dependsOn assembleAllRelease
+
+    }
 
 }
