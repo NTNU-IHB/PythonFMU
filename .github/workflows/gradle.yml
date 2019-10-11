@@ -21,8 +21,8 @@ jobs:
       run: |
         unameOut="$(uname -s)"
         case "${unameOut}" in
-            MINGW*)     cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
-            Linux*)     cmake -H. -Bbuild;;
+            MINGW*)     cd fmi-native-export && cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
+            Linux*)     cd fmi-native-export && cmake -H. -Bbuild;;
         esac
       shell: bash
 
@@ -30,8 +30,8 @@ jobs:
       run: |
         unameOut="$(uname -s)"
         case "${unameOut}" in
-            MINGW*)     cmake --build build --config Release;;
-            Linux*)     cmake --build build;;
+            MINGW*)     cd fmi-native-export && cmake --build build --config Release;;
+            Linux*)     cd fmi-native-export && cmake --build build;;
         esac
       shell: bash
 
