@@ -18,7 +18,7 @@ jobs:
         java-version: 11.0.3
 
     - name: Build
-      run: ./gradlew clean :fmu-builder:shadowJar
+      run: ./gradlew clean build shadowJar
       shell: bash
 
     - uses: actions/upload-artifact@master
