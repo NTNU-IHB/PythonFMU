@@ -17,7 +17,25 @@ jobs:
       with:
         java-version: 11.0.3
 
-    - name: Build
+    - name: Configure natives
+        run: |
+          unameOut="$(uname -s)"
+          case "${unameOut}" in
+              MINGW*)     cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
+              Linux*)     cmake -H. -Bbuild;;
+          esac
+        shell: bash
+
+    - name: Build natives
+      run: |
+        unameOut="$(uname -s)"
+        case "${unameOut}" in
+            MINGW*)     cmake --build build --config Release;;
+            Linux*)     cmake --build build;;
+        esac
+      shell: bash
+
+    - name: Build pythonfmu-builder
       run: ./gradlew clean build shadowJar
       shell: bash
 
