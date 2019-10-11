@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-18.04, windows-2016]
     
     steps:
     - uses: actions/checkout@v1
@@ -17,11 +17,29 @@ jobs:
       with:
         java-version: 11.0.3
 
-    - name: Build
-      run: ./gradlew clean :fmu-builder:shadowJar
+    - name: Configure natives
+      run: |
+        unameOut="$(uname -s)"
+        case "${unameOut}" in
+            MINGW*)     cd fmi-native-export && cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
+            Linux*)     cd fmi-native-export && cmake -H. -Bbuild;;
+        esac
+      shell: bash
+
+    - name: Build natives
+      run: |
+        unameOut="$(uname -s)"
+        case "${unameOut}" in
+            MINGW*)     cd fmi-native-export && cmake --build build --config Release;;
+            Linux*)     cd fmi-native-export && cmake --build build;;
+        esac
+      shell: bash
+
+    - name: Build pythonfmu-builder
+      run: ./gradlew clean shadowJar
       shell: bash
 
     - uses: actions/upload-artifact@master
       with:
         name: pythonfmu-builder
-        path: fmu-builder/build/libs/
+        path: fmu-builder/build/libs/pythonfmu-builder.jar
