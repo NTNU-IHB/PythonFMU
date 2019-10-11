@@ -5,12 +5,47 @@ plugins {
     id "cpp-library"
 }
 
-def pythonHome = System.getenv("PYTHONHOME")
-if (pythonHome == null) {
-    logger.warn('No PYTHONHOME set! Native project will not be built..')
-    return
+def python = OperatingSystem.current().isLinux() ? "python3" : "python"
+
+ext.getPythonIncludeDir = {
+
+    ProcessBuilder builder = new ProcessBuilder(python, "-c", "from sysconfig import get_paths as gp; print(gp()['include'])")
+    builder.redirectErrorStream(true)
+    Process process = builder.start()
+    InputStream is = process.getInputStream()
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is))
+
+    return reader.readLine()
+
 }
-def pythonLib = new File(pythonHome).name.toLowerCase()
+
+ext.getPythonLibDir = {
+
+    ProcessBuilder builder = new ProcessBuilder(python, "-c", "from sysconfig import get_paths as gp; print(gp()['stdlib'])")
+    builder.redirectErrorStream(true)
+    Process process = builder.start()
+    InputStream is = process.getInputStream()
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is))
+
+    return reader.readLine()
+
+}
+
+ext.getPythonDir = {
+
+    ProcessBuilder builder = new ProcessBuilder(python, "-c", "from sysconfig import get_paths as gp; print(gp()['data'])")
+    builder.redirectErrorStream(true)
+    Process process = builder.start()
+    InputStream is = process.getInputStream()
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is))
+
+    return reader.readLine()
+
+}
+
+def pythonIncludeDir = getPythonIncludeDir()
+def pythonLibDir = getPythonLibDir()
+def pythonDir = getPythonDir()
 
 def javaHome = Jvm.current().javaHome
 
@@ -27,9 +62,9 @@ library { CppLibrary lib ->
         project.dependencies {
 
             //python
-            add(binary.runtimeLibraries.name, files("$pythonHome"))
-            add(binary.includePathConfiguration.name, files("$pythonHome/include"))
-            add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$pythonHome/libs/$pythonLib")))
+            add(binary.runtimeLibraries.name, files("$pythonDir"))
+            add(binary.includePathConfiguration.name, files("$pythonIncludeDir"))
+            add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$pythonLibDir")))
 
             //jni
             add(binary.runtimeLibraries.name, files("$javaHome/jre/bin/server"))
@@ -37,12 +72,8 @@ library { CppLibrary lib ->
 
             if (OperatingSystem.current().isLinux()) {
                 add(binary.includePathConfiguration.name, files("$javaHome/include/linux"))
-                def libjvm = OperatingSystem.current().getLinkLibraryName("$javaHome/lib/server/jvm")
-                Runtime.getRuntime().exec("sh", "-c", "sudo chmod +x $libjvm")
-                add(binary.linkLibraries.name, files(libjvm))
             } else if (OperatingSystem.current().isWindows()) {
                 add(binary.includePathConfiguration.name, files("$javaHome/include/win32"))
-                add(binary.linkLibraries.name, files(OperatingSystem.current().getLinkLibraryName("$javaHome/lib/jvm")))
             } else {
                 throw new IllegalStateException("Unsupported OS: " + OperatingSystem.current().name)
             }
