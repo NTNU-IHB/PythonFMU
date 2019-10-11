@@ -4,6 +4,7 @@ import no.ntnu.ihb.fmi4j.importer.fmi2.Fmu
 import no.ntnu.ihb.fmi4j.readInteger
 import no.ntnu.ihb.fmi4j.readReal
 import no.ntnu.ihb.fmi4j.writeInteger
+import no.ntnu.ihb.fmi4j.writeReal
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -34,8 +35,11 @@ class TestBuilder {
                 Assertions.assertEquals(1, slave.readInteger(0).value)
                 Assertions.assertEquals(3.0, slave.readReal("realOut").value)
 
-                Assertions.assertTrue(slave.writeInteger(0, 2).isOK())
-                Assertions.assertEquals(2, slave.readInteger(0).value)
+                Assertions.assertTrue(slave.writeInteger("intOut", 2).isOK())
+                Assertions.assertEquals(2, slave.readInteger("intOut").value)
+
+                Assertions.assertTrue(slave.writeReal("realOut", 6.0).isOK())
+                Assertions.assertEquals(6.0, slave.readReal("realOut").value)
 
                 slave.terminate()
 
