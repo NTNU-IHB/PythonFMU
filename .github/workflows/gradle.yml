@@ -36,10 +36,10 @@ jobs:
       shell: bash
 
     - name: Build pythonfmu-builder
-      run: ./gradlew clean build shadowJar
+      run: ./gradlew clean shadowJar
       shell: bash
 
     - uses: actions/upload-artifact@master
       with:
         name: pythonfmu-builder
-        path: fmu-builder/build/libs/
+        path: fmu-builder/build/libs/pythonfmu-builder.jar
