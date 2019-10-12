@@ -1,15 +1,20 @@
 # PythonFMU (work in progress)
 Export Python3 code as FMUs
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
+
+[![Gitter](https://badges.gitter.im/NTNU-IHB/FMI4j.svg)](https://gitter.im/NTNU-IHB/PythonFMU?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 
 ### How do I build an FMU from python code?
 
-1) Download the `Fmi2Slave.py` source file
+1) Download the [Fmi2Slave.py](Fmi2Slave.py) source file.
 2) In a new file, create a new class called `Model` extending the `Fmi2Slave` class declared in `Fmi2Slave.py`.
-3) Run `pythonfmu-builder`
+3) Run the `pythonfmu-builder.jar` (Built by Github Actions).
 
 ```
-Usage: fmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
+Usage: pythonfmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
       [Project files...]    Additional project files required by the Python script.
   -d, --dest=<destFile>     Where to save the FMU.
   -f, --file=<scriptFile>   Path to the Python script.
@@ -19,7 +24,7 @@ Usage: fmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
 
 ##### Example: 
 
-####### Write the script
+###### Write the script
 
 ```python
 from pythonfmu.Fmi2Slave import *
@@ -44,10 +49,10 @@ class Model(Fmi2Slave):
         return True
 ```
 
-####### Create the FMU 
+###### Create the FMU 
 
 ```
 java -jar pythonfmu-builder.jar -f model.py pythonfmu
 ```
 
-In this example a python slave (extending `Fmi2Slave`) is declared in a file named `model.py`. `pythonfmu` is a folder containing additional project files required by `model.py`, including `Fmi2Slave.py`. Project folders such as this will be recursively copied into the FMU 
+In this example a python slave (extending `Fmi2Slave`) is declared in a file named `model.py`. `pythonfmu` is a folder containing additional project files required by `model.py`, including `Fmi2Slave.py`. Project folders such as this will be recursively copied into the FMU.
