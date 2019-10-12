@@ -5,6 +5,12 @@ plugins {
     id "com.github.johnrengelman.shadow" version "4.0.4"
 }
 
+println "Gradle version is ${gradle.getGradleVersion()}"
+
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
+
 def group = "no.ntnu.ihb.pythonfmu"
 mainClassName = "${group}.FmuBuilder"
 
