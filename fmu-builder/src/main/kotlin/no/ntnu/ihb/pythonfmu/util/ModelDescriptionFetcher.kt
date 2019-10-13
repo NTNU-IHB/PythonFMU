@@ -31,6 +31,6 @@ object ModelDescriptionFetcher {
 
     }
 
-    external fun getModelDescription(scriptDir: String, moduleName: String): String
+    external fun getModelDescription(scriptDir: String, moduleName: String, className: String): String
 
 }

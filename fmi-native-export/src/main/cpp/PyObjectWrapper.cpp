@@ -6,14 +6,26 @@
 #include <utility>
 #include <fstream>
 
+namespace
+{
+
+inline std::string getline(const std::string& fileName)
+{
+    std::string line;
+    std::ifstream infile(fileName);
+    std::getline(infile, line);
+    return line;
+}
+
+}
+
 namespace pythonfmu
 {
 
 PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 {
-    std::string scriptModule;
-    std::ifstream infile(resources + "/slavemodule.txt");
-    std::getline(infile, scriptModule);
+    std::string moduleName = getline(resources + "/slavemodule.txt");
+    std::string className = getline(resources + "/slaveclass.txt");
 
     std::ostringstream oss;
     oss << "import sys\n";
@@ -21,8 +33,8 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 
     PyRun_SimpleString(oss.str().c_str());
 
-    pModule_ = PyImport_ImportModule(scriptModule.c_str());
-    pClass_ = PyObject_GetAttrString(pModule_, "Model");
+    pModule_ = PyImport_ImportModule(moduleName.c_str());
+    pClass_ = PyObject_GetAttrString(pModule_, className.c_str());
     pInstance_ = PyObject_CallFunctionObjArgs(pClass_, nullptr);
 
     auto f = PyObject_CallMethod(pInstance_, "define", nullptr);

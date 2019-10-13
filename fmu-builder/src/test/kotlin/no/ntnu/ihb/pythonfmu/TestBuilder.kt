@@ -12,7 +12,7 @@ class TestBuilder {
     fun testBuilder() {
 
         val dest = "build/generated"
-        val scriptFile = File(TestBuilder::class.java.classLoader.getResource("pythonslave.py").file).absolutePath
+        val scriptFile = File(TestBuilder::class.java.classLoader.getResource("python_slave.py").file).absolutePath
 
         FmuBuilder.main(arrayOf("-f", scriptFile, "-d", dest))
 
