@@ -14,7 +14,7 @@ class TestBuilder {
         val dest = "build/generated"
         val scriptFile = File(TestBuilder::class.java.classLoader.getResource("pythonslave.py").file).absolutePath
 
-        FmuBuilder.main(arrayOf("-f", scriptFile, "-d", dest))
+        FmuBuilder.main(arrayOf("-f", scriptFile, "-c", "PythonSlave", "-d", dest))
 
         val fmuFile = File(dest, "PythonSlave.fmu")
         Assertions.assertTrue(fmuFile.exists())

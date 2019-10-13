@@ -6,7 +6,12 @@
 
 extern "C" {
 
-JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetcher_getModelDescription(JNIEnv* env, jobject obj, jstring jScriptPath, jstring jModuleName)
+JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetcher_getModelDescription(
+    JNIEnv* env,
+    jobject obj,
+    jstring jScriptPath,
+    jstring jModuleName,
+    jstring jClassName)
 {
 
     Py_Initialize();
@@ -21,7 +26,11 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
     const char* moduleName = env->GetStringUTFChars(jModuleName, nullptr);
     PyObject* pModule = PyImport_ImportModule(moduleName);
     env->ReleaseStringUTFChars(jModuleName, moduleName);
-    PyObject* modelClass = PyObject_GetAttrString(pModule, "Model");
+
+    const char* className = env->GetStringUTFChars(jClassName, nullptr);
+    PyObject* modelClass = PyObject_GetAttrString(pModule, className);
+    env->ReleaseStringUTFChars(jClassName, className);
+
     PyObject* modelInstance = PyObject_CallFunctionObjArgs(modelClass, nullptr);
 
     Py_XDECREF(PyObject_CallMethod(modelInstance, "define", nullptr));

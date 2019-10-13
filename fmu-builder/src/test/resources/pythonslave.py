@@ -1,8 +1,8 @@
 
-from Fmi2Slave import *
+from fmi2slave import *
 
 
-class Model(Fmi2Slave):
+class PythonSlave(Fmi2Slave):
 
     Fmi2Slave.modelName = "PythonSlave"
     Fmi2Slave.author = "Lars Ivar Hatledal"
