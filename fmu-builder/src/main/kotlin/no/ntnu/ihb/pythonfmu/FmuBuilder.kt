@@ -22,6 +22,9 @@ object FmuBuilder {
         @CommandLine.Option(names = ["-f", "--file"], description = ["Path to the Python script."], required = true)
         lateinit var scriptFile: File
 
+        @CommandLine.Option(names = ["-c", "--class"], description = ["Name of the Python class."], required = true)
+        var className: String = ""
+
         @CommandLine.Option(names = ["-d", "--dest"], description = ["Where to save the FMU."], required = false)
         var destFile: File? = null
 
@@ -32,11 +35,11 @@ object FmuBuilder {
 
             require(scriptFile.exists()) { "No such File '$scriptFile'" }
             require(scriptFile.name.endsWith(".py")) { "File '${scriptFile.name}' must have extension '.py'!" }
+            require(className.isNotEmpty()) { "No class name provided!" }
 
             val scriptParentFile = scriptFile.absoluteFile.parentFile
 
             val moduleName = scriptFile.nameWithoutExtension
-            val className = moduleName.split("_").joinToString("") { it.capitalize() }
             val xml = ModelDescriptionFetcher
                     .getModelDescription(scriptParentFile.absolutePath, moduleName, className)
 

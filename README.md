@@ -11,19 +11,16 @@ Export Python3 code as FMUs
 
 1) Download the [fmi2slave](fmi2slave.py) module.
 2) Create a new class extending the `Fmi2Slave` class declared in the `fmi2slave` module. 
-The file in which this new class is defined, must be written using snake_case as per Python conventions. 
-The name of the class extending `Fmi2Slave` within this file MUST be the PascalCase ("UpperCamelCase") version of the file name. 
-
-Example: File name: `this_is_an_example.py` -> Class name: `ThisIsAnExample`. 
 3) Run `pythonfmu-builder.jar` (Built by Github Actions).
 
 ```
-Usage: pythonfmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
+Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
+                         [Project files...]
       [Project files...]    Additional project files required by the Python script.
+  -c, --class=<className>   Name of the Python class.
   -d, --dest=<destFile>     Where to save the FMU.
   -f, --file=<scriptFile>   Path to the Python script.
   -h, --help                Print this message and quits.
-
 ```
 
 ##### Example: 
@@ -58,9 +55,9 @@ class PythonSlave(Fmi2Slave):
 ###### Create the FMU 
 
 ```
-java -jar pythonfmu-builder.jar -f model.py pythonfmu
+java -jar pythonfmu-builder.jar -f pythonslave.py -c PythonSlave pythonfmu
 ```
 
-In this example a python class (extending `Fmi2Slave`) is declared in a file named `python_slave.py`. 
+In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`. 
 `pythonfmu` is a folder containing additional project files required by the python script, including `fmi2slave.py`. 
 Project folders such as this will be recursively copied into the FMU. Multiple files/folders may be added.
