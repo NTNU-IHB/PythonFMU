@@ -9,9 +9,12 @@ Export Python3 code as FMUs
 
 ### How do I build an FMU from python code?
 
-1) Download the [Fmi2Slave.py](Fmi2Slave.py) source file.
-2) In a new file, create a new class called `Model` extending the `Fmi2Slave` class declared in `Fmi2Slave.py`.
-3) Run the `pythonfmu-builder.jar` (Built by Github Actions).
+1) Download the [fmi2slave](fmi2slave.py) module.
+2) Create a new class extending the `Fmi2Slave` class declared in the `fmi2slave` module. 
+The file in which this new class is defined, must be written using snake_case as per Python conventions. 
+The name of the class extending `Fmi2Slave` within this file MUST be the CamelCase version of the file name. 
+Example: File name: `this_is_an_example.py` -> Class name: `ThisIsAnExample`. 
+3) Run `pythonfmu-builder.jar` (Built by Github Actions).
 
 ```
 Usage: pythonfmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
@@ -27,10 +30,12 @@ Usage: pythonfmu-builder [-h] [-d=<destFile>] -f=<scriptFile> [Project files...]
 ###### Write the script
 
 ```python
-from pythonfmu.Fmi2Slave import *
+#  filename: python_slave.py
+
+from pythonfmu.fmi2slave import *
 
 
-class Model(Fmi2Slave):
+class PythonSlave(Fmi2Slave):
 
     Fmi2Slave.modelName = "PythonSlave"
     Fmi2Slave.author = "John Doe"
@@ -55,4 +60,6 @@ class Model(Fmi2Slave):
 java -jar pythonfmu-builder.jar -f model.py pythonfmu
 ```
 
-In this example a python slave (extending `Fmi2Slave`) is declared in a file named `model.py`. `pythonfmu` is a folder containing additional project files required by `model.py`, including `Fmi2Slave.py`. Project folders such as this will be recursively copied into the FMU.
+In this example a python class (extending `Fmi2Slave`) is declared in a file named `python_slave.py`. 
+`pythonfmu` is a folder containing additional project files required by the python script, including `fmi2slave.py`. 
+Project folders such as this will be recursively copied into the FMU. Multiple files/folders may be added.
