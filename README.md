@@ -12,7 +12,8 @@ Export Python3 code as FMUs
 1) Download the [fmi2slave](fmi2slave.py) module.
 2) Create a new class extending the `Fmi2Slave` class declared in the `fmi2slave` module. 
 The file in which this new class is defined, must be written using snake_case as per Python conventions. 
-The name of the class extending `Fmi2Slave` within this file MUST be the CamelCase version of the file name. 
+The name of the class extending `Fmi2Slave` within this file MUST be the PascalCase ("UpperCamelCase") version of the file name. 
+
 Example: File name: `this_is_an_example.py` -> Class name: `ThisIsAnExample`. 
 3) Run `pythonfmu-builder.jar` (Built by Github Actions).
 
