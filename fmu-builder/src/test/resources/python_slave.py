@@ -1,5 +1,5 @@
 
-from fmi2_slave import *
+from fmi2slave import *
 
 
 class PythonSlave(Fmi2Slave):

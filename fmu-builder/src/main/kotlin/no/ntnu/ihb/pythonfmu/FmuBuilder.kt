@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream
 
 object FmuBuilder {
 
-    private const val fmi2slaveFileName = "fmi2_slave.py"
+    private const val fmi2slaveFileName = "fmi2slave.py"
 
     @CommandLine.Command(name = "pythonfmu-builder")
     class Args : Runnable {
