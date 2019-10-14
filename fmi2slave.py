@@ -19,16 +19,32 @@ class Fmi2Variability(Enum):
     continuous = 4
 
 
+class Fmi2Initial(Enum):
+    exact = 0,
+    approx = 1,
+    calculated = 2
+
+
 class ScalarVariable(ABC):
 
     vr_counter = 0
 
     def __init__(self, name):
         self.name = name
+        self.initial = None
         self.causality = None
         self.variability = None
+        self.description = None
         self.value_reference = ScalarVariable.vr_counter
         ScalarVariable.vr_counter += 1
+
+    def set_description(self, description: str):
+        self.description = description
+        return self
+
+    def set_initial(self, initial: Fmi2Initial):
+        self.initial = initial
+        return self
 
     def set_causality(self, causality: Fmi2Causality):
         self.causality = causality
@@ -40,10 +56,14 @@ class ScalarVariable(ABC):
 
     def string_repr(self):
         strRepr = f"<ScalarVariable valueReference=\"{self.value_reference}\" name=\"{self.name}\""
+        if self.initial is not None:
+            strRepr += f" initial=\"{self.initial.name}\""
         if self.causality is not None:
             strRepr += f" causality=\"{self.causality.name}\""
         if self.variability is not None:
             strRepr += f" variability=\"{self.variability.name}\""
+        if self.description is not None:
+            strRepr += f" description=\"{self.description}\""
         strRepr += ">\n"
         strRepr += "\t\t\t" + self.sub_string_repr() + "\n"
         return strRepr + "\t\t</ScalarVariable>"
@@ -96,6 +116,7 @@ class Fmi2Slave(ABC):
     author = ""
     license = ""
     version = ""
+    description = ""
     modelName = None
 
     def __init__(self):
@@ -115,7 +136,7 @@ class Fmi2Slave(ABC):
             structure_str += "\t\t</Outputs>"
 
         self.xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
+<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}" description="{Fmi2Slave.description}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
     <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="True" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
     <ModelVariables>
         {var_str}
