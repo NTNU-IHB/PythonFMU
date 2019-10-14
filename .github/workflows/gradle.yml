@@ -21,8 +21,8 @@ jobs:
       run: |
         unameOut="$(uname -s)"
         case "${unameOut}" in
-            MINGW*)     cd fmi-native-export && cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
-            Linux*)     cd fmi-native-export && cmake -H. -Bbuild;;
+            MINGW*)     cd pythonfmu-export && cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
+            Linux*)     cd pythonfmu-export && cmake -H. -Bbuild;;
         esac
       shell: bash
 
@@ -30,16 +30,16 @@ jobs:
       run: |
         unameOut="$(uname -s)"
         case "${unameOut}" in
-            MINGW*)     cd fmi-native-export && cmake --build build --config Release;;
-            Linux*)     cd fmi-native-export && cmake --build build;;
+            MINGW*)     cd pythonfmu-export && cmake --build build --config Release;;
+            Linux*)     cd pythonfmu-export && cmake --build build;;
         esac
       shell: bash
 
     - name: Build pythonfmu-builder
-      run: cd fmu-builder && ./gradlew clean shadowJar
+      run: cd pythonfmu-builder && ./gradlew clean shadowJar
       shell: bash
 
     - uses: actions/upload-artifact@master
       with:
         name: pythonfmu-builder
-        path: fmu-builder/build/libs/pythonfmu-builder.jar
+        path: pythonfmu-builder/build/libs/pythonfmu-builder.jar
