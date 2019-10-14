@@ -36,7 +36,12 @@ jobs:
       shell: bash
 
     - name: Build pythonfmu-builder
-      run: cd pythonfmu-builder && ./gradlew clean shadowJar
+      run: |
+        unameOut="$(uname -s)"
+        case "${unameOut}" in
+            MINGW*)     cd pythonfmu-builder && ./gradlew clean shadowJar;;
+            Linux*)     cd pythonfmu-builder && sudo chmod +x gradlew && ./gradlew clean shadowJar;;
+        esac
       shell: bash
 
     - uses: actions/upload-artifact@master
