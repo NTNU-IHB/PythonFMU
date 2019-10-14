@@ -36,7 +36,7 @@ jobs:
       shell: bash
 
     - name: Build pythonfmu-builder
-      run: cd pythonfmu-builder && ./gradlew clean shadowJar
+      run: cd pythonfmu-builder && sudo chmod +x gradlew && ./gradlew clean shadowJar
       shell: bash
 
     - uses: actions/upload-artifact@master
