@@ -28,7 +28,6 @@ Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
 ###### Write the script
 
 ```python
-#  filename: python_slave.py
 
 from pythonfmu.fmi2slave import *
 
