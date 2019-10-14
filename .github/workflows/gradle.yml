@@ -21,8 +21,8 @@ jobs:
       run: |
         unameOut="$(uname -s)"
         case "${unameOut}" in
-            MINGW*)     cd pythonfmu-native && cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
-            Linux*)     cd pythonfmu-native && cmake -H. -Bbuild;;
+            MINGW*)     cd pythonfmu-export && cmake . -G "Visual Studio 15 2017 Win64" -Bbuild;;
+            Linux*)     cd pythonfmu-export && cmake -H. -Bbuild;;
         esac
       shell: bash
 
@@ -30,8 +30,8 @@ jobs:
       run: |
         unameOut="$(uname -s)"
         case "${unameOut}" in
-            MINGW*)     cd pythonfmu-native && cmake --build build --config Release;;
-            Linux*)     cd pythonfmu-native && cmake --build build;;
+            MINGW*)     cd pythonfmu-export && cmake --build build --config Release;;
+            Linux*)     cd pythonfmu-export && cmake --build build;;
         esac
       shell: bash
 
