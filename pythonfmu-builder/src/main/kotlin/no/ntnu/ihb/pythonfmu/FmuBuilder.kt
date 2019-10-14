@@ -6,12 +6,31 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 object FmuBuilder {
 
     private const val fmi2slaveFileName = "fmi2slave.py"
+
+    private fun readXML(scriptFile: File, moduleName: String, className: String, projectFiles: List<File>): String {
+        var tempDir: File? = null
+
+        try {
+            tempDir = Files.createTempDirectory("pythonfmu_").toFile()
+            scriptFile.copyTo(File(tempDir, scriptFile.name))
+            projectFiles.forEach {
+                it.copyRecursively(File(tempDir, it.name))
+            }
+
+            return ModelDescriptionFetcher
+                    .getModelDescription(tempDir.absolutePath, moduleName, className)
+        } finally {
+            tempDir?.deleteRecursively()
+        }
+
+    }
 
     @CommandLine.Command(name = "pythonfmu-builder")
     class Args : Runnable {
@@ -38,10 +57,8 @@ object FmuBuilder {
             require(className.isNotEmpty()) { "No class name provided!" }
 
             val scriptParentFile = scriptFile.absoluteFile.parentFile
-
             val moduleName = scriptFile.nameWithoutExtension
-            val xml = ModelDescriptionFetcher
-                    .getModelDescription(scriptParentFile.absolutePath, moduleName, className)
+            val xml = readXML(scriptFile, moduleName, className, projectFiles)
 
             val regex = "modelIdentifier=\"(\\w+)\"".toRegex()
             val groups = regex.findAll(xml).toList().map { it.groupValues }
