@@ -60,4 +60,4 @@ java -jar pythonfmu-builder.jar -f pythonslave.py -c PythonSlave pythonfmu
 
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`. 
 `pythonfmu` is a folder containing additional project files required by the python script, including `fmi2slave.py`. 
-Project folders such as this will be recursively copied into the FMU. Multiple files/folders may be added.
+Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
