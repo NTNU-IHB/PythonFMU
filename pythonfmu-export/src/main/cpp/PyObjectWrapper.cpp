@@ -30,7 +30,6 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     std::ostringstream oss;
     oss << "import sys\n";
     oss << "sys.path.append(r'" << resources << "')\n";
-
     PyRun_SimpleString(oss.str().c_str());
 
     pModule_ = PyImport_ImportModule(moduleName.c_str());

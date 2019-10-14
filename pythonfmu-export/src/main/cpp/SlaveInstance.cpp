@@ -86,7 +86,7 @@ SlaveInstance::~SlaveInstance() = default;
 
 } // namespace pythonfmu
 
-pythonfmu::PythonState pythonState;
+std::unique_ptr<pythonfmu::PythonState> pythonState = nullptr;
 
 cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIString,
@@ -104,6 +104,10 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     auto find = resources.find("file:///");
     if (find != std::string::npos) {
         resources.replace(find, 8, "");
+    }
+
+    if (pythonState == nullptr) {
+        pythonState = std::make_unique<pythonfmu::PythonState>();
     }
 
     return cppfmu::AllocateUnique<pythonfmu::SlaveInstance>(

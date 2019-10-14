@@ -4,7 +4,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers)
 set(sources
         cpp/cppfmu_cs.cpp
         cpp/fmi_functions.cpp
-        cpp/jni_model_description_provider.cpp
+        cpp/model_description_provider.cpp
         cpp/PyObjectWrapper.cpp
         cpp/SlaveInstance.cpp
         cpp/thread_worker.cpp
