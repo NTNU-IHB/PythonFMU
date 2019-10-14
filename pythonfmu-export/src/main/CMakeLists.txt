@@ -29,11 +29,11 @@ target_link_libraries(pythonfmu-export
 if (WIN32)
   set_target_properties(pythonfmu-export
           PROPERTIES
-          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/../fmu-builder/src/main/resources/binaries/win64"
+          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/../pythonfmu-builder/src/main/resources/binaries/win64"
           )
 elseif (UNIX)
   set_target_properties(pythonfmu-export
           PROPERTIES
-          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../fmu-builder/src/main/resources/binaries/linux64"
+          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../pythonfmu-builder/src/main/resources/binaries/linux64"
           )
 endif ()
