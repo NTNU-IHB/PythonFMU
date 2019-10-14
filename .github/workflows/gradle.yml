@@ -42,4 +42,4 @@ jobs:
     - uses: actions/upload-artifact@master
       with:
         name: pythonfmu-builder
-        path: fmu-builder/build/libs/pythonfmu-builder.jar
+        path: pythonfmu-builder/build/libs/pythonfmu-builder.jar
