@@ -39,7 +39,7 @@ public:
 
 
 private:
-    mutable PyObjectWrapper instance_;
+    PyObjectWrapper instance_;
 };
 
 } // namespace pythonfmu

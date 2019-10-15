@@ -60,6 +60,7 @@ void SlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t 
 
 void SlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString const* value)
 {
+    instance_.setString(vr, nvr, value);
 }
 
 void SlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value) const
@@ -79,6 +80,7 @@ void SlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t 
 
 void SlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* value) const
 {
+    instance_.getString(vr, nvr, value);
 }
 
 SlaveInstance::~SlaveInstance() = default;

@@ -201,6 +201,15 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
 
+    def get_string(self, vrs, refs):
+        for i in range(len(vrs)):
+            vr = vrs[i]
+            var = self.vars[vr]
+            if isinstance(var, String):
+                refs[i] = getattr(self, var.name)
+            else:
+                raise Exception(f"Variable with valueReference={vr} is not of type String!")
+
     def set_integer(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
@@ -223,7 +232,16 @@ class Fmi2Slave(ABC):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
-            if isinstance(var, Real):
+            if isinstance(var, Boolean):
                 setattr(self, var.name, values[i])
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
+
+    def set_string(self, vrs, values):
+        for i in range(len(vrs)):
+            vr = vrs[i]
+            var = self.vars[vr]
+            if isinstance(var, String):
+                setattr(self, var.name, values[i])
+            else:
+                raise Exception(f"Variable with valueReference={vr} is not of type String!")

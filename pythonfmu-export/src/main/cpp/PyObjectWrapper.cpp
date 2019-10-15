@@ -78,7 +78,7 @@ void PyObjectWrapper::terminate()
     Py_XDECREF(f);
 }
 
-void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* values)
+void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* values) const
 {
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
@@ -99,7 +99,7 @@ void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_
     Py_XDECREF(refs);
 }
 
-void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* values)
+void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* values) const
 {
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
@@ -121,7 +121,7 @@ void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t n
     Py_DECREF(refs);
 }
 
-void PyObjectWrapper::getBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* values)
+void PyObjectWrapper::getBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* values) const
 {
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
@@ -135,6 +135,27 @@ void PyObjectWrapper::getBoolean(const cppfmu::FMIValueReference* vr, std::size_
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
         values[i] = PyObject_IsTrue(value);
+        Py_DECREF(value);
+    }
+
+    Py_XDECREF(vrs);
+    Py_XDECREF(refs);
+}
+
+void PyObjectWrapper::getString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* values) const
+{
+    PyObject* vrs = PyList_New(nvr);
+    PyObject* refs = PyList_New(nvr);
+    for (int i = 0; i < nvr; i++) {
+        PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
+        PyList_SetItem(refs, i, Py_BuildValue("s", ""));
+    }
+    auto f = PyObject_CallMethod(pInstance_, "get_string", "(OO)", vrs, refs);
+    Py_XDECREF(f);
+
+    for (int i = 0; i < nvr; i++) {
+        PyObject* value = PyList_GetItem(refs, i);
+        values[i] = PyUnicode_AsUTF8(value);
         Py_DECREF(value);
     }
 
@@ -190,6 +211,21 @@ void PyObjectWrapper::setBoolean(const cppfmu::FMIValueReference* vr, std::size_
     Py_DECREF(refs);
 }
 
+void PyObjectWrapper::setString(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIString* value)
+{
+    PyObject* vrs = PyList_New(nvr);
+    PyObject* refs = PyList_New(nvr);
+    for (int i = 0; i < nvr; i++) {
+        PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
+        PyList_SetItem(refs, i, Py_BuildValue("s", value[i]));
+    }
+
+    auto f = PyObject_CallMethod(pInstance_, "set_string", "(OO)", vrs, refs);
+    Py_XDECREF(f);
+
+    Py_DECREF(vrs);
+    Py_DECREF(refs);
+}
 
 PyObjectWrapper::~PyObjectWrapper()
 {

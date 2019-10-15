@@ -40,6 +40,12 @@ class TestBuilder {
                 Assertions.assertEquals(6.0, slave.readReal("realOut").value)
 
                 Assertions.assertTrue(slave.readBoolean("booleanVariable").value)
+                Assertions.assertTrue(slave.writeBoolean("booleanVariable", false).isOK())
+                Assertions.assertFalse(slave.readBoolean("booleanVariable").value)
+
+                Assertions.assertEquals("Hello, World!", slave.readString("stringVariable").value)
+                Assertions.assertTrue(slave.writeString("stringVariable", "foo").isOK())
+                Assertions.assertEquals("foo", slave.readString("stringVariable").value)
 
                 slave.terminate()
 

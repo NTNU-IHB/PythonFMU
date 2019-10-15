@@ -3,6 +3,7 @@
 #define PYTHONFMU_PYOBJECTWRAPPER_HPP
 
 #include <pythonfmu/thread_worker.hpp>
+
 #include <cppfmu/cppfmu_common.hpp>
 
 #include <Python.h>
@@ -28,17 +29,21 @@ public:
 
     void terminate();
 
-    void getInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* value);
+    void getInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* value) const;
 
-    void getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value);
+    void getReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value) const;
 
-    void getBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* value);
+    void getString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* value) const;
+
+    void getBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* value) const;
 
     void setReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* value);
 
     void setInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* value);
 
     void setBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* value);
+
+    void setString(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIString* value);
 
     ~PyObjectWrapper();
 
