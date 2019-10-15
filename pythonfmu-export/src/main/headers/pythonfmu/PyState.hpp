@@ -8,15 +8,15 @@
 namespace pythonfmu
 {
 
-class PythonState
+class PyState
 {
 public:
-    PythonState()
+    PyState()
     {
         Py_Initialize();
     }
 
-    ~PythonState()
+    ~PyState()
     {
         Py_Finalize();
     }
