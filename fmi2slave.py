@@ -113,10 +113,10 @@ class String(ScalarVariable):
 class Fmi2Slave(ABC):
 
     guid = uuid1()
-    author = ""
-    license = ""
-    version = ""
-    description = ""
+    author = None
+    license = None
+    version = None
+    description = None
     modelName = None
 
     def __init__(self):
@@ -135,8 +135,13 @@ class Fmi2Slave(ABC):
                 structure_str += f"\t\t\t<Unknown index=\"{i+1}\" />\n"
             structure_str += "\t\t</Outputs>"
 
+        desc_str =  f" description=\"{Fmi2Slave.description}\"" if Fmi2Slave.description is not None else ""
+        auth_str =  f" author=\"{Fmi2Slave.author}\"" if Fmi2Slave.author is not None else ""
+        lic_str =  f" license=\"{Fmi2Slave.license}\"" if Fmi2Slave.license is not None else ""
+        ver_str =  f" version=\"{Fmi2Slave.version}\"" if Fmi2Slave.version is not None else ""
+
         self.xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}" description="{Fmi2Slave.description}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
+<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}"{desc_str}{auth_str}{lic_str}{ver_str} generationTool="PythonFMU" variableNamingConvention="structured">
     <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="True" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="True" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
     <ModelVariables>
         {var_str}
