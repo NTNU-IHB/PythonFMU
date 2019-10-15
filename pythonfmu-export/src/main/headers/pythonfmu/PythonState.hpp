@@ -18,7 +18,7 @@ public:
 
     ~PythonState()
     {
-        Py_FinalizeEx();
+        Py_Finalize();
     }
 };
 
