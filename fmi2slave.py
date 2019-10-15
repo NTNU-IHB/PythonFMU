@@ -137,7 +137,7 @@ class Fmi2Slave(ABC):
 
         self.xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}" description="{Fmi2Slave.description}" author="{Fmi2Slave.author}" license="{Fmi2Slave.license}" version="{Fmi2Slave.version}" generationTool="PythonFMU" variableNamingConvention="structured">
-    <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="True" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
+    <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="True" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="True" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
     <ModelVariables>
         {var_str}
     </ModelVariables>
