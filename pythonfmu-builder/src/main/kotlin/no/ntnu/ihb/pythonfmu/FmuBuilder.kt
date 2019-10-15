@@ -15,10 +15,9 @@ object FmuBuilder {
     private const val fmi2slaveFileName = "fmi2slave.py"
 
     private fun readXML(scriptFile: File, moduleName: String, className: String, projectFiles: List<File>): String {
-        var tempDir: File? = null
 
+        val tempDir =  Files.createTempDirectory("pythonfmu_").toFile()
         try {
-            tempDir = Files.createTempDirectory("pythonfmu_").toFile()
             scriptFile.copyTo(File(tempDir, scriptFile.name))
             projectFiles.forEach {
                 it.copyRecursively(File(tempDir, it.name))
@@ -27,7 +26,7 @@ object FmuBuilder {
             return ModelDescriptionFetcher
                     .getModelDescription(tempDir.absolutePath, moduleName, className)
         } finally {
-            tempDir?.deleteRecursively()
+            tempDir.deleteRecursively()
         }
 
     }
