@@ -65,6 +65,7 @@ Project folders such as this will be recursively copied into the FMU. Multiple p
 
 ### Note
 
-PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries) . PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to ahve `numpy` installed.
+PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). 
+PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
 PythonFMU requires a x64 Python installation (You are however free to build x86 binaries yourself).
