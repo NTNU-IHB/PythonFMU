@@ -1,5 +1,5 @@
 # PythonFMU (work in progress)
-Export Python3 code as FMUs
+> A lightweight framework that enables the packaging of Python3.x code as co-simulation FMUs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
@@ -34,8 +34,9 @@ from pythonfmu.fmi2slave import *
 
 class PythonSlave(Fmi2Slave):
 
-    Fmi2Slave.modelName = "PythonSlave"
     Fmi2Slave.author = "John Doe"
+    Fmi2Slave.modelName = "PythonSlave"  # REQUIRED
+    Fmi2Slave.description = "A simple description"
 
     def __init__(self):
         super().__init__()
@@ -60,3 +61,10 @@ java -jar pythonfmu-builder.jar -f pythonslave.py -c PythonSlave pythonfmu
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`. 
 `pythonfmu` is a folder containing additional project files required by the python script, including `fmi2slave.py`. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
+
+
+### Note
+
+PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries) . PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to ahve `numpy` installed.
+
+PythonFMU requires a x64 Python installation (You are however free to build x86 binaries yourself).
