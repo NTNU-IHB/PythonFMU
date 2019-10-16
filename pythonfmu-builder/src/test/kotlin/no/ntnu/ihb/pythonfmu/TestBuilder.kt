@@ -19,9 +19,10 @@ class TestBuilder {
         val fmuFile = File(dest, "PythonSlave.fmu")
         Assertions.assertTrue(fmuFile.exists())
 
-        Fmu.from(fmuFile).use { fmu ->
+        Fmu.from(fmuFile).asCoSimulationFmu().use { fmu ->
 
-            fmu.asCoSimulationFmu().newInstance().use { slave ->
+            val slaves = List(2) {fmu.newInstance()}
+            slaves.forEach { slave ->
 
                 Assertions.assertTrue(slave.simpleSetup())
 

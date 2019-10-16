@@ -147,7 +147,6 @@ void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
         values[i] = static_cast<int>(PyLong_AsLong(value));
-        Py_DECREF(value);
     }
 
     Py_DECREF(refs);
@@ -172,7 +171,6 @@ void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t n
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
         values[i] = PyFloat_AsDouble(value);
-        Py_DECREF(value);
     }
 
     Py_DECREF(refs);
@@ -196,7 +194,6 @@ void PyObjectWrapper::getBoolean(const cppfmu::FMIValueReference* vr, std::size_
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
         values[i] = PyObject_IsTrue(value);
-        Py_DECREF(value);
     }
 
     Py_DECREF(refs);
@@ -220,7 +217,6 @@ void PyObjectWrapper::getString(const cppfmu::FMIValueReference* vr, std::size_t
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
         values[i] = PyUnicode_AsUTF8(value);
-        Py_DECREF(value);
     }
 
     Py_DECREF(refs);
