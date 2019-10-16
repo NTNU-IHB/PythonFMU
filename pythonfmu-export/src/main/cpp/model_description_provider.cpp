@@ -42,6 +42,9 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
 
         const char* xml = PyUnicode_AsUTF8(f);
         Py_XDECREF(f);
+
+        Py_Finalize();
+
         return env->NewStringUTF(xml);
     }
 }
