@@ -32,14 +32,18 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
     env->ReleaseStringUTFChars(jClassName, className);
 
     PyObject* modelInstance = PyObject_CallFunctionObjArgs(modelClass, nullptr);
-    Py_XDECREF(PyObject_CallMethod(modelInstance, "define", nullptr));
+    auto f = PyObject_CallMethod(modelInstance, "define", nullptr);
+    if (f == nullptr) {
 
-    PyObject* pyXml = PyObject_GetAttrString(modelInstance, "xml");
-    const char* xml = PyUnicode_AsUTF8(pyXml);
-    Py_XDECREF(pyXml);
+        Py_Finalize();
+        return nullptr;
 
-    Py_FinalizeEx();
+    } else {
 
-    return env->NewStringUTF(xml);
+        const char* xml = PyUnicode_AsUTF8(f);
+        Py_XDECREF(f);
+        return env->NewStringUTF(xml);
+    }
 }
+
 }

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import uuid1
 from enum import Enum
-
+import datetime
 
 class Fmi2Causality(Enum):
     parameter = 0,
@@ -116,12 +116,12 @@ class Fmi2Slave(ABC):
     author = None
     license = None
     version = None
-    description = None
+    copyright = None
     modelName = None
+    description = None
 
     def __init__(self):
         self.vars = []
-        self.xml = None
         if Fmi2Slave.modelName is None:
             raise Exception("No modelName has been specified!")
 
@@ -139,9 +139,13 @@ class Fmi2Slave(ABC):
         auth_str = f" author=\"{Fmi2Slave.author}\"" if Fmi2Slave.author is not None else ""
         lic_str = f" license=\"{Fmi2Slave.license}\"" if Fmi2Slave.license is not None else ""
         ver_str = f" version=\"{Fmi2Slave.version}\"" if Fmi2Slave.version is not None else ""
+        cop_str = f" copyright=\"{Fmi2Slave.copyright}\"" if Fmi2Slave.copyright is not None else ""
 
-        self.xml = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}"{desc_str}{auth_str}{lic_str}{ver_str} generationTool="PythonFMU" variableNamingConvention="structured">
+        t = datetime.datetime.now()
+        date_str = f"{t.year}-{t.month}-{t.day}T{t.hour}:{t.day}:{t.second}Z"
+
+        return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}"{desc_str}{auth_str}{lic_str}{ver_str}{cop_str} generationTool="PythonFMU" generationDateAndTime="{date_str}" variableNamingConvention="structured">
     <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="true" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false"/>
     <ModelVariables>
 {var_str}
