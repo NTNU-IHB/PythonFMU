@@ -69,3 +69,7 @@ PythonFMU does not bundle Python, which makes it a tool coupling solution. This 
 PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
 PythonFMU requires a x64 Python installation (You are however free to build x86 binaries yourself).
+
+***
+
+Would you rahter build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)! 
