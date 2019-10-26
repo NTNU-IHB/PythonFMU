@@ -3,6 +3,7 @@ from uuid import uuid1
 from enum import Enum
 import datetime
 
+
 class Fmi2Causality(Enum):
     parameter = 0,
     calculatedParameter = 1,
