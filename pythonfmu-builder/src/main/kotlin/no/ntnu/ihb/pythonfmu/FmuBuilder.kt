@@ -19,8 +19,16 @@ object FmuBuilder {
         val tempDir =  Files.createTempDirectory("pythonfmu_").toFile()
         try {
             scriptFile.copyTo(File(tempDir, scriptFile.name))
-            projectFiles.forEach {
-                it.copyRecursively(File(tempDir, it.name))
+            projectFiles.forEach { projectFile ->
+                if (projectFile == scriptFile.parentFile) {
+                    projectFile.listFiles()?.forEach { projectFileInScriptDir ->
+                        if (projectFileInScriptDir != scriptFile) {
+                            projectFileInScriptDir.copyRecursively(File(tempDir, projectFileInScriptDir.name))
+                        }
+                    }
+                } else {
+                    projectFile.copyRecursively(File(tempDir, projectFile.name))
+                }
             }
 
             return ModelDescriptionFetcher
