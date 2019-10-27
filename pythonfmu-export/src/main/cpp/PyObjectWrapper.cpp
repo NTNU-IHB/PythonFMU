@@ -58,11 +58,6 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     if (pInstance_ == nullptr) {
         handle_py_exception();
     }
-    auto f = PyObject_CallMethod(pInstance_, "define", nullptr);
-    if (f == nullptr) {
-        handle_py_exception();
-    }
-    Py_DECREF(f);
 }
 
 void PyObjectWrapper::setupExperiment(double startTime)
