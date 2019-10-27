@@ -1,6 +1,8 @@
 
 from fmi2slave import *
 
+slave_class = "PythonSlave"
+
 
 class PythonSlave(Fmi2Slave):
 
