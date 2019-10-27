@@ -58,7 +58,7 @@ JNIEXPORT jstring JNICALL Java_no_ntnu_ihb_pythonfmu_util_ModelDescriptionFetche
         pythonfmu::handle_py_exception();
     }
 
-    auto f = PyObject_CallMethod(slaveInstance, "define", nullptr);
+    auto f = PyObject_CallMethod(slaveInstance, "__define__", nullptr);
     if (f == nullptr) {
         Py_Finalize();
         return nullptr;

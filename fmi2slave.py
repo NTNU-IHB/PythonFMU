@@ -89,7 +89,7 @@ class Fmi2Slave(ABC):
         if Fmi2Slave.modelName is None:
             raise Exception("No modelName has been specified!")
 
-    def define(self):
+    def __define__(self):
         var_str = "\n".join(list(map(lambda v: v.string_repr(), self.vars)))
         outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
         structure_str = ""
