@@ -76,5 +76,5 @@ PythonFMU requires a x64 Python installation (You are however free to build x86 
 
 ***
 
-Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)! 
+Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)! <br>
 Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue! 
