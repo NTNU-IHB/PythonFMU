@@ -14,7 +14,7 @@ object FmuBuilder {
 
     private const val fmi2slaveFileName = "fmi2slave.py"
 
-    private fun readXML(scriptFile: File, moduleName: String, className: String, projectFiles: List<File>): String {
+    private fun readXML(scriptFile: File, moduleName: String, projectFiles: List<File>): String {
 
         val tempDir =  Files.createTempDirectory("pythonfmu_").toFile()
         try {
@@ -24,7 +24,7 @@ object FmuBuilder {
             }
 
             return ModelDescriptionFetcher
-                    .getModelDescription(tempDir.absolutePath, moduleName, className)
+                    .getModelDescription(tempDir.absolutePath, moduleName)
         } finally {
             tempDir.deleteRecursively()
         }
@@ -40,9 +40,6 @@ object FmuBuilder {
         @CommandLine.Option(names = ["-f", "--file"], description = ["Path to the Python script."], required = true)
         lateinit var scriptFile: File
 
-        @CommandLine.Option(names = ["-c", "--class"], description = ["Name of the Python class."], required = true)
-        var className: String = ""
-
         @CommandLine.Option(names = ["-d", "--dest"], description = ["Where to save the FMU."], required = false)
         var destFile: File? = null
 
@@ -53,11 +50,10 @@ object FmuBuilder {
 
             require(scriptFile.exists()) { "No such File '$scriptFile'" }
             require(scriptFile.name.endsWith(".py")) { "File '${scriptFile.name}' must have extension '.py'!" }
-            require(className.isNotEmpty()) { "No class name provided!" }
 
             val scriptParentFile = scriptFile.absoluteFile.parentFile
             val moduleName = scriptFile.nameWithoutExtension
-            val xml = readXML(scriptFile, moduleName, className, projectFiles)
+            val xml = readXML(scriptFile, moduleName, projectFiles)
 
             val regex = "modelIdentifier=\"(\\w+)\"".toRegex()
             val groups = regex.findAll(xml).toList().map { it.groupValues }
@@ -105,10 +101,6 @@ object FmuBuilder {
 
                 zos.putNextEntry(ZipEntry("resources/slavemodule.txt"))
                 zos.write(moduleName.toByteArray())
-                zos.closeEntry()
-
-                zos.putNextEntry(ZipEntry("resources/slaveclass.txt"))
-                zos.write(className.toByteArray())
                 zos.closeEntry()
 
                 if (projectFiles.isEmpty()) {
