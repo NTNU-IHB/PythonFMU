@@ -65,12 +65,6 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     pModule_ = PyImport_ImportModule(moduleName.c_str());
     pClass_ = PyObject_GetAttrString(pModule_, className.c_str());
     pInstance_ = PyObject_CallFunctionObjArgs(pClass_, nullptr);
-
-    auto f = PyObject_CallMethod(pInstance_, "define", nullptr);
-    if (f == nullptr) {
-        handle_py_exception();
-    }
-    Py_DECREF(f);
 }
 
 void PyObjectWrapper::setupExperiment(double startTime)
