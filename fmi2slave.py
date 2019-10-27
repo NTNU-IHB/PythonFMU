@@ -218,7 +218,7 @@ class Fmi2Slave(ABC):
 class Real(ScalarVariable):
 
     def __init__(self, name):
-        super(Real, self).__init__(name)
+        super().__init__(name)
 
     def __sub_xml_repr__(self):
         return f"<Real />"
@@ -227,7 +227,7 @@ class Real(ScalarVariable):
 class Integer(ScalarVariable):
 
     def __init__(self, name):
-        super(Integer, self).__init__(name)
+        super().__init__(name)
 
     def __sub_xml_repr__(self):
         return f"<Integer />"
@@ -237,7 +237,7 @@ class Boolean(ScalarVariable):
 
     def __init__(self, name):
         self.value = False
-        super(Boolean, self).__init__(name)
+        super().__init__(name)
 
     def __sub_xml_repr__(self):
         return f"<Boolean />"
@@ -246,7 +246,7 @@ class Boolean(ScalarVariable):
 class String(ScalarVariable):
 
     def __init__(self, name):
-        super(String, self).__init__(name)
+        super().__init__(name)
 
     def __sub_xml_repr__(self):
         return f"<String />"
