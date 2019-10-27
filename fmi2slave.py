@@ -142,7 +142,7 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
-    def get_integer(self, vrs, refs):
+    def __get_integer__(self, vrs, refs):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -151,7 +151,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def get_real(self, vrs, refs):
+    def __get_real__(self, vrs, refs):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -160,7 +160,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Real!")
 
-    def get_boolean(self, vrs, refs):
+    def __get_boolean__(self, vrs, refs):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -169,7 +169,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
 
-    def get_string(self, vrs, refs):
+    def __get_string__(self, vrs, refs):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -178,7 +178,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type String!")
 
-    def set_integer(self, vrs, values):
+    def __set_integer__(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -187,7 +187,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def set_real(self, vrs, values):
+    def __set_real__(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -196,7 +196,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Real!")
 
-    def set_boolean(self, vrs, values):
+    def __set_boolean__(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -205,7 +205,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
 
-    def set_string(self, vrs, values):
+    def __set_string__(self, vrs, values):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
