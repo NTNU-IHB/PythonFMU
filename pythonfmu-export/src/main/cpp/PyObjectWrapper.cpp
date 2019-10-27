@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <utility>
+#include <pythonfmu/PyException.hpp>
 
 namespace
 {
@@ -19,32 +20,12 @@ inline std::string getline(const std::string& fileName)
     return line;
 }
 
-inline void handle_py_exception()
-{
-    auto err = PyErr_Occurred();
-    if (err != nullptr) {
-
-        PyObject *pExcType, *pExcValue, *pExcTraceback;
-        PyErr_Fetch(&pExcType, &pExcValue, &pExcTraceback);
-
-        std::string error_msg = "An error occurred: ";
-        if (pExcValue != nullptr) {
-            PyObject* pRepr = PyObject_Repr(pExcValue);
-            error_msg +=  PyUnicode_AsUTF8(pRepr);
-            Py_DECREF(pRepr);
-        } else {
-            error_msg += "unknown error";
-        }
-
-        PyErr_Clear();
-
-        Py_XDECREF(pExcType);
-        Py_XDECREF(pExcValue);
-        Py_XDECREF(pExcTraceback);
-
-        throw cppfmu::FatalError(error_msg.c_str());
-
+inline const char* get_class_name(PyObject* pModule) {
+    auto f = PyObject_GetAttrString(pModule, "slave_class");
+    if (f != nullptr) {
+        return PyUnicode_AsUTF8(f);
     }
+    return nullptr;
 }
 
 } // namespace
@@ -54,8 +35,7 @@ namespace pythonfmu
 
 PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 {
-    std::string moduleName = getline(resources + "/slavemodule.txt");
-    std::string className = getline(resources + "/slaveclass.txt");
+    auto moduleName = getline(resources + "/slavemodule.txt");
 
     std::ostringstream oss;
     oss << "import sys\n";
@@ -63,9 +43,21 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     PyRun_SimpleString(oss.str().c_str());
 
     pModule_ = PyImport_ImportModule(moduleName.c_str());
-    pClass_ = PyObject_GetAttrString(pModule_, className.c_str());
+    if (pModule_ == nullptr) {
+        handle_py_exception();
+    }
+    auto className = get_class_name(pModule_);
+    if (className == nullptr) {
+        handle_py_exception();
+    }
+    pClass_ = PyObject_GetAttrString(pModule_, className);
+    if (pClass_ == nullptr) {
+        handle_py_exception();
+    }
     pInstance_ = PyObject_CallFunctionObjArgs(pClass_, nullptr);
-
+    if (pInstance_ == nullptr) {
+        handle_py_exception();
+    }
     auto f = PyObject_CallMethod(pInstance_, "define", nullptr);
     if (f == nullptr) {
         handle_py_exception();

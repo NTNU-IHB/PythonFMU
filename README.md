@@ -17,7 +17,6 @@
 Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
                          [Project files...]
       [Project files...]    Additional project files required by the Python script.
-  -c, --class=<className>   Name of the Python class.
   -d, --dest=<destFile>     Where to save the FMU.
   -f, --file=<scriptFile>   Path to the Python script.
   -h, --help                Print this message and quits.
@@ -30,6 +29,8 @@ Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
 ```python
 
 from pythonfmu.fmi2slave import *
+
+slave_class = "PythonSlave"  # REQUIRED - Name of the class extending Fmi2Slave
 
 
 class PythonSlave(Fmi2Slave):
@@ -44,18 +45,21 @@ class PythonSlave(Fmi2Slave):
         self.intOut = 1
         self.realOut = 3.0
         self.booleanVariable = True
+        self.stringVariable = "Hello World!"
         self.register_variable(Integer("intOut").set_causality(Fmi2Causality.output))
         self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))
         self.register_variable(Boolean("booleanVariable").set_causality(Fmi2Causality.local))
+        self.register_variable(String("stringVariable").set_causality(Fmi2Causality.local))
 
     def do_step(self, current_time, step_size):
         return True
+
 ```
 
 ###### Create the FMU 
 
 ```
-java -jar pythonfmu-builder.jar -f pythonslave.py -c PythonSlave pythonfmu
+java -jar pythonfmu-builder.jar -f pythonslave.py pythonfmu
 ```
 
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`. 
@@ -73,3 +77,4 @@ PythonFMU requires a x64 Python installation (You are however free to build x86 
 ***
 
 Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)! 
+Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue! 
