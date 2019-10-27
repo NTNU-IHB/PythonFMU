@@ -28,7 +28,7 @@ class Fmi2Initial(Enum):
 
 class ScalarVariable(ABC):
 
-    vr_counter = 0
+    __vr_counter = 0
 
     def __init__(self, name):
         self.name = name
@@ -36,8 +36,13 @@ class ScalarVariable(ABC):
         self.causality = None
         self.variability = None
         self.description = None
-        self.value_reference = ScalarVariable.vr_counter
-        ScalarVariable.vr_counter += 1
+        self.value_reference = ScalarVariable.__get_and_increment_vr()
+
+    @staticmethod
+    def __get_and_increment_vr():
+        vr = ScalarVariable.__vr_counter
+        ScalarVariable.__vr_counter += 1
+        return vr
 
     def set_description(self, description: str):
         self.description = description
