@@ -55,22 +55,22 @@ class ScalarVariable(ABC):
         self.variability = variability
         return self
 
-    def string_repr(self):
-        strRepr = f"\t\t<ScalarVariable valueReference=\"{self.value_reference}\" name=\"{self.name}\""
+    def __xml_repr__(self):
+        xml_repr = f"\t\t<ScalarVariable valueReference=\"{self.value_reference}\" name=\"{self.name}\""
         if self.initial is not None:
-            strRepr += f" initial=\"{self.initial.name}\""
+            xml_repr += f" initial=\"{self.initial.name}\""
         if self.causality is not None:
-            strRepr += f" causality=\"{self.causality.name}\""
+            xml_repr += f" causality=\"{self.causality.name}\""
         if self.variability is not None:
-            strRepr += f" variability=\"{self.variability.name}\""
+            xml_repr += f" variability=\"{self.variability.name}\""
         if self.description is not None:
-            strRepr += f" description=\"{self.description}\""
-        strRepr += ">\n"
-        strRepr += "\t\t\t" + self.sub_string_repr() + "\n"
-        return strRepr + "\t\t</ScalarVariable>"
+            xml_repr += f" description=\"{self.description}\""
+        xml_repr += ">\n"
+        xml_repr += "\t\t\t" + self.__sub_xml_repr__() + "\n"
+        return xml_repr + "\t\t</ScalarVariable>"
 
     @abstractmethod
-    def sub_string_repr(self):
+    def __sub_xml_repr__(self):
         pass
 
 
@@ -90,7 +90,7 @@ class Fmi2Slave(ABC):
             raise Exception("No modelName has been specified!")
 
     def __define__(self):
-        var_str = "\n".join(list(map(lambda v: v.string_repr(), self.vars)))
+        var_str = "\n".join(list(map(lambda v: v.__xml_repr__(), self.vars)))
         outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
         structure_str = ""
         if len(outputs) > 0:
@@ -220,7 +220,7 @@ class Real(ScalarVariable):
     def __init__(self, name):
         super(Real, self).__init__(name)
 
-    def sub_string_repr(self):
+    def __sub_xml_repr__(self):
         return f"<Real />"
 
 
@@ -229,7 +229,7 @@ class Integer(ScalarVariable):
     def __init__(self, name):
         super(Integer, self).__init__(name)
 
-    def sub_string_repr(self):
+    def __sub_xml_repr__(self):
         return f"<Integer />"
 
 
@@ -239,7 +239,7 @@ class Boolean(ScalarVariable):
         self.value = False
         super(Boolean, self).__init__(name)
 
-    def sub_string_repr(self):
+    def __sub_xml_repr__(self):
         return f"<Boolean />"
 
 
@@ -248,5 +248,5 @@ class String(ScalarVariable):
     def __init__(self, name):
         super(String, self).__init__(name)
 
-    def sub_string_repr(self):
+    def __sub_xml_repr__(self):
         return f"<String />"
