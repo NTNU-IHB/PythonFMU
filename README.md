@@ -11,7 +11,7 @@
 
 1) Download the [fmi2slave](fmi2slave.py) module.
 2) Create a new class extending the `Fmi2Slave` class declared in the `fmi2slave` module. 
-3) Run `pythonfmu-builder.jar` (Built by Github Actions).
+3) Run `pythonfmu-builder.jar` (Built by Github [Actions](https://github.com/NTNU-IHB/PythonFMU/actions)).
 
 ```
 Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
