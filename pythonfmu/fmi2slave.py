@@ -114,13 +114,13 @@ class Fmi2Slave(ABC):
 
         return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}"{desc_str}{auth_str}{lic_str}{ver_str}{cop_str} generationTool="PythonFMU" generationDateAndTime="{date_str}" variableNamingConvention="structured">
-    <CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="true" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false" canNotUseMemoryManagementFunctions="true"/>
-    <ModelVariables>
+\t<CoSimulation modelIdentifier="{Fmi2Slave.modelName}" needsExecutionTool="true" canHandleVariableCommunicationStepSize="true" canInterpolateInputs="false" canBeInstantiatedOnlyOncePerProcess="false" canGetAndSetFMUstate="false" canSerializeFMUstate="false" canNotUseMemoryManagementFunctions="true"/>
+\t<ModelVariables>
 {var_str}
-    </ModelVariables>
-    <ModelStructure>
+\t</ModelVariables>
+\t<ModelStructure>
 {structure_str}
-    </ModelStructure>
+\t</ModelStructure>
 </fmiModelDescription>
 """
 
