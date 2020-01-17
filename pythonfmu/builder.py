@@ -147,9 +147,11 @@ class FmuBuilder:
             binaries = Path("binaries")
             src_binaries = HERE / "binaries"
             for f in itertools.chain(
-                Path(src_binaries).glob("**/*.dll"), Path(src_binaries).glob("**/*.so")
+                src_binaries.rglob("*.dll"), src_binaries.rglob("*.so")
             ):
-                zip_fmu.write(f, arcname=binaries / f.relative_to(src_binaries))
+                relative_f = f.relative_to(src_binaries)
+                arcname = binaries / relative_f.parent / f"{model_identifier}{relative_f.suffix}"
+                zip_fmu.write(f, arcname=arcname)
 
 
 if __name__ == "__main__":
