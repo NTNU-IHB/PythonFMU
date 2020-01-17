@@ -1,1 +1,1 @@
-from cosapp.core._version import __version__
+from pythonfmu._version import __version__
