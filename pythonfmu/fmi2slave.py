@@ -110,7 +110,8 @@ class Fmi2Slave(ABC):
         ver_str = f" version=\"{Fmi2Slave.version}\"" if Fmi2Slave.version is not None else ""
         cop_str = f" copyright=\"{Fmi2Slave.copyright}\"" if Fmi2Slave.copyright is not None else ""
 
-        date_str = datetime.datetime.now().isoformat()
+        t = datetime.datetime.now(datetime.timezone.utc)
+        date_str = t.isoformat(timespec='seconds')
 
         return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <fmiModelDescription
