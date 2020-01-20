@@ -7,11 +7,12 @@ import platform
 import re
 import shutil
 import tempfile
-from typing import Optional, Set, Union
+from typing import Iterable, Optional, Set, Union
 import zipfile
 
 from .fmi2slave import Fmi2Slave
 
+FilePath = Union[str, Path]
 HERE = Path(__file__).parent
 
 lib_prefix = "lib" if platform.system() == "Linux" else ""
@@ -20,9 +21,6 @@ lib_extension = ({"Linux": "so", "Windows": "dll"}).get(platform.system(), None)
 
 
 class ModelDescriptionFetcher:
-
-    # TODO test for the availability of the dll ==> unsure it's useful if this is distributed
-    # as a Python binary package
 
     @staticmethod
     def get_model_description(
@@ -79,6 +77,59 @@ class FmuBuilder:
             )
 
     @staticmethod
+    def build_FMU(
+        script_file: FilePath,
+        dest: FilePath = ".",
+        project_files: Iterable[FilePath] = [],
+        class_name: Optional[str] = None,
+    ):
+        script_file = Path(script_file)
+        if not script_file.exists():
+            raise ValueError(f"No such file {script_file!s}")
+        if not script_file.suffix.endswith(".py"):
+            raise ValueError(f"File {script_file!s} must have extension '.py'!")
+
+        dest = Path(dest)
+        if not dest.exists():
+            dest.mkdir(parents=True)
+        project_files = set([Path(f) for f in project_files])
+
+        script_parent = script_file.resolve().parent.absolute()
+        module_name = script_file.stem
+        xml = FmuBuilder.__readXML(script_file, module_name, project_files, class_name)
+
+        regex = re.compile(r'modelIdentifier="(\w+)"')
+        groups = [m.group(1) for m in regex.finditer(xml)]
+        model_identifier = groups[0]
+
+        dest_file = dest / f"{model_identifier}.fmu"
+
+        with zipfile.ZipFile(dest_file, "w") as zip_fmu:
+            zip_fmu.writestr("modelDescription.xml", xml)
+
+            resource = Path("resources")
+
+            zip_fmu.write(script_file, arcname=resource.joinpath(script_file.name))
+            zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
+
+            # Add project files
+            # TODO
+
+            # Add FMI API wrapping Python class
+            binaries = Path("binaries")
+            src_binaries = HERE / "binaries"
+            for f in itertools.chain(
+                src_binaries.rglob("*.dll"), src_binaries.rglob("*.so")
+            ):
+                relative_f = f.relative_to(src_binaries)
+                arcname = (
+                    binaries
+                    / relative_f.parent
+                    / f"{model_identifier}{relative_f.suffix}"
+                )
+                zip_fmu.write(f, arcname=arcname)
+
+    @staticmethod
     def main():
         parser = argparse.ArgumentParser(
             prog="pythonfmu-builder", description="Build a FMU from a Python script."
@@ -110,48 +161,12 @@ class FmuBuilder:
         )
 
         options = parser.parse_args()
-        script_file = Path(options.script_file)
-        if not script_file.exists():
-            raise ValueError(f"No such file {script_file!s}")
-        if not script_file.suffix.endswith(".py"):
-            raise ValueError(f"File {script_file!s} must have extension '.py'!")
-
-        dest = Path(options.dest or ".")
-        if not dest.exists():
-            dest.mkdir(parents=True)
-
-        project_files = set([Path(f) for f in options.project_files])
-
-        script_parent = script_file.resolve().parent.absolute()
-        module_name = script_file.stem
-        xml = FmuBuilder.__readXML(script_file, module_name, project_files)
-
-        regex = re.compile(r'modelIdentifier="(\w+)"')
-        groups = [m.group(1) for m in regex.finditer(xml)]
-        model_identifier = groups[0]
-
-        dest_file = dest / f"{model_identifier}.fmu"
-
-        with zipfile.ZipFile(dest_file, "w") as zip_fmu:
-            zip_fmu.writestr("modelDescription.xml", xml)
-
-            resource = Path("resources")
-
-            zip_fmu.write(script_file, arcname=resource.joinpath(script_file.name))
-            zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
-
-            # Add project files
-            # TODO
-
-            # Add FMI API wrapping Python class
-            binaries = Path("binaries")
-            src_binaries = HERE / "binaries"
-            for f in itertools.chain(
-                src_binaries.rglob("*.dll"), src_binaries.rglob("*.so")
-            ):
-                relative_f = f.relative_to(src_binaries)
-                arcname = binaries / relative_f.parent / f"{model_identifier}{relative_f.suffix}"
-                zip_fmu.write(f, arcname=arcname)
+        FmuBuilder.build_FMU(
+            options.script_file,
+            options.dest or ".",
+            options.project_files,
+            options.class_name,
+        )
 
 
 if __name__ == "__main__":
