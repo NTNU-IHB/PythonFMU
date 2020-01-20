@@ -33,7 +33,6 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # Dependencies
 # ==============================================================================
 
-find_package(JNI REQUIRED)
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 
 add_subdirectory(src/main)

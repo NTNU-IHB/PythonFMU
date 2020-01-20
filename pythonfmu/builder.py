@@ -117,7 +117,7 @@ class FmuBuilder:
 
             # Add FMI API wrapping Python class
             binaries = Path("binaries")
-            src_binaries = HERE / "binaries"
+            src_binaries = HERE / "resources" / "binaries"
             for f in itertools.chain(
                 src_binaries.rglob("*.dll"), src_binaries.rglob("*.so")
             ):
