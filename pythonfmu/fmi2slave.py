@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from io import BytesIO
+from collections import namedtuple
 from uuid import uuid1
 import datetime
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -7,6 +8,18 @@ from xml.dom.minidom import parseString
 
 from .enums import Fmi2Causality
 from .variables import Boolean, Integer, Real, String
+
+ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
+
+FMI2_MODEL_OPTIONS = [
+    ModelOptions("needsExecutionTool", False, "external-tool"),
+    ModelOptions("canHandleVariableCommunicationStepSize", True, "no-variable-step"),
+    ModelOptions("canInterpolateInputs", False, "interpolate-inputs"),
+    ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
+    ModelOptions("canGetAndSetFMUstate", False, "handle-state"),
+    ModelOptions("canSerializeFMUstate", False, "serialize-state"),
+    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management"),
+]
 
 
 class Fmi2Slave(ABC):
@@ -50,16 +63,14 @@ class Fmi2Slave(ABC):
 
         root = Element('fmiModelDescription', attrib)
 
-        SubElement(root, 'CoSimulation', attrib=dict(
-            modelIdentifier=Fmi2Slave.modelName,
-            needsExecutionTool="false",
-            canHandleVariableCommunicationStepSize="true",
-            canInterpolateInputs="false",
-            canBeInstantiatedOnlyOncePerProcess="false",
-            canGetAndSetFMUstate="false",
-            canSerializeFMUstate="false",
-            canNotUseMemoryManagementFunctions="true",
-        ))
+        options = dict()
+        for option in FMI2_MODEL_OPTIONS:
+            value = model_options.get(option.name, option.value)
+            v = "true" if value else "false"
+            options[option.name] = v
+        options["modelIdentifier"]=Fmi2Slave.modelName
+
+        SubElement(root, 'CoSimulation', attrib=options)
 
         variables = SubElement(root, 'ModelVariables')
         for v in self.vars:

@@ -6,10 +6,10 @@ from pathlib import Path
 import platform
 import shutil
 import tempfile
-from typing import Iterable, Optional, Set, Union
+from typing import Dict, Iterable, Optional, Set, Union
 import zipfile
 
-from .fmi2slave import Fmi2Slave
+from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
 
 FilePath = Union[str, Path]
 HERE = Path(__file__).parent
@@ -20,7 +20,6 @@ lib_extension = ({"Linux": "so", "Windows": "dll"}).get(platform.system(), None)
 
 
 class ModelDescriptionFetcher:
-
     @staticmethod
     def get_model_description(
         filepath: Path, module_name: str, class_name: Optional[str] = None
@@ -50,6 +49,7 @@ class FmuBuilder:
         module_name: str,
         project_files: Set[Path],
         class_name: Optional[str] = None,
+        model_options: Dict[str, bool] = dict(),
     ) -> str:
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
@@ -81,7 +81,10 @@ class FmuBuilder:
         dest: FilePath = ".",
         project_files: Iterable[FilePath] = [],
         class_name: Optional[str] = None,
+        **options,
     ):
+        print(script_file, dest, project_files, class_name)
+        print(options)
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
@@ -95,7 +98,7 @@ class FmuBuilder:
 
         script_parent = script_file.resolve().parent.absolute()
         module_name = script_file.stem
-        model_identifier, xml = FmuBuilder.__readXML(script_file, module_name, project_files, class_name)
+        model_identifier, xml = FmuBuilder.__readXML(script_file, module_name, project_files, class_name, options)
 
         dest_file = dest / f"{model_identifier}.fmu"
 
@@ -147,6 +150,9 @@ class FmuBuilder:
         parser.add_argument(
             "-d", "--dest", dest="dest", help="Where to save the FMU.", default=None
         )
+        for option in FMI2_MODEL_OPTIONS:
+            action = "store_true" if option.value else "store_false"
+            parser.add_argument(f"--{option.cli}", dest=option.name, action=action)
         parser.add_argument(
             "project_files",
             metavar="Project files",
@@ -155,13 +161,9 @@ class FmuBuilder:
             default=[],
         )
 
-        options = parser.parse_args()
-        FmuBuilder.build_FMU(
-            options.script_file,
-            options.dest or ".",
-            options.project_files,
-            options.class_name,
-        )
+        options = vars(parser.parse_args())
+        print(options)
+        FmuBuilder.build_FMU(**options)
 
 
 if __name__ == "__main__":
