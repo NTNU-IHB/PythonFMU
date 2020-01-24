@@ -1,82 +1,9 @@
 from abc import ABC, abstractmethod
 from uuid import uuid1
-from enum import Enum
 import datetime
 
-
-class Fmi2Causality(Enum):
-    parameter = 0,
-    calculatedParameter = 1,
-    input = 2,
-    output = 3,
-    local = 4
-
-
-class Fmi2Variability(Enum):
-    constant = 0,
-    fixed = 1,
-    tunable = 2,
-    discrete = 3,
-    continuous = 4
-
-
-class Fmi2Initial(Enum):
-    exact = 0,
-    approx = 1,
-    calculated = 2
-
-
-class ScalarVariable(ABC):
-
-    __vr_counter = 0
-
-    def __init__(self, name):
-        self.name = name
-        self.initial = None
-        self.causality = None
-        self.variability = None
-        self.description = None
-        self.value_reference = ScalarVariable.__get_and_increment_vr()
-
-    @staticmethod
-    def __get_and_increment_vr():
-        vr = ScalarVariable.__vr_counter
-        ScalarVariable.__vr_counter += 1
-        return vr
-
-    def set_description(self, description: str):
-        self.description = description
-        return self
-
-    def set_initial(self, initial: Fmi2Initial):
-        self.initial = initial
-        return self
-
-    def set_causality(self, causality: Fmi2Causality):
-        self.causality = causality
-        return self
-
-    def set_variability(self, variability: Fmi2Variability):
-        self.variability = variability
-        return self
-
-    def __xml_repr__(self):
-        xml_repr = f"\t\t<ScalarVariable valueReference=\"{self.value_reference}\" name=\"{self.name}\""
-        if self.initial is not None:
-            xml_repr += f" initial=\"{self.initial.name}\""
-        if self.causality is not None:
-            xml_repr += f" causality=\"{self.causality.name}\""
-        if self.variability is not None:
-            xml_repr += f" variability=\"{self.variability.name}\""
-        if self.description is not None:
-            xml_repr += f" description=\"{self.description}\""
-        xml_repr += ">\n"
-        xml_repr += "\t\t\t" + self.__sub_xml_repr__() + "\n"
-        return xml_repr + "\t\t</ScalarVariable>"
-
-    @abstractmethod
-    def __sub_xml_repr__(self):
-        pass
+from .enums import Fmi2Causality
+from .variables import Boolean, Integer, Real, String
 
 
 class Fmi2Slave(ABC):
@@ -123,7 +50,7 @@ class Fmi2Slave(ABC):
 \tvariableNamingConvention="structured">
 \t<CoSimulation
 \t\tmodelIdentifier="{Fmi2Slave.modelName}"
-\t\tneedsExecutionTool="true"
+\t\tneedsExecutionTool="false"
 \t\tcanHandleVariableCommunicationStepSize="true"
 \t\tcanInterpolateInputs="false"
 \t\tcanBeInstantiatedOnlyOncePerProcess="false"
@@ -232,40 +159,3 @@ class Fmi2Slave(ABC):
                 setattr(self, var.name, values[i])
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type String!")
-
-
-class Real(ScalarVariable):
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    def __sub_xml_repr__(self):
-        return f"<Real />"
-
-
-class Integer(ScalarVariable):
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    def __sub_xml_repr__(self):
-        return f"<Integer />"
-
-
-class Boolean(ScalarVariable):
-
-    def __init__(self, name):
-        self.value = False
-        super().__init__(name)
-
-    def __sub_xml_repr__(self):
-        return f"<Boolean />"
-
-
-class String(ScalarVariable):
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    def __sub_xml_repr__(self):
-        return f"<String />"
