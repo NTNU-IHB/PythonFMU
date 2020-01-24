@@ -1,3 +1,4 @@
+from pathlib import Path
 import os
 import shutil
 import sys
@@ -28,7 +29,16 @@ class CMakeBuild(build_ext):
             self.build_extension(ext)
 
     def build_extension(self, ext):
-        extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        system = platform.system()
+        is_64bits = sys.maxsize > 2**32
+        platforms = {
+            "Windows": "win",
+            "Linux": "linux"
+        }
+        platform_ = platforms[system] + "64" if is_64bits else "32"
+        extdir = Path(self.get_ext_fullpath(ext.name)).parent.absolute() / "resources" / "binaries" / platform_
+        extdir.mkdir(parents=True, exist_ok=True)
+        
         cmake_args = [
             # '-DPYTHON_EXECUTABLE=' + sys.executable
         ]
@@ -38,14 +48,14 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += [
-                # '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={!s}'.format(cfg.upper(), extdir)
             ]
-            # if sys.maxsize > 2**32:
+            # if is_64bits:
             #     cmake_args += ['-A', 'x64']
             # build_args += ['--', '/m']
         else:
             cmake_args += [
-                # '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir),
                 "-DCMAKE_BUILD_TYPE="
                 + cfg
             ]

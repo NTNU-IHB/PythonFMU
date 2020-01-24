@@ -22,15 +22,3 @@ target_link_libraries(pythonfmu-export
         PRIVATE
         Python3::Python
         )
-
-if (WIN32)
-  set_target_properties(pythonfmu-export
-          PROPERTIES
-          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/../pythonfmu/resources/binaries/win64"
-          )
-elseif (UNIX)
-  set_target_properties(pythonfmu-export
-          PROPERTIES
-          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../pythonfmu/resources/binaries/linux64"
-          )
-endif ()

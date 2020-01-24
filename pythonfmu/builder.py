@@ -83,8 +83,6 @@ class FmuBuilder:
         class_name: Optional[str] = None,
         **options,
     ):
-        print(script_file, dest, project_files, class_name)
-        print(options)
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
@@ -127,44 +125,42 @@ class FmuBuilder:
                 )
                 zip_fmu.write(f, arcname=arcname)
 
-    @staticmethod
-    def main():
-        parser = argparse.ArgumentParser(
-            prog="pythonfmu-builder", description="Build a FMU from a Python script."
-        )
+def main():
+    parser = argparse.ArgumentParser(
+        prog="pythonfmu-builder", description="Build a FMU from a Python script."
+    )
 
-        parser.add_argument(
-            "-f",
-            "--file",
-            dest="script_file",
-            help="Path to the Python script.",
-            required=True,
-        )
-        parser.add_argument(
-            "-c",
-            "--class",
-            dest="class_name",
-            help="Class name of the inter",
-            default=None,
-        )
-        parser.add_argument(
-            "-d", "--dest", dest="dest", help="Where to save the FMU.", default=None
-        )
-        for option in FMI2_MODEL_OPTIONS:
-            action = "store_true" if option.value else "store_false"
-            parser.add_argument(f"--{option.cli}", dest=option.name, action=action)
-        parser.add_argument(
-            "project_files",
-            metavar="Project files",
-            nargs="*",
-            help="Additional project files required by the Python script.",
-            default=[],
-        )
+    parser.add_argument(
+        "-f",
+        "--file",
+        dest="script_file",
+        help="Path to the Python script.",
+        required=True,
+    )
+    parser.add_argument(
+        "-c",
+        "--class",
+        dest="class_name",
+        help="Class name of the inter",
+        default=None,
+    )
+    parser.add_argument(
+        "-d", "--dest", dest="dest", help="Where to save the FMU.", default=None
+    )
+    for option in FMI2_MODEL_OPTIONS:
+        action = "store_true" if option.value else "store_false"
+        parser.add_argument(f"--{option.cli}", dest=option.name, action=action)
+    parser.add_argument(
+        "project_files",
+        metavar="Project files",
+        nargs="*",
+        help="Additional project files required by the Python script.",
+        default=[],
+    )
 
-        options = vars(parser.parse_args())
-        print(options)
-        FmuBuilder.build_FMU(**options)
+    options = vars(parser.parse_args())
+    FmuBuilder.build_FMU(**options)
 
 
 if __name__ == "__main__":
-    FmuBuilder.main()
+    main()
