@@ -1,13 +1,13 @@
 
 from fmi2slave import *
 
-slave_class = "PythonSlave"
+slave_class = "PythonSlave"  # REQUIRED
 
 
 class PythonSlave(Fmi2Slave):
 
     Fmi2Slave.modelName = "PythonSlave"
-    Fmi2Slave.author = "Lars Ivar Hatledal"
+    Fmi2Slave.author = "Lars Ivar Hatledal"  # REQUIRED
     Fmi2Slave.description = "A simple description"
 
     def __init__(self):
@@ -23,4 +23,5 @@ class PythonSlave(Fmi2Slave):
         self.register_variable(String("stringVariable").set_causality(Fmi2Causality.local).set_description("A string variable"))
 
     def do_step(self, current_time, step_size):
+        self.realOut = current_time
         return True

@@ -12,7 +12,7 @@ class TestBuilder {
     fun testBuilder() {
 
         val dest = "build/generated"
-        val scriptFile = File(TestBuilder::class.java.classLoader.getResource("pythonslave.py").file).absolutePath
+        val scriptFile = File(TestBuilder::class.java.classLoader.getResource("pythonslave.py")!!.file).absolutePath
 
         FmuBuilder.main(arrayOf("-f", scriptFile, "-d", dest, "../fmi2slave.py"))
 
@@ -26,13 +26,15 @@ class TestBuilder {
 
                 Assertions.assertTrue(slave.simpleSetup())
 
+                Assertions.assertEquals(3.0, slave.readReal("realOut").value)
+
                 val dt = 1.0/100
                 for (i in 0 until 10) {
                     Assertions.assertTrue(slave.doStep(dt))
+                    Assertions.assertEquals(slave.simulationTime-dt, slave.readReal("realOut").value, 1e-2)
                 }
 
                 Assertions.assertEquals(1, slave.readInteger(0).value)
-                Assertions.assertEquals(3.0, slave.readReal("realOut").value)
 
                 Assertions.assertTrue(slave.writeInteger("intOut", 2).isOK())
                 Assertions.assertEquals(2, slave.readInteger("intOut").value)
