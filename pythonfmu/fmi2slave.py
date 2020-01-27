@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
+from io import BytesIO
 from uuid import uuid1
 import datetime
+from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.dom.minidom import parseString
 
 from .enums import Fmi2Causality
 from .variables import Boolean, Integer, Real, String
@@ -21,50 +24,57 @@ class Fmi2Slave(ABC):
         if Fmi2Slave.modelName is None:
             raise Exception("No modelName has been specified!")
 
-    def __define__(self):
-        var_str = "\n".join(list(map(lambda v: v.__xml_repr__(), self.vars)))
-        outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
-        structure_str = ""
-        if len(outputs) > 0:
-            structure_str += "\t\t<Outputs>\n"
-            for i in range(len(outputs)):
-                structure_str += f"\t\t\t<Unknown index=\"{i+1}\" />\n"
-            structure_str += "\t\t</Outputs>"
-
-        desc_str = f" description=\"{Fmi2Slave.description}\"" if Fmi2Slave.description is not None else ""
-        auth_str = f" author=\"{Fmi2Slave.author}\"" if Fmi2Slave.author is not None else ""
-        lic_str = f" license=\"{Fmi2Slave.license}\"" if Fmi2Slave.license is not None else ""
-        ver_str = f" version=\"{Fmi2Slave.version}\"" if Fmi2Slave.version is not None else ""
-        cop_str = f" copyright=\"{Fmi2Slave.copyright}\"" if Fmi2Slave.copyright is not None else ""
+    def to_xml(self):
 
         t = datetime.datetime.now(datetime.timezone.utc)
         date_str = t.isoformat(timespec='seconds')
 
-        return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<fmiModelDescription
-\tfmiVersion="2.0"
-\tmodelName="{Fmi2Slave.modelName}"
-\tguid="{Fmi2Slave.guid}"{desc_str}{auth_str}{lic_str}{ver_str}{cop_str}
-\tgenerationTool="PythonFMU"
-\tgenerationDateAndTime="{date_str}"
-\tvariableNamingConvention="structured">
-\t<CoSimulation
-\t\tmodelIdentifier="{Fmi2Slave.modelName}"
-\t\tneedsExecutionTool="false"
-\t\tcanHandleVariableCommunicationStepSize="true"
-\t\tcanInterpolateInputs="false"
-\t\tcanBeInstantiatedOnlyOncePerProcess="false"
-\t\tcanGetAndSetFMUstate="false"
-\t\tcanSerializeFMUstate="false"
-\t\tcanNotUseMemoryManagementFunctions="true"/>
-\t<ModelVariables>
-{var_str}
-\t</ModelVariables>
-\t<ModelStructure>
-{structure_str}
-\t</ModelStructure>
-</fmiModelDescription>
-"""
+        attrib=dict(
+            fmiVersion="2.0",
+            modelName=Fmi2Slave.modelName,
+            guid=f"{Fmi2Slave.guid!s}",
+            generationTool="PythonFMU",
+            generationDateAndTime=date_str,
+            variableNamingConvention="structured"
+        )
+        if Fmi2Slave.description is not None:
+            attrib['description'] = Fmi2Slave.description
+        if Fmi2Slave.author is not None:
+            attrib['author'] = Fmi2Slave.author
+        if Fmi2Slave.license is not None:
+            attrib['license'] = Fmi2Slave.license
+        if Fmi2Slave.version is not None:
+            attrib['version'] = Fmi2Slave.version
+        if Fmi2Slave.copyright is not None:
+            attrib['copyright'] = Fmi2Slave.copyright
+
+        root = Element('fmiModelDescription', attrib)
+
+        SubElement(root, 'CoSimulation', attrib=dict(
+            modelIdentifier=Fmi2Slave.modelName,
+            needsExecutionTool="false",
+            canHandleVariableCommunicationStepSize="true",
+            canInterpolateInputs="false",
+            canBeInstantiatedOnlyOncePerProcess="false",
+            canGetAndSetFMUstate="false",
+            canSerializeFMUstate="false",
+            canNotUseMemoryManagementFunctions="true",
+        ))
+
+        variables = SubElement(root, 'ModelVariables')
+        for v in self.vars:
+            variables.append(v.to_xml())
+
+        structure = SubElement(root, 'ModelStructure')
+        outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
+        
+        if outputs:
+            outputs_node = SubElement(structure, 'Outputs')
+            for i in range(len(outputs)):
+                SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
+
+        xml_str = parseString(tostring(root, "unicode"))
+        return xml_str.toprettyxml(encoding='ascii')
 
     def register_variable(self, var):
         self.vars.append(var)

@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from enum import Enum
+from xml.etree.ElementTree import Element, SubElement
 
 from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 
@@ -7,13 +9,23 @@ class ScalarVariable(ABC):
 
     __vr_counter = 0
 
-    def __init__(self, name):
-        self.name = name
-        self.initial = None
-        self.causality = None
-        self.variability = None
-        self.description = None
-        self.value_reference = ScalarVariable.__get_and_increment_vr()
+    def __init__(
+        self, 
+        name, 
+        causality=None, 
+        description=None, 
+        initial=None,
+        variability=None,
+    ):
+        self.__attrs = {
+            'name': name,
+            'valueReference': ScalarVariable.__get_and_increment_vr(),
+            'description': description,
+            'causality': causality,
+            'variability': variability,
+            'initial': initial,
+            # 'canHandleMultipleSetPerTimeInstant': # Only for ME
+        }
 
     @staticmethod
     def __get_and_increment_vr():
@@ -21,69 +33,113 @@ class ScalarVariable(ABC):
         ScalarVariable.__vr_counter += 1
         return vr
 
-    def set_description(self, description: str):
-        self.description = description
-        return self
+    @property
+    def description(self):
+        return self.__attrs['description']
 
-    def set_initial(self, initial: Fmi2Initial):
-        self.initial = initial
-        return self
+    @property
+    def initial(self):
+        return self.__attrs['initial']
 
-    def set_causality(self, causality: Fmi2Causality):
-        self.causality = causality
-        return self
+    @property
+    def causality(self):
+        return self.__attrs['causality']
 
-    def set_variability(self, variability: Fmi2Variability):
-        self.variability = variability
-        return self
+    @property
+    def variability(self):
+        return self.__attrs['variability']
 
-    def __xml_repr__(self):
-        xml_repr = f'\t\t<ScalarVariable valueReference="{self.value_reference}" name="{self.name}"'
-        if self.initial is not None:
-            xml_repr += f' initial="{self.initial.name}"'
-        if self.causality is not None:
-            xml_repr += f' causality="{self.causality.name}"'
-        if self.variability is not None:
-            xml_repr += f' variability="{self.variability.name}"'
-        if self.description is not None:
-            xml_repr += f' description="{self.description}"'
-        xml_repr += ">\n"
-        xml_repr += "\t\t\t" + self.__sub_xml_repr__() + "\n"
-        return xml_repr + "\t\t</ScalarVariable>"
-
-    @abstractmethod
-    def __sub_xml_repr__(self):
-        pass
+    def to_xml(self) -> Element:
+        attrib = dict()
+        for key, value in self.__attrs.items():
+            if value is not None:
+                attrib[key] = str(value.name if isinstance(value, Enum) else value)
+        return Element('ScalarVariable', attrib)
 
 
 class Real(ScalarVariable):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, start=None, **kwargs):
+        super().__init__(name, **kwargs)
+        self.__attrs = {
+            'start': start
+        }
 
-    def __sub_xml_repr__(self):
-        return f"<Real />"
+    @property
+    def start(self):
+        return self.__attrs['start']
+
+    def to_xml(self) -> Element:
+        attrib = dict()
+        for key, value in self.__attrs.items():
+            if value is not None:
+                attrib[key] = str(value)
+        parent = super().to_xml()
+        SubElement(parent, 'Real', attrib)
+
+        return parent
 
 
 class Integer(ScalarVariable):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, start=None, **kwargs):
+        super().__init__(name, **kwargs)
+        self.__attrs = {
+            'start': start
+        }
 
-    def __sub_xml_repr__(self):
-        return f"<Integer />"
+    @property
+    def start(self):
+        return self.__attrs['start']
+
+    def to_xml(self) -> Element:
+        attrib = dict()
+        for key, value in self.__attrs.items():
+            if value is not None:
+                attrib[key] = str(value)
+        parent = super().to_xml()
+        SubElement(parent, 'Integer', attrib)
+
+        return parent
 
 
 class Boolean(ScalarVariable):
-    def __init__(self, name):
-        self.value = False
-        super().__init__(name)
+    def __init__(self, name, start=None, **kwargs):
+        super().__init__(name, **kwargs)
+        self.__attrs = {
+            'start': start
+        }
 
-    def __sub_xml_repr__(self):
-        return f"<Boolean />"
+    @property
+    def start(self):
+        return self.__attrs['start']
+
+    def to_xml(self) -> Element:
+        attrib = dict()
+        for key, value in self.__attrs.items():
+            if value is not None:
+                attrib[key] = str(value)
+        parent = super().to_xml()
+        SubElement(parent, 'Boolean', attrib)
+
+        return parent
 
 
 class String(ScalarVariable):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, start=None, **kwargs):
+        super().__init__(name, **kwargs)
+        self.__attrs = {
+            'start': start
+        }
 
-    def __sub_xml_repr__(self):
-        return f"<String />"
+    @property
+    def start(self):
+        return self.__attrs['start']
+
+    def to_xml(self) -> Element:
+        attrib = dict()
+        for key, value in self.__attrs.items():
+            if value is not None:
+                attrib[key] = str(value)
+        parent = super().to_xml()
+        SubElement(parent, 'String', attrib)
+
+        return parent

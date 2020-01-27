@@ -4,7 +4,6 @@ import importlib
 import itertools
 from pathlib import Path
 import platform
-import re
 import shutil
 import tempfile
 from typing import Iterable, Optional, Set, Union
@@ -38,7 +37,7 @@ class ModelDescriptionFetcher:
                 f"The provided class '{class_name}' does not inherit from {Fmi2Slave.__qualname__}"
             )
         # Produce the xml
-        return instance.__define__()
+        return instance.modelName, instance.to_xml()
 
 
 class FmuBuilder:
@@ -96,11 +95,7 @@ class FmuBuilder:
 
         script_parent = script_file.resolve().parent.absolute()
         module_name = script_file.stem
-        xml = FmuBuilder.__readXML(script_file, module_name, project_files, class_name)
-
-        regex = re.compile(r'modelIdentifier="(\w+)"')
-        groups = [m.group(1) for m in regex.finditer(xml)]
-        model_identifier = groups[0]
+        model_identifier, xml = FmuBuilder.__readXML(script_file, module_name, project_files, class_name)
 
         dest_file = dest / f"{model_identifier}.fmu"
 
