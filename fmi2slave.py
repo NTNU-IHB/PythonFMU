@@ -110,8 +110,7 @@ class Fmi2Slave(ABC):
         ver_str = f" version=\"{Fmi2Slave.version}\"" if Fmi2Slave.version is not None else ""
         cop_str = f" copyright=\"{Fmi2Slave.copyright}\"" if Fmi2Slave.copyright is not None else ""
 
-        t = datetime.datetime.now()
-        date_str = f"{t.year}-{t.month}-{t.day}T{t.hour}:{t.day}:{t.second}Z"
+        date_str = datetime.datetime.now().isoformat()
 
         return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <fmiModelDescription fmiVersion="2.0" modelName="{Fmi2Slave.modelName}" guid="{Fmi2Slave.guid}"{desc_str}{auth_str}{lic_str}{ver_str}{cop_str} generationTool="PythonFMU" generationDateAndTime="{date_str}" variableNamingConvention="structured">
