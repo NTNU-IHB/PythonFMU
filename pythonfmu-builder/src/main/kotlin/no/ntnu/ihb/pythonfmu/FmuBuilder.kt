@@ -14,9 +14,9 @@ object FmuBuilder {
 
     private const val fmi2slaveFileName = "fmi2slave.py"
 
-    private fun readXML(scriptFile: File, moduleName: String, projectFiles: List<File>): String {
+    private fun readXML(scriptFile: File, moduleName: String, projectFiles: Set<File>): String {
 
-        val tempDir =  Files.createTempDirectory("pythonfmu_").toFile()
+        val tempDir = Files.createTempDirectory("pythonfmu_").toFile()
         try {
             scriptFile.copyTo(File(tempDir, scriptFile.name))
             projectFiles.forEach { projectFile ->
@@ -52,7 +52,7 @@ object FmuBuilder {
         var destFile: File? = null
 
         @CommandLine.Parameters(arity = "0..*", paramLabel = "Project files", description = ["Additional project files required by the Python script."])
-        var projectFiles = mutableListOf<File>()
+        var projectFiles = mutableSetOf<File>()
 
         override fun run() {
 
@@ -79,7 +79,7 @@ object FmuBuilder {
 
             ZipOutputStream(BufferedOutputStream(FileOutputStream(destFile))).use { zos ->
 
-                fun addFile(file: File, parentDirName: String) {
+                fun addFile(file: File, parentDirName: String = "resources") {
 
                     if (file.name == fmi2slaveFileName) {
                         fmi2SlavePyFileFound = true
@@ -88,7 +88,17 @@ object FmuBuilder {
                     val fileName = "$parentDirName/${file.name}"
                     if (file.isDirectory) {
                         if (file.name != "__pycache__") {
-                            file.listFiles()?.forEach { addFile(it, fileName) }
+                            if (file == scriptFile.parentFile) {
+                                file.listFiles()?.forEach {
+                                    if (it != scriptFile) {
+                                        addFile(it)
+                                    }
+                                }
+                            } else {
+                                file.listFiles()?.forEach {
+                                    addFile(it, fileName)
+                                }
+                            }
                         }
                     } else {
                         zos.putNextEntry(ZipEntry(fileName))
@@ -105,7 +115,7 @@ object FmuBuilder {
                 zos.closeEntry()
 
                 zos.putNextEntry(ZipEntry("resources/"))
-                addFile(scriptFile, "resources")
+                addFile(scriptFile)
 
                 zos.putNextEntry(ZipEntry("resources/slavemodule.txt"))
                 zos.write(moduleName.toByteArray())
