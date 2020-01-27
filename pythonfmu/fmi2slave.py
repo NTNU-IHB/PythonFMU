@@ -73,8 +73,8 @@ class Fmi2Slave(ABC):
             for i in range(len(outputs)):
                 SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
 
-        xml_str = parseString(tostring(root, "unicode"))
-        return xml_str.toprettyxml(encoding='ascii')
+        xml_str = parseString(tostring(root, "UTF-8"))
+        return xml_str.toprettyxml(encoding='UTF-8')
 
     def register_variable(self, var):
         self.vars.append(var)

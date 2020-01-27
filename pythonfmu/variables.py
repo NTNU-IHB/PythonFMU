@@ -34,6 +34,10 @@ class ScalarVariable(ABC):
         return vr
 
     @property
+    def causality(self):
+        return self.__attrs['causality']
+
+    @property
     def description(self):
         return self.__attrs['description']
 
@@ -42,8 +46,8 @@ class ScalarVariable(ABC):
         return self.__attrs['initial']
 
     @property
-    def causality(self):
-        return self.__attrs['causality']
+    def name(self):
+        return self.__attrs['name']
 
     @property
     def variability(self):
