@@ -37,7 +37,7 @@ class Fmi2Slave(ABC):
         if Fmi2Slave.modelName is None:
             raise Exception("No modelName has been specified!")
 
-    def to_xml(self):
+    def to_xml(self, model_options = dict()):
 
         t = datetime.datetime.now(datetime.timezone.utc)
         date_str = t.isoformat(timespec='seconds')
