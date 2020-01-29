@@ -34,7 +34,7 @@ class Fmi2Slave(ABC):
 
     def __init__(self):
         self.vars = []
-        if Fmi2Slave.modelName is None:
+        if self.modelName is None:
             raise Exception("No modelName has been specified!")
 
     def to_xml(self, model_options = dict()):
@@ -44,22 +44,22 @@ class Fmi2Slave(ABC):
 
         attrib=dict(
             fmiVersion="2.0",
-            modelName=Fmi2Slave.modelName,
-            guid=f"{Fmi2Slave.guid!s}",
+            modelName=self.modelName,
+            guid=f"{self.guid!s}",
             generationTool="PythonFMU",
             generationDateAndTime=date_str,
             variableNamingConvention="structured"
         )
-        if Fmi2Slave.description is not None:
-            attrib['description'] = Fmi2Slave.description
-        if Fmi2Slave.author is not None:
-            attrib['author'] = Fmi2Slave.author
-        if Fmi2Slave.license is not None:
-            attrib['license'] = Fmi2Slave.license
-        if Fmi2Slave.version is not None:
-            attrib['version'] = Fmi2Slave.version
-        if Fmi2Slave.copyright is not None:
-            attrib['copyright'] = Fmi2Slave.copyright
+        if self.description is not None:
+            attrib['description'] = self.description
+        if self.author is not None:
+            attrib['author'] = self.author
+        if self.license is not None:
+            attrib['license'] = self.license
+        if self.version is not None:
+            attrib['version'] = self.version
+        if self.copyright is not None:
+            attrib['copyright'] = self.copyright
 
         root = Element('fmiModelDescription', attrib)
 
@@ -68,7 +68,7 @@ class Fmi2Slave(ABC):
             value = model_options.get(option.name, option.value)
             v = "true" if value else "false"
             options[option.name] = v
-        options["modelIdentifier"]=Fmi2Slave.modelName
+        options["modelIdentifier"]=self.modelName
 
         SubElement(root, 'CoSimulation', attrib=options)
 
