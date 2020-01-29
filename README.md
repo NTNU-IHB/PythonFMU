@@ -1,4 +1,5 @@
 # PythonFMU (work in progress)
+
 > A lightweight framework that enables the packaging of Python3.x code as co-simulation FMUs.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,17 +10,38 @@
 
 ### How do I build an FMU from python code?
 
-1) Download the [fmi2slave](fmi2slave.py) module.
-2) Create a new class extending the `Fmi2Slave` class declared in the `fmi2slave` module. 
-3) Run `pythonfmu-builder.jar` (Built by Github [Actions](https://github.com/NTNU-IHB/PythonFMU/actions)).
+1) Install `pythonfmu` package:
+```bash
+pip install git+https://github.com/fcollonval/PythonFMU.git
+```
+2) Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module. 
+3) Run `pythonfmu-builder` to create the fmu.
 
 ```
-Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
-                         [Project files...]
-      [Project files...]    Additional project files required by the Python script.
-  -d, --dest=<destFile>     Where to save the FMU.
-  -f, --file=<scriptFile>   Path to the Python script.
-  -h, --help                Print this message and quits.
+usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-c CLASS_NAME] [-d DEST] [--external-tool] [--no-variable-step] [--interpolate-inputs]
+                         [--only-one-per-process] [--handle-state] [--serialize-state] [--use-memory-management]
+                         [Project files [Project files ...]]
+
+Build a FMU from a Python script.
+
+positional arguments:
+  Project files         Additional project files required by the Python script.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f SCRIPT_FILE, --file SCRIPT_FILE
+                        Path to the Python script.
+  -c CLASS_NAME, --class CLASS_NAME
+                        Class name of the inter
+  -d DEST, --dest DEST  Where to save the FMU.
+fmu options:
+  --external-tool
+  --no-variable-step
+  --interpolate-inputs
+  --only-one-per-process
+  --handle-state
+  --serialize-state
+  --use-memory-management
 ```
 
 ##### Example: 
@@ -28,16 +50,16 @@ Usage: pythonfmu-builder [-h] -c=<className> [-d=<destFile>] -f=<scriptFile>
 
 ```python
 
-from pythonfmu.fmi2slave import *
+from pythonfmu import Fmi2Causality, Fmi2Slave, Boolean, Integer, Real, String
 
 slave_class = "PythonSlave"  # REQUIRED - Name of the class extending Fmi2Slave
 
 
 class PythonSlave(Fmi2Slave):
 
-    Fmi2Slave.author = "John Doe"
-    Fmi2Slave.modelName = "PythonSlave"  # REQUIRED
-    Fmi2Slave.description = "A simple description"
+    author = "John Doe"
+    modelName = "PythonSlave"  # REQUIRED
+    description = "A simple description"
 
     def __init__(self):
         super().__init__()
@@ -46,10 +68,10 @@ class PythonSlave(Fmi2Slave):
         self.realOut = 3.0
         self.booleanVariable = True
         self.stringVariable = "Hello World!"
-        self.register_variable(Integer("intOut").set_causality(Fmi2Causality.output))
-        self.register_variable(Real("realOut").set_causality(Fmi2Causality.output))
-        self.register_variable(Boolean("booleanVariable").set_causality(Fmi2Causality.local))
-        self.register_variable(String("stringVariable").set_causality(Fmi2Causality.local))
+        self.register_variable(Integer("intOut", causality=Fmi2Causality.output))
+        self.register_variable(Real("realOut", causality=Fmi2Causality.output))
+        self.register_variable(Boolean("booleanVariable", causality=Fmi2Causality.local))
+        self.register_variable(String("stringVariable", causality=Fmi2Causality.local))
 
     def do_step(self, current_time, step_size):
         return True
@@ -59,22 +81,31 @@ class PythonSlave(Fmi2Slave):
 ###### Create the FMU 
 
 ```
-java -jar pythonfmu-builder.jar -f pythonslave.py pythonfmu
+pythonfmu-builder -f pythonslave.py pythonfmu
 ```
 
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`. 
-`pythonfmu` is a folder containing additional project files required by the python script, including `fmi2slave.py`. 
+`pythonfmu` is a optional folder containing additional project files required by the python script. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
 
+
+###### Use the FMU
+
+The generate FMU can be executed with [`pyfmi`]().
+
+```bash
+pip install pyfmi
+python -c "from pyfmi import load_fmu; m = load_fmu('MyFMU.fmu'); res = m.simulate(final_time=1); print(res['time'])"
+```
 
 ### Note
 
 PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). 
 PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
-PythonFMU requires a x64 Python installation (You are however free to build x86 binaries yourself).
+To `pip` install PythonFMU you will need a compiler.
 
 ***
 
-Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)! <br>
+Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)!  
 Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue! 
