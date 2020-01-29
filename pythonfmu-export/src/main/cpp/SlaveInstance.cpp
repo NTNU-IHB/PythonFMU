@@ -103,9 +103,16 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
 {
 
     auto resources = std::string(fmuResourceLocation);
-    auto find = resources.find("file:///");
+    auto find = resources.find("file://");
+    
     if (find != std::string::npos) {
+#ifdef _WIN32
         resources.replace(find, 8, "");
+#elif _WIN64
+        resources.replace(find, 8, "");
+#else
+        resources.replace(find, 7, "");
+#endif
     }
 
     if (pyState == nullptr) {
