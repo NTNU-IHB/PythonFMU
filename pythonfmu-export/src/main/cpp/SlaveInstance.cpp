@@ -106,9 +106,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     auto find = resources.find("file://");
     
     if (find != std::string::npos) {
-#ifdef _WIN32
-        resources.replace(find, 8, "");
-#elif _WIN64
+#ifdef _MSC_VER
         resources.replace(find, 8, "");
 #else
         resources.replace(find, 7, "");
