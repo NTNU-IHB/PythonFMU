@@ -20,7 +20,9 @@ jobs:
         architecture: 'x64'
 
     - name: Install pythonfmu and its test dependencies
-      run: python -m pip install .[tests]
+      run: |
+        python -m pip install Cython numpy
+        python -m pip install .[tests]
       shell: bash
 
     - name: Run the Tests
