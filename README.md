@@ -18,8 +18,7 @@ pip install git+https://github.com/fcollonval/PythonFMU.git
 3) Run `pythonfmu-builder` to create the fmu.
 
 ```
-usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-c CLASS_NAME] [-d DEST] [--external-tool] [--no-variable-step] [--interpolate-inputs]
-                         [--only-one-per-process] [--handle-state] [--serialize-state] [--use-memory-management]
+usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-d DEST]
                          [Project files [Project files ...]]
 
 Build a FMU from a Python script.
@@ -31,17 +30,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -f SCRIPT_FILE, --file SCRIPT_FILE
                         Path to the Python script.
-  -c CLASS_NAME, --class CLASS_NAME
-                        Class name of the inter
   -d DEST, --dest DEST  Where to save the FMU.
-fmu options:
-  --external-tool
-  --no-variable-step
-  --interpolate-inputs
-  --only-one-per-process
-  --handle-state
-  --serialize-state
-  --use-memory-management
 ```
 
 ##### Example: 
