@@ -1,6 +1,12 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -8,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-2016]
+        os: [ubuntu-latest, windows-latest]
     
     steps:
     - uses: actions/checkout@v2
@@ -16,7 +22,7 @@ jobs:
     - name: Load conda
       uses: goanpeca/setup-miniconda@v1
       with:
-        # auto-update-conda: true
+        auto-update-conda: true
         python-version: '3.7'
 
     - name: Install conda compiler
@@ -28,9 +34,10 @@ jobs:
     - name: Test pythonfmu and its test dependencies
       run: |
         conda install -c conda-forge -c anaconda pyfmi pytest
-        python -m pip install .
       shell: bash -l {0}
 
     - name: Run the Tests
-      run: python -m pytest pythonfmu
+      run: |
+        python -m pip install . -v
+        python -m pytest pythonfmu
       shell: bash -l {0}
