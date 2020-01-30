@@ -145,7 +145,7 @@ def main():
         default=None,
     )
     parser.add_argument(
-        "-d", "--dest", dest="dest", help="Where to save the FMU.", default=None
+        "-d", "--dest", dest="dest", help="Where to save the FMU.", default="."
     )
     for option in FMI2_MODEL_OPTIONS:
         action = "store_true" if option.value else "store_false"
