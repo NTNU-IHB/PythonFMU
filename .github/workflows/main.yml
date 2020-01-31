@@ -31,4 +31,7 @@ jobs:
         python -m pip install .
 
     - name: Run the Tests
-      run: python -m pytest --pyargs pythonfmu.tests
+      run: |
+        mkdir test_dir
+        cd test_dir
+        python -m pytest --pyargs pythonfmu.tests
