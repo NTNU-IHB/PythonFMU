@@ -1,8 +1,8 @@
 
-#include <pythonfmu/PyState.hpp>
-#include <pythonfmu/SlaveInstance.hpp>
+#include "pythonfmu/PyState.hpp"
+#include "pythonfmu/SlaveInstance.hpp"
 
-#include <cppfmu/cppfmu_cs.hpp>
+#include "cppfmu/cppfmu_cs.hpp"
 
 namespace pythonfmu
 {

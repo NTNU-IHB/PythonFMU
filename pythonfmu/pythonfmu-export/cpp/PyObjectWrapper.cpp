@@ -1,13 +1,13 @@
 
-#include <pythonfmu/PyObjectWrapper.hpp>
-
-#include <cppfmu/cppfmu_common.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <utility>
-#include <pythonfmu/PyException.hpp>
+#include "pythonfmu/PyException.hpp"
+#include "pythonfmu/PyObjectWrapper.hpp"
+
+#include "cppfmu/cppfmu_common.hpp"
 
 namespace
 {

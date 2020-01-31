@@ -2,7 +2,7 @@
 #ifndef PYTHONFMU_EXPORT_PYEXCEPTION_HPP
 #define PYTHONFMU_EXPORT_PYEXCEPTION_HPP
 
-#include <cppfmu/cppfmu_common.hpp>
+#include "cppfmu/cppfmu_common.hpp"
 
 #include <Python.h>
 #include <iostream>

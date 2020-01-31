@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Any, ClassVar, Optional
 from xml.etree.ElementTree import Element, SubElement
 
 from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
@@ -7,15 +8,15 @@ from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 
 class ScalarVariable(ABC):
 
-    __vr_counter = 0
+    __vr_counter: ClassVar[int] = 0
 
     def __init__(
         self, 
-        name, 
-        causality=None, 
-        description=None, 
-        initial=None,
-        variability=None,
+        name: str, 
+        causality: Optional[Fmi2Causality]=None, 
+        description: Optional[str]=None, 
+        initial: Optional[Fmi2Initial]=None,
+        variability: Optional[Fmi2Variability]=None,
     ):
         self.__attrs = {
             'name': name,
@@ -28,29 +29,29 @@ class ScalarVariable(ABC):
         }
 
     @staticmethod
-    def __get_and_increment_vr():
+    def __get_and_increment_vr() -> int:
         vr = ScalarVariable.__vr_counter
         ScalarVariable.__vr_counter += 1
         return vr
 
     @property
-    def causality(self):
+    def causality(self) -> Optional[Fmi2Causality]:
         return self.__attrs['causality']
 
     @property
-    def description(self):
+    def description(self) -> Optional[str]:
         return self.__attrs['description']
 
     @property
-    def initial(self):
+    def initial(self) -> Optional[Fmi2Initial]:
         return self.__attrs['initial']
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__attrs['name']
 
     @property
-    def variability(self):
+    def variability(self) -> Optional[Fmi2Variability]:
         return self.__attrs['variability']
 
     def to_xml(self) -> Element:
@@ -62,14 +63,14 @@ class ScalarVariable(ABC):
 
 
 class Real(ScalarVariable):
-    def __init__(self, name, start=None, **kwargs):
+    def __init__(self, name: str, start: Optional[Any]=None, **kwargs):
         super().__init__(name, **kwargs)
         self.__attrs = {
             'start': start
         }
 
     @property
-    def start(self):
+    def start(self) -> Optional[Any]:
         return self.__attrs['start']
 
     def to_xml(self) -> Element:
@@ -84,14 +85,14 @@ class Real(ScalarVariable):
 
 
 class Integer(ScalarVariable):
-    def __init__(self, name, start=None, **kwargs):
+    def __init__(self, name: str, start: Optional[Any]=None, **kwargs):
         super().__init__(name, **kwargs)
         self.__attrs = {
             'start': start
         }
 
     @property
-    def start(self):
+    def start(self) -> Optional[Any]:
         return self.__attrs['start']
 
     def to_xml(self) -> Element:
@@ -106,14 +107,14 @@ class Integer(ScalarVariable):
 
 
 class Boolean(ScalarVariable):
-    def __init__(self, name, start=None, **kwargs):
+    def __init__(self, name: str, start: Optional[Any]=None, **kwargs):
         super().__init__(name, **kwargs)
         self.__attrs = {
             'start': start
         }
 
     @property
-    def start(self):
+    def start(self) -> Optional[Any]:
         return self.__attrs['start']
 
     def to_xml(self) -> Element:
@@ -128,14 +129,14 @@ class Boolean(ScalarVariable):
 
 
 class String(ScalarVariable):
-    def __init__(self, name, start=None, **kwargs):
+    def __init__(self, name: str, start: Optional[Any]=None, **kwargs):
         super().__init__(name, **kwargs)
         self.__attrs = {
             'start': start
         }
 
     @property
-    def start(self):
+    def start(self) -> Optional[Any]:
         return self.__attrs['start']
 
     def to_xml(self) -> Element:

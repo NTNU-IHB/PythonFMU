@@ -2,9 +2,9 @@
 #ifndef PYTHONFMU_SLAVEINSTANCE_HPP
 #define PYTHONFMU_SLAVEINSTANCE_HPP
 
-#include <pythonfmu/PyObjectWrapper.hpp>
+#include "pythonfmu/PyObjectWrapper.hpp"
 
-#include <cppfmu/cppfmu_cs.hpp>
+#include "cppfmu/cppfmu_cs.hpp"
 
 #include <Python.h>
 #include <string>

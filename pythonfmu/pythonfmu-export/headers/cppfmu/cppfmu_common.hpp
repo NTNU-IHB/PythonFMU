@@ -19,9 +19,9 @@
 extern "C"
 {
 #ifdef CPPFMU_USE_FMI_1_0
-#   include <fmiFunctions.h>
+#   include "fmiFunctions.h"
 #else
-#    include <fmi/fmi2Functions.h>
+#    include "fmi/fmi2Functions.h"
 #endif
 }
 

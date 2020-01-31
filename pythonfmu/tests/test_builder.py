@@ -1,3 +1,4 @@
+import itertools
 import platform
 import sys
 import tempfile
@@ -5,9 +6,8 @@ import zipfile
 from pathlib import Path
 
 import pytest
-
+import pythonfmu
 from pythonfmu.builder import FmuBuilder
-
 
 DEMO = "pythonslave.py"
 
@@ -36,7 +36,9 @@ def test_zip_content():
         with zipfile.ZipFile(fmu) as files:
             names = files.namelist()
 
-            assert len(names) == 4  # Library + python script + XML + module name
+            assert (
+                len(names) == 15
+            )  # Library + python script + XML + module name + sources
             assert "modelDescription.xml" in names
             assert "/".join(("resources", DEMO)) in names
             module_file = "/".join(("resources", "slavemodule.txt"))
@@ -45,6 +47,17 @@ def test_zip_content():
                 "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}",))
                 in names
             )
+
+            # Check sources
+            src_folder = Path(pythonfmu.__path__[0]) / "pythonfmu-export"
+            for f in itertools.chain(
+                src_folder.rglob("*.hpp"),
+                src_folder.rglob("*.cpp"),
+                src_folder.rglob("CMakeLists.txt"),
+            ):
+                assert (
+                    "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
+                )
 
             with files.open(module_file) as myfile:
                 assert myfile.read() == b"pythonslave"
@@ -89,7 +102,7 @@ def test_project_files(pfiles):
 
             FmuBuilder.build_FMU(script_file, dest=tmp_dir, project_files=project_files)
 
-        fmu = list(Path(tmp_dir).rglob("*.fmu"))[0]
+        fmu = Path(tmp_dir) / "PythonSlave.fmu"
         with zipfile.ZipFile(fmu) as files:
             names = files.namelist()
 
@@ -136,9 +149,11 @@ def test_project_files_containing_script(pfiles):
                 else:
                     full_name.mkdir(parents=True, exist_ok=True)
 
-            FmuBuilder.build_FMU(script_file, dest=tmp_dir, project_files=[script_file.parent])
+            FmuBuilder.build_FMU(
+                script_file, dest=tmp_dir, project_files=[script_file.parent]
+            )
 
-        fmu = list(Path(tmp_dir).rglob("*.fmu"))[0]
+        fmu = Path(tmp_dir) / "PythonSlave.fmu"
         with zipfile.ZipFile(fmu) as files:
             names = files.namelist()
 
@@ -169,10 +184,9 @@ def test_simple_integration():
     with tempfile.TemporaryDirectory() as tmp_dir:
         FmuBuilder.build_FMU(script_file, dest=tmp_dir)
 
-        fmus = list(Path(tmp_dir).rglob("*.fmu"))
-
-        assert len(fmus) == 1
-        model = pyfmi.load_fmu(str(fmus[0]))
+        fmu = Path(tmp_dir) / "PythonSlave.fmu"
+        assert fmu.exists()
+        model = pyfmi.load_fmu(str(fmu))
         res = model.simulate(final_time=2.0)
 
         assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)

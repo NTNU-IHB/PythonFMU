@@ -3,12 +3,14 @@ import argparse
 import importlib
 import itertools
 import logging
-from pathlib import Path
 import platform
 import shutil
 import tempfile
-from typing import Dict, Iterable, Optional, Set, Union
 import zipfile
+from pathlib import Path
+from typing import Dict, Iterable, Optional, Set, Tuple, Union
+from xml.dom.minidom import parseString
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
 
@@ -24,7 +26,16 @@ lib_extension = ({"Linux": "so", "Windows": "dll"}).get(platform.system(), None)
 
 class ModelDescriptionFetcher:
     @staticmethod
-    def get_model_description(filepath: Path, module_name: str) -> str:
+    def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
+        """Extract the FMU model description as XML.
+        
+        Args:
+            filepath (pathlib.Path) : script file path
+            module_name (str) : python module to load
+        
+        Returns:
+            Tuple[str, xml.etree.TreeElement.Element] : FMU model name, model description
+        """
         # Import the user interface
         spec = importlib.util.spec_from_file_location(module_name, filepath)
         fmu_interface = importlib.util.module_from_spec(spec)
@@ -96,7 +107,6 @@ class FmuBuilder:
             dest_file = dest / f"{model_identifier}.fmu"
 
             with zipfile.ZipFile(dest_file, "w") as zip_fmu:
-                zip_fmu.writestr("modelDescription.xml", xml)
 
                 resource = Path("resources")
 
@@ -109,7 +119,21 @@ class FmuBuilder:
                 # Add information for the Python loader
                 zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
 
-                # Add FMI API wrapping Python class
+                # Add FMI API wrapping Python class source
+                type_node = xml.find("CoSimulation")
+                source_node = SubElement(type_node, "SourceFiles")
+                sources = Path("sources")
+                src = HERE / "pythonfmu-export"
+                for f in itertools.chain(
+                    src.rglob("*.hpp"), src.rglob("*.cpp"), src.rglob("CMakeLists.txt")
+                ):
+                    relative_f = f.relative_to(src)
+                    SubElement(
+                        source_node, "File", attrib={"name": relative_f.as_posix()}
+                    )
+                    zip_fmu.write(f, arcname=(sources / relative_f))
+
+                # Add FMI API wrapping Python class library
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
                 for f in itertools.chain(
@@ -122,6 +146,12 @@ class FmuBuilder:
                         / f"{model_identifier}{relative_f.suffix}"
                     )
                     zip_fmu.write(f, arcname=arcname)
+
+                # Add the model description
+                xml_str = parseString(tostring(xml, "UTF-8"))
+                zip_fmu.writestr(
+                    "modelDescription.xml", xml_str.toprettyxml(encoding="UTF-8")
+                )
 
 
 def main():

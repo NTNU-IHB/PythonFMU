@@ -1,10 +1,10 @@
-from abc import ABC, abstractmethod
-from io import BytesIO
-from collections import namedtuple
-from uuid import uuid1
 import datetime
-from xml.etree.ElementTree import Element, SubElement, tostring
-from xml.dom.minidom import parseString
+from abc import ABC, abstractmethod
+from collections import namedtuple
+from io import BytesIO
+from typing import ClassVar, Dict, List, Optional
+from uuid import uuid1
+from xml.etree.ElementTree import Element, SubElement
 
 from .enums import Fmi2Causality
 from .variables import Boolean, Integer, Real, String
@@ -24,20 +24,28 @@ FMI2_MODEL_OPTIONS = [
 
 class Fmi2Slave(ABC):
 
-    guid = uuid1()
-    author = None
-    license = None
-    version = None
-    copyright = None
-    modelName = None
-    description = None
+    guid: ClassVar[str] = uuid1()
+    author: ClassVar[Optional[str]] = None
+    license: ClassVar[Optional[str]] = None
+    version: ClassVar[Optional[str]] = None
+    copyright: ClassVar[Optional[str]] = None
+    modelName: ClassVar[Optional[str]] = None
+    description: ClassVar[Optional[str]] = None
 
     def __init__(self):
         self.vars = []
         if self.modelName is None:
             raise Exception("No modelName has been specified!")
 
-    def to_xml(self, model_options = dict()):
+    def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
+        """Build the XML representation of the model.
+        
+        Args:
+            model_options (Dict[str, str]) : FMU model options
+        
+        Returns:
+            (xml.etree.TreeElement.Element) XML description of the FMU
+        """
 
         t = datetime.datetime.now(datetime.timezone.utc)
         date_str = t.isoformat(timespec='seconds')
@@ -84,10 +92,9 @@ class Fmi2Slave(ABC):
             for i in range(len(outputs)):
                 SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
 
-        xml_str = parseString(tostring(root, "UTF-8"))
-        return xml_str.toprettyxml(encoding='UTF-8')
+        return root
 
-    def register_variable(self, var):
+    def register_variable(self, var: str):
         self.vars.append(var)
 
     def setup_experiment(self, start_time: float):
@@ -109,7 +116,7 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
-    def __get_integer__(self, vrs, refs):
+    def __get_integer__(self, vrs: List[int], refs: List[int]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -118,7 +125,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def __get_real__(self, vrs, refs):
+    def __get_real__(self, vrs: List[int], refs: List[float]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -127,7 +134,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Real!")
 
-    def __get_boolean__(self, vrs, refs):
+    def __get_boolean__(self, vrs: List[int], refs: List[bool]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -136,7 +143,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
 
-    def __get_string__(self, vrs, refs):
+    def __get_string__(self, vrs: List[int], refs: List[str]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -145,7 +152,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type String!")
 
-    def __set_integer__(self, vrs, values):
+    def __set_integer__(self, vrs: List[int], values: List[int]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -154,7 +161,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def __set_real__(self, vrs, values):
+    def __set_real__(self, vrs: List[int], values: List[float]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -163,7 +170,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Real!")
 
-    def __set_boolean__(self, vrs, values):
+    def __set_boolean__(self, vrs: List[int], values: List[bool]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
@@ -172,7 +179,7 @@ class Fmi2Slave(ABC):
             else:
                 raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
 
-    def __set_string__(self, vrs, values):
+    def __set_string__(self, vrs: List[int], values: List[str]):
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]

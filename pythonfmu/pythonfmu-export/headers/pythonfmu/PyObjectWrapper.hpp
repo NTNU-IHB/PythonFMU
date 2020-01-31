@@ -2,7 +2,7 @@
 #ifndef PYTHONFMU_PYOBJECTWRAPPER_HPP
 #define PYTHONFMU_PYOBJECTWRAPPER_HPP
 
-#include <cppfmu/cppfmu_common.hpp>
+#include "cppfmu/cppfmu_common.hpp"
 
 #include <Python.h>
 
