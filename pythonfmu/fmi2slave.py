@@ -7,7 +7,7 @@ from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
 from .enums import Fmi2Causality
-from .variables import Boolean, Integer, Real, String
+from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
 
@@ -33,7 +33,7 @@ class Fmi2Slave(ABC):
     description: ClassVar[Optional[str]] = None
 
     def __init__(self):
-        self.vars = []
+        self.vars = dict()
         if self.modelName is None:
             raise Exception("No modelName has been specified!")
 
@@ -81,11 +81,11 @@ class Fmi2Slave(ABC):
         SubElement(root, 'CoSimulation', attrib=options)
 
         variables = SubElement(root, 'ModelVariables')
-        for v in self.vars:
+        for v in self.vars.values():
             variables.append(v.to_xml())
 
         structure = SubElement(root, 'ModelStructure')
-        outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars))
+        outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars.values()))
         
         if outputs:
             outputs_node = SubElement(structure, 'Outputs')
@@ -94,8 +94,11 @@ class Fmi2Slave(ABC):
 
         return root
 
-    def register_variable(self, var: str):
-        self.vars.append(var)
+    def register_variable(self, var: ScalarVariable):
+        variable_reference = len(self.vars)
+        self.vars[variable_reference] = var
+        # Set the unique value reference
+        var.value_reference = variable_reference
 
     def setup_experiment(self, start_time: float):
         pass
@@ -126,6 +129,7 @@ class Fmi2Slave(ABC):
                 raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
     def __get_real__(self, vrs: List[int], refs: List[float]):
+        print(vrs, self.vars)
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]

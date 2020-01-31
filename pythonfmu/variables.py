@@ -8,11 +8,9 @@ from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 
 class ScalarVariable(ABC):
 
-    __vr_counter: ClassVar[int] = 0
-
     def __init__(
         self, 
-        name: str, 
+        name: str,
         causality: Optional[Fmi2Causality]=None, 
         description: Optional[str]=None, 
         initial: Optional[Fmi2Initial]=None,
@@ -20,19 +18,13 @@ class ScalarVariable(ABC):
     ):
         self.__attrs = {
             'name': name,
-            'valueReference': ScalarVariable.__get_and_increment_vr(),
+            'valueReference': None,
             'description': description,
             'causality': causality,
             'variability': variability,
             'initial': initial,
             # 'canHandleMultipleSetPerTimeInstant': # Only for ME
         }
-
-    @staticmethod
-    def __get_and_increment_vr() -> int:
-        vr = ScalarVariable.__vr_counter
-        ScalarVariable.__vr_counter += 1
-        return vr
 
     @property
     def causality(self) -> Optional[Fmi2Causality]:
@@ -49,6 +41,16 @@ class ScalarVariable(ABC):
     @property
     def name(self) -> str:
         return self.__attrs['name']
+
+    @property
+    def value_reference(self) -> int:
+        return self.__attrs['valueReference']
+
+    @value_reference.setter
+    def value_reference(self, value: int):
+        if self.__attrs['valueReference'] is not None:
+            raise RuntimeError("Value reference already set.")
+        self.__attrs['valueReference'] = value
 
     @property
     def variability(self) -> Optional[Fmi2Variability]:
