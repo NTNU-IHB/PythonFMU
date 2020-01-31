@@ -49,16 +49,16 @@ class CMakeBuild(build_ext):
 
         if platform.system() == "Windows":
             cmake_args += [
-                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={!s}'.format(cfg.upper(), extdir)
+                f"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{cfg.upper()}={extdir!s}",
+                f"-DCMAKE_BUILD_TYPE={cfg}"
             ]
             # if is_64bits:
             #     cmake_args += ['-A', 'x64']
             # build_args += ['--', '/m']
         else:
             cmake_args += [
-                '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir),
-                "-DCMAKE_BUILD_TYPE="
-                + cfg
+                f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir!s}",
+                f"-DCMAKE_BUILD_TYPE={cfg}"
             ]
             # build_args += ['--', '-j2']
 
