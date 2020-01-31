@@ -32,8 +32,9 @@ class CMakeBuild(build_ext):
         system = platform.system()
         is_64bits = sys.maxsize > 2**32
         platforms = {
+            "Darwin": "darwin",
+            "Linux": "linux", 
             "Windows": "win",
-            "Linux": "linux"
         }
         platform_ = platforms[system] + "64" if is_64bits else "32"
         extdir = Path(self.get_ext_fullpath(ext.name)).parent.absolute() / "resources" / "binaries" / platform_
