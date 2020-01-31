@@ -46,7 +46,6 @@ set(sources
         cpp/fmi_functions.cpp
         cpp/PyObjectWrapper.cpp
         cpp/SlaveInstance.cpp
-        cpp/thread_worker.cpp
         )
 
 add_library(pythonfmu-export ${sources})
