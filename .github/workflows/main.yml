@@ -28,7 +28,7 @@ jobs:
     - name: Install pythonfmu and its test dependencies
       run: |
         python -m pip install pytest
-        python -m pip install . -v
+        python -m pip install .
 
     - name: Run the Tests
-      run: python -m pytest pythonfmu
+      run: python -m pytest --pyargs pythonfmu.tests

@@ -15,11 +15,11 @@ DEMO = "pythonslave.py"
 def get_platform():
     system = platform.system()
     is_64bits = sys.maxsize > 2 ** 32
-    platforms = {"Windows": "win", "Linux": "linux"}
+    platforms = {"Windows": "win", "Linux": "linux", "Darwin": "darwin"}
     return platforms[system] + "64" if is_64bits else "32"
 
 
-lib_extension = ({"Linux": "so", "Windows": "dll"}).get(platform.system(), None)
+lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(platform.system(), None)
 
 # TODO test xml
 

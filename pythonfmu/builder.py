@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 lib_prefix = "lib" if platform.system() == "Linux" else ""
 
-lib_extension = ({"Linux": "so", "Windows": "dll"}).get(platform.system(), None)
+lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(platform.system(), None)
 
 
 class ModelDescriptionFetcher:
