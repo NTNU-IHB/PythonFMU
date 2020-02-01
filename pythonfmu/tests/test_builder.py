@@ -36,9 +36,6 @@ def test_zip_content():
         with zipfile.ZipFile(fmu) as files:
             names = files.namelist()
 
-            assert (
-                len(names) == 15
-            )  # Library + python script + XML + module name + sources
             assert "modelDescription.xml" in names
             assert "/".join(("resources", DEMO)) in names
             module_file = "/".join(("resources", "slavemodule.txt"))
@@ -58,6 +55,9 @@ def test_zip_content():
                 assert (
                     "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
                 )
+            assert (
+                len(names) == 15
+            )  # Library + python script + XML + module name + sources
 
             with files.open(module_file) as myfile:
                 assert myfile.read() == b"pythonslave"
