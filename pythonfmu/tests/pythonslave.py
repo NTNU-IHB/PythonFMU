@@ -5,9 +5,9 @@ slave_class = "PythonSlave"  # REQUIRED - Name of the class extending Fmi2Slave
 
 class PythonSlave(Fmi2Slave):
 
-    Fmi2Slave.author = "John Doe"
-    Fmi2Slave.modelName = "PythonSlave"  # REQUIRED
-    Fmi2Slave.description = "A simple description"
+    author = "John Doe"
+    modelName = "PythonSlave"  # REQUIRED
+    description = "A simple description"
 
     def __init__(self):
         super().__init__()
