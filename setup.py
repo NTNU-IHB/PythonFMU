@@ -41,7 +41,7 @@ class CMakeBuild(build_ext):
         extdir.mkdir(parents=True, exist_ok=True)
         
         cmake_args = [
-            # '-DPYTHON_EXECUTABLE=' + sys.executable
+            f"-DPython3_ROOT_DIR={sys.prefix}"
         ]
 
         cfg = "Debug" if self.debug else "Release"
@@ -52,8 +52,9 @@ class CMakeBuild(build_ext):
                 f"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{cfg.upper()}={extdir!s}",
                 f"-DCMAKE_BUILD_TYPE={cfg}"
             ]
-            # if is_64bits:
-            #     cmake_args += ['-A', 'x64']
+            if is_64bits and os.environ.get("CMAKE_GENERATOR", "Visual Studio").startswith("Visual Studio"):
+                # To deactivate this option, you need to SET "CMAKE_GENERATOR=generator" for example `NMake Makefiles`
+                cmake_args += ['-A', 'x64']  # Valid only for CMAKE_GENERATOR="Visual Studio ..."
             # build_args += ['--', '/m']
         else:
             cmake_args += [
