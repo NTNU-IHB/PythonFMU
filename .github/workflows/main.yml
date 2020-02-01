@@ -15,14 +15,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.x]
     
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Python
+    - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
-        python-version: '3.7'
+        python-version: ${{ matrix.python-version }}
         architecture: 'x64'
 
     - name: Install pythonfmu and its test dependencies
@@ -35,3 +36,12 @@ jobs:
         mkdir test_dir
         cd test_dir
         python -m pytest --pyargs pythonfmu.tests
+    
+    - name: Build distribution artifacts
+      run: python setup.py bdist_wheel
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist
+        path: dist
