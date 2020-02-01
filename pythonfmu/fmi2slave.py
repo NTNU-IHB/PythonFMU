@@ -12,7 +12,7 @@ from .variables import Boolean, Integer, Real, ScalarVariable, String
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
 
 FMI2_MODEL_OPTIONS = [
-    ModelOptions("needsExecutionTool", False, "external-tool"),
+    ModelOptions("needsExecutionTool", True, "no-external-tool"),
     ModelOptions("canHandleVariableCommunicationStepSize", True, "no-variable-step"),
     ModelOptions("canInterpolateInputs", False, "interpolate-inputs"),
     ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
