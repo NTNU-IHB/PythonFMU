@@ -129,7 +129,6 @@ class Fmi2Slave(ABC):
                 raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
 
     def __get_real__(self, vrs: List[int], refs: List[float]):
-        print(vrs, self.vars)
         for i in range(len(vrs)):
             vr = vrs[i]
             var = self.vars[vr]
