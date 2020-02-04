@@ -33,7 +33,10 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # Dependencies
 # ==============================================================================
 
+# Force to use stable Python ABI https://docs.python.org/3/c-api/stable.html
+add_compile_definitions(Py_LIMITED_API)
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+message("${Python3_LIBRARIES} ${Python3_LIBRARY_DIRS}")
 
 # ==============================================================================
 # Sources
@@ -57,8 +60,6 @@ target_include_directories(pythonfmu-export
         "${CMAKE_CURRENT_SOURCE_DIR}"
         )
 
-# Force to use stable Python ABI https://docs.python.org/3/c-api/stable.html
-add_compile_definitions(Py_LIMITED_API)
 target_link_libraries(pythonfmu-export
         PRIVATE
         Python3::Python
