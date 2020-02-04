@@ -58,6 +58,7 @@ target_compile_features(pythonfmu-export PUBLIC "cxx_std_17")
 target_include_directories(pythonfmu-export
         PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+        "${Python3_INCLUDE_DIRS}"
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
         )
