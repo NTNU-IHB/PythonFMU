@@ -43,7 +43,7 @@ class CMakeBuild(build_ext):
         
         cmake_args = [
             f"-DPython3_ROOT_DIR={sys.prefix}",
-            # "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"  # Active verbosity in cmake
+            "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"  # Active verbosity in cmake
         ]
         cmake_args.extend(shlex.split(os.environ.get("SETUP_CMAKE_ARGS", "")))
 
