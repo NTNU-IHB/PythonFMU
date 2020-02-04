@@ -23,7 +23,7 @@ inline void handle_py_exception()
         oss << "Fatal py exception encountered: ";
         if (pExcValue != nullptr) {
             PyObject* pRepr = PyObject_Repr(pExcValue);
-            oss << PyUnicode_AsUTF8(pRepr);
+            oss << PyBytes_AsString(PyUnicode_AsEncodedString(pRepr, "utf-8", NULL));
             Py_DECREF(pRepr);
         } else {
             oss << "unknown error";

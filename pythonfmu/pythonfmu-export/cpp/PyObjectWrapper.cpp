@@ -20,14 +20,6 @@ inline std::string getline(const std::string& fileName)
     return line;
 }
 
-inline const char* get_class_name(PyObject* pModule) {
-    auto f = PyObject_GetAttrString(pModule, "slave_class");
-    if (f != nullptr) {
-        return PyUnicode_AsUTF8(f);
-    }
-    return nullptr;
-}
-
 } // namespace
 
 namespace pythonfmu
@@ -36,21 +28,35 @@ namespace pythonfmu
 PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 {
     auto moduleName = getline(resources + "/slavemodule.txt");
-
-    std::ostringstream oss;
-    oss << "import sys\n";
-    oss << "sys.path.append(r'" << resources << "')\n";
-    PyRun_SimpleString(oss.str().c_str());
+    
+    PyObject* sys_module = PyImport_ImportModule("sys");
+    if (sys_module == nullptr) {
+        handle_py_exception();
+    }
+    PyObject* sys_path = PyObject_GetAttrString(sys_module, "path");
+    Py_DECREF(sys_module);
+    if (sys_path == nullptr) {
+        handle_py_exception();
+    }
+    PyObject* success = PyObject_CallMethod(sys_path, "append", "y", resources.c_str());
+    Py_DECREF(sys_path);
+    if (success == nullptr) {
+        handle_py_exception();
+    }
+    Py_DECREF(success);
 
     pModule_ = PyImport_ImportModule(moduleName.c_str());
     if (pModule_ == nullptr) {
         handle_py_exception();
     }
-    auto className = get_class_name(pModule_);
+    
+    PyObject* className = PyObject_GetAttrString(pModule_, "slave_class");
     if (className == nullptr) {
         handle_py_exception();
     }
-    pClass_ = PyObject_GetAttrString(pModule_, className);
+
+    pClass_ = PyObject_GetAttr(pModule_, className);
+    Py_DECREF(className);
     if (pClass_ == nullptr) {
         handle_py_exception();
     }
@@ -203,7 +209,7 @@ void PyObjectWrapper::getString(const cppfmu::FMIValueReference* vr, std::size_t
 
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
-        values[i] = PyUnicode_AsUTF8(value);
+        values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", NULL));
     }
 
     Py_DECREF(refs);

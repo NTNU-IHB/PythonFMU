@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import shlex
 import shutil
 import sys
 import platform
@@ -41,8 +42,10 @@ class CMakeBuild(build_ext):
         extdir.mkdir(parents=True, exist_ok=True)
         
         cmake_args = [
-            f"-DPython3_ROOT_DIR={sys.prefix}"
+            f"-DPython3_ROOT_DIR={sys.prefix}",
+            # "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON"  # Active verbosity in cmake
         ]
+        cmake_args.extend(shlex.split(os.environ.get("SETUP_CMAKE_ARGS", "")))
 
         cfg = "Debug" if self.debug else "Release"
         build_args = ["--config", cfg]
