@@ -37,8 +37,9 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 add_compile_definitions(Py_LIMITED_API)
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 if(WIN32)
-    set(Python3_LIBRARIES ${Python3_LIBRARY_DIRS}/python3.lib)
+    set(Python3_LIBRARIES ${Python3_LIBRARY_DIRS}\python3.lib)
 endif()
+message("${Python3_LIBRARIES} ${Python3_LIBRARY_DIRS}")
 
 # ==============================================================================
 # Sources
