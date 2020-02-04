@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(pythonfmu-export VERSION 0.1.0)
+project(pythonfmu-export VERSION 0.2.0)
 
 # ==============================================================================
 # Build settings
@@ -36,10 +36,10 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # Force to use stable Python ABI https://docs.python.org/3/c-api/stable.html
 add_compile_definitions(Py_LIMITED_API)
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
-if(WIN32)
-    set(Python3_LIBRARIES ${Python3_LIBRARY_DIRS}/python3.lib)
-endif()
-message("${Python3_LIBRARIES} ${Python3_LIBRARY_DIRS}")
+# if(WIN32)
+#    set(Python3_LIBRARIES ${Python3_LIBRARY_DIRS}/python3.lib)
+# endif()
+message("${Python3_LIBRARIES} ${Python3_LIBRARY_DIRS} ${Python3::Python}")
 
 # ==============================================================================
 # Sources
