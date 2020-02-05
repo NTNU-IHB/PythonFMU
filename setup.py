@@ -85,6 +85,6 @@ class CMakeBuild(build_ext):
 
 # See setup.cfg for Python package parameters
 setup(
-    ext_modules=[CMakeExtension("pythonfmu.export", "pythonfmu/pythonfmu-export")],
-    cmdclass=dict(build_ext=CMakeBuild),
+    # ext_modules=[CMakeExtension("pythonfmu.export", "pythonfmu/pythonfmu-export")],
+    # cmdclass=dict(build_ext=CMakeBuild),
 )

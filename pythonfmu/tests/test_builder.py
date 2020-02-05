@@ -174,7 +174,7 @@ def test_project_files_containing_script(pfiles):
 
 
 @pytest.mark.integration
-def test_simple_integration():
+def test_simple_integration_pyfmi():
     pyfmi = pytest.importorskip(
         "pyfmi", reason="pyfmi is required for testing the produced FMU"
     )
@@ -182,7 +182,7 @@ def test_simple_integration():
     script_file = Path(__file__).parent / DEMO
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        FmuBuilder.build_FMU(script_file, dest=tmp_dir)
+        FmuBuilder.build_FMU(script_file, dest=tmp_dir, needsExecutionTool="false")
 
         fmu = Path(tmp_dir) / "PythonSlave.fmu"
         assert fmu.exists()
@@ -190,3 +190,21 @@ def test_simple_integration():
         res = model.simulate(final_time=2.0)
 
         assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
+
+# TODO fmpy generate a Segmentation fault at line PyObject* sys_module = PyImport_ImportModule("sys"); in PyObjectWrapper
+# @pytest.mark.integration
+# def test_simple_integration_fmpy():
+#     fmpy = pytest.importorskip(
+#         "fmpy", reason="fmpy is not available for testing the produced FMU"
+#     )
+
+#     script_file = Path(__file__).parent / DEMO
+
+#     with tempfile.TemporaryDirectory() as tmp_dir:
+#         FmuBuilder.build_FMU(script_file, dest=tmp_dir)
+
+#         fmu = Path(tmp_dir) / "PythonSlave.fmu"
+#         assert fmu.exists()
+#         res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
+
+#         assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
