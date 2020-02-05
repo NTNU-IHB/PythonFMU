@@ -191,7 +191,3 @@ def main():
 
     options = vars(parser.parse_args())
     FmuBuilder.build_FMU(**options)
-
-
-if __name__ == "__main__":
-    main()
