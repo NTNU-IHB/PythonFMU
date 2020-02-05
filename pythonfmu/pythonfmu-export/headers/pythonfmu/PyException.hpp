@@ -21,7 +21,7 @@ inline void handle_py_exception(const std::string& what)
 
         std::ostringstream oss;
         oss << "Fatal py exception encountered: ";
-        oss << what;
+        oss << what << "\n";
         if (pExcValue != nullptr) {
             PyObject* pRepr = PyObject_Repr(pExcValue);
             oss << PyBytes_AsString(PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr));
