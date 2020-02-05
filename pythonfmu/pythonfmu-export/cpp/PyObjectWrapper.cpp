@@ -38,7 +38,7 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     if (sys_path == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
     }
-    PyObject* success = PyObject_CallMethod(sys_path, "append", "y", resources.c_str());
+    PyObject* success = PyObject_CallMethod(sys_path, "append", "s", resources.c_str());
     Py_DECREF(sys_path);
     if (success == nullptr) {
         handle_py_exception("[ctor] PyObject_CallMethod");
