@@ -1,15 +1,14 @@
 
-#include "pythonfmu/PyState.hpp"
 #include "pythonfmu/SlaveInstance.hpp"
+
+#include "pythonfmu/PyState.hpp"
 
 #include "cppfmu/cppfmu_cs.hpp"
 
 namespace pythonfmu
 {
 
-SlaveInstance::SlaveInstance(
-    const cppfmu::Memory& memory,
-    const std::string& resources)
+SlaveInstance::SlaveInstance(const std::string& resources)
     : instance_(PyObjectWrapper(resources))
 {}
 
@@ -104,7 +103,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
 
     auto resources = std::string(fmuResourceLocation);
     auto find = resources.find("file://");
-    
+
     if (find != std::string::npos) {
 #ifdef _MSC_VER
         resources.replace(find, 8, "");
@@ -118,5 +117,5 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     }
 
     return cppfmu::AllocateUnique<pythonfmu::SlaveInstance>(
-        memory, memory, resources);
+        memory, resources);
 }
