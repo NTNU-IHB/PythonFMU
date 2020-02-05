@@ -11,7 +11,7 @@
 namespace pythonfmu
 {
 
-inline void handle_py_exception()
+inline void handle_py_exception(const std::string& what)
 {
     auto err = PyErr_Occurred();
     if (err != nullptr) {
@@ -21,9 +21,10 @@ inline void handle_py_exception()
 
         std::ostringstream oss;
         oss << "Fatal py exception encountered: ";
+        oss << what;
         if (pExcValue != nullptr) {
             PyObject* pRepr = PyObject_Repr(pExcValue);
-            oss << PyBytes_AsString(PyUnicode_AsEncodedString(pRepr, "utf-8", NULL));
+            oss << PyBytes_AsString(PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr));
             Py_DECREF(pRepr);
         } else {
             oss << "unknown error";

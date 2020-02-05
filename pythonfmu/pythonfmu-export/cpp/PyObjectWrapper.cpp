@@ -31,38 +31,38 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     
     PyObject* sys_module = PyImport_ImportModule("sys");
     if (sys_module == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyImport_ImportModule");
     }
     PyObject* sys_path = PyObject_GetAttrString(sys_module, "path");
     Py_DECREF(sys_module);
     if (sys_path == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyObject_GetAttrString");
     }
     PyObject* success = PyObject_CallMethod(sys_path, "append", "y", resources.c_str());
     Py_DECREF(sys_path);
     if (success == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyObject_CallMethod");
     }
     Py_DECREF(success);
 
     pModule_ = PyImport_ImportModule(moduleName.c_str());
     if (pModule_ == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyImport_ImportModule");
     }
     
     PyObject* className = PyObject_GetAttrString(pModule_, "slave_class");
     if (className == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyObject_GetAttrString");
     }
 
     pClass_ = PyObject_GetAttr(pModule_, className);
     Py_DECREF(className);
     if (pClass_ == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyObject_GetAttr");
     }
     pInstance_ = PyObject_CallFunctionObjArgs(pClass_, nullptr);
     if (pInstance_ == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[ctor] PyObject_CallFunctionObjArgs");
     }
 }
 
@@ -70,7 +70,7 @@ void PyObjectWrapper::setupExperiment(double startTime)
 {
     auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(d)", startTime);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[setupExperiment] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -79,7 +79,7 @@ void PyObjectWrapper::enterInitializationMode()
 {
     auto f = PyObject_CallMethod(pInstance_, "enter_initialization_mode", nullptr);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[enterInitializationMode] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -88,7 +88,7 @@ void PyObjectWrapper::exitInitializationMode()
 {
     auto f = PyObject_CallMethod(pInstance_, "exit_initialization_mode", nullptr);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[exitInitializationMode] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -97,7 +97,7 @@ bool PyObjectWrapper::doStep(double currentTime, double stepSize)
 {
     auto f = PyObject_CallMethod(pInstance_, "do_step", "(dd)", currentTime, stepSize);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[doStep] PyObject_CallMethod");
     }
     bool status = static_cast<bool>(PyObject_IsTrue(f));
     Py_DECREF(f);
@@ -108,7 +108,7 @@ void PyObjectWrapper::reset()
 {
     auto f = PyObject_CallMethod(pInstance_, "reset", nullptr);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[reset] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -117,7 +117,7 @@ void PyObjectWrapper::terminate()
 {
     auto f = PyObject_CallMethod(pInstance_, "terminate", nullptr);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[terminate] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -133,7 +133,7 @@ void PyObjectWrapper::getInteger(const cppfmu::FMIValueReference* vr, std::size_
     auto f = PyObject_CallMethod(pInstance_, "__get_integer__", "(OO)", vrs, refs);
     Py_DECREF(vrs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[getInteger] PyObject_CallMethod");
     }
     Py_DECREF(f);
 
@@ -157,7 +157,7 @@ void PyObjectWrapper::getReal(const cppfmu::FMIValueReference* vr, std::size_t n
     auto f = PyObject_CallMethod(pInstance_, "__get_real__", "(OO)", vrs, refs);
     Py_DECREF(vrs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[getReal] PyObject_CallMethod");
     }
     Py_DECREF(f);
 
@@ -180,7 +180,7 @@ void PyObjectWrapper::getBoolean(const cppfmu::FMIValueReference* vr, std::size_
     auto f = PyObject_CallMethod(pInstance_, "__get_boolean__", "(OO)", vrs, refs);
     Py_DECREF(vrs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[getBoolean] PyObject_CallMethod");
     }
     Py_DECREF(f);
 
@@ -203,13 +203,13 @@ void PyObjectWrapper::getString(const cppfmu::FMIValueReference* vr, std::size_t
     auto f = PyObject_CallMethod(pInstance_, "__get_string__", "(OO)", vrs, refs);
     Py_DECREF(vrs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[getString] PyObject_CallMethod");
     }
     Py_DECREF(f);
 
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
-        values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", NULL));
+        values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", nullptr));
     }
 
     Py_DECREF(refs);
@@ -228,7 +228,7 @@ void PyObjectWrapper::setInteger(const cppfmu::FMIValueReference* vr, std::size_
     Py_DECREF(vrs);
     Py_DECREF(refs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[setInteger] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -246,7 +246,7 @@ void PyObjectWrapper::setReal(const cppfmu::FMIValueReference* vr, std::size_t n
     Py_DECREF(vrs);
     Py_DECREF(refs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[setReal] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -264,7 +264,7 @@ void PyObjectWrapper::setBoolean(const cppfmu::FMIValueReference* vr, std::size_
     Py_DECREF(vrs);
     Py_DECREF(refs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[setBoolean] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
@@ -282,7 +282,7 @@ void PyObjectWrapper::setString(const cppfmu::FMIValueReference* vr, std::size_t
     Py_DECREF(vrs);
     Py_DECREF(refs);
     if (f == nullptr) {
-        handle_py_exception();
+        handle_py_exception("[setString] PyObject_CallMethod");
     }
     Py_DECREF(f);
 }
