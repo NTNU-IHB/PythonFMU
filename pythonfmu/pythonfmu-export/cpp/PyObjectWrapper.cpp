@@ -27,8 +27,7 @@ namespace pythonfmu
 
 PyObjectWrapper::PyObjectWrapper(const std::string& resources)
 {
-    auto moduleName = getline(resources + "/slavemodule.txt");
-    
+    // Append resources path to python sys path
     PyObject* sys_module = PyImport_ImportModule("sys");
     if (sys_module == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
@@ -38,29 +37,31 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     if (sys_path == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
     }
-    PyObject* success = PyObject_CallMethod(sys_path, "append", "s", resources.c_str());
+    int success = PyList_Append(sys_path, PyUnicode_FromString(resources.c_str()));
     Py_DECREF(sys_path);
-    if (success == nullptr) {
-        handle_py_exception("[ctor] PyObject_CallMethod");
+    if (success != 0) {
+        handle_py_exception("[ctor] PyList_Append");
     }
-    Py_DECREF(success);
 
-    pModule_ = PyImport_ImportModule(moduleName.c_str());
-    if (pModule_ == nullptr) {
+    auto moduleName = getline(resources + "/slavemodule.txt");
+    PyObject* pModule = PyImport_ImportModule(moduleName.c_str());
+    if (pModule == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
     }
     
-    PyObject* className = PyObject_GetAttrString(pModule_, "slave_class");
+    PyObject* className = PyObject_GetAttrString(pModule, "slave_class");
     if (className == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
     }
 
-    pClass_ = PyObject_GetAttr(pModule_, className);
+    PyObject* pClass = PyObject_GetAttr(pModule, className);
+    Py_DECREF(pModule);
     Py_DECREF(className);
-    if (pClass_ == nullptr) {
+    if (pClass == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttr");
     }
-    pInstance_ = PyObject_CallFunctionObjArgs(pClass_, nullptr);
+    pInstance_ = PyObject_CallFunctionObjArgs(pClass, nullptr);
+    Py_DECREF(pClass);
     if (pInstance_ == nullptr) {
         handle_py_exception("[ctor] PyObject_CallFunctionObjArgs");
     }
@@ -290,8 +291,6 @@ void PyObjectWrapper::setString(const cppfmu::FMIValueReference* vr, std::size_t
 PyObjectWrapper::~PyObjectWrapper()
 {
     Py_XDECREF(pInstance_);
-    Py_XDECREF(pClass_);
-    Py_XDECREF(pModule_);
 }
 
 } // namespace pythonfmu

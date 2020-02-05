@@ -13,13 +13,20 @@ class PyState
 public:
     PyState()
     {
-        Py_Initialize();
+        _wasInitialized = Py_IsInitialized();
+        if(!_wasInitialized){
+            Py_Initialize();
+        }
     }
 
     ~PyState()
     {
-        Py_Finalize();
+        if(!_wasInitialized){
+            Py_Finalize();
+        }
     }
+private:
+    bool _wasInitialized;
 };
 
 } // namespace pythonfmu

@@ -46,8 +46,6 @@ public:
     ~PyObjectWrapper();
 
 private:
-    PyObject* pModule_;
-    PyObject* pClass_;
     PyObject* pInstance_;
 };
 
