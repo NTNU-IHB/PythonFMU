@@ -63,8 +63,6 @@ jobs:
     
       - name: Build distribution artifacts
         run: |
-          ls pythonfmu/resources/binaries/win64
-          ls pythonfmu/resources/binaries/linux64
           python -m pip install setuptools wheel
           python setup.py bdist_wheel
 
