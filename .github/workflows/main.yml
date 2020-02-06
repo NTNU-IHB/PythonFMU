@@ -31,7 +31,7 @@ jobs:
           mkdir tmp-build
           cd tmp-build
           cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=$Env:github_workspace/pythonfmu/resources/binaries/win64 -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-          cmake --build .
+          cmake --build . --config Release
           cd ..
 
       - name: Compile wrapper on Linux
