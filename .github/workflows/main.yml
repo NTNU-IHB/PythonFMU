@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir tmp-build
           cd tmp-build
-          cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=$Env:github_workspace/pythonfmu/resources/binaries/win64 -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+          cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE="$Env:github_workspace/pythonfmu/resources/binaries/win64" -DCMAKE_BUILD_TYPE=Release -A x64 -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
           cmake --build . --config Release
           cd ..
 
@@ -40,7 +40,7 @@ jobs:
           mkdir tmp-build
           cd tmp-build
           cmake $GITHUB_WORKSPACE/pythonfmu/pythonfmu-export -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$GITHUB_WORKSPACE/pythonfmu/resources/binaries/linux64 -DCMAKE_BUILD_TYPE=Release
-          cmake --build .
+          cmake --build . --config Release
           cd ..
 
       - name: Archive wrapper library

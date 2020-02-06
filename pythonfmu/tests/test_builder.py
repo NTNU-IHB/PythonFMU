@@ -10,6 +10,12 @@ import pythonfmu
 from pythonfmu.builder import FmuBuilder
 
 DEMO = "pythonslave.py"
+PROJECT_TEST_CASES = [
+    ("dummy.txt",),
+    ("dummy.py", "subdir/dummy.txt"),
+    ("dummy.py", "subdir/dummy.txt", "subdir/dummy2.txt"),
+    ("dummy.py", "subdir/dummy.txt", "subdir2/dummy2.txt"),
+]
 
 
 def get_platform():
@@ -19,7 +25,9 @@ def get_platform():
     return platforms[system] + "64" if is_64bits else "32"
 
 
-lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(platform.system(), None)
+lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(
+    platform.system(), None
+)
 
 # TODO test xml
 
@@ -56,7 +64,7 @@ def test_zip_content():
                     "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
                 )
             assert (
-                len(names) == 15
+                len(names) >= 15
             )  # Library + python script + XML + module name + sources
 
             with files.open(module_file) as myfile:
@@ -64,13 +72,7 @@ def test_zip_content():
 
 
 @pytest.mark.parametrize(
-    "pfiles",
-    [
-        ("dummy.txt",),
-        ("dummy.py", "subdir/dummy.txt"),
-        ("dummy.py", "subdir/dummy.txt", "subdir/dummy2.txt"),
-        ("dummy.py", "subdir/dummy.txt", "subdir2/dummy2.txt"),
-    ],
+    "pfiles", PROJECT_TEST_CASES,
 )
 def test_project_files(pfiles):
     script_file = Path(__file__).parent / DEMO
@@ -123,13 +125,7 @@ def test_project_files(pfiles):
 
 
 @pytest.mark.parametrize(
-    "pfiles",
-    [
-        ("dummy.txt",),
-        ("dummy.py", "subdir/dummy.txt"),
-        ("dummy.py", "subdir/dummy.txt", "subdir/dummy2.txt"),
-        ("dummy.py", "subdir/dummy.txt", "subdir2/dummy2.txt"),
-    ],
+    "pfiles", PROJECT_TEST_CASES,
 )
 def test_project_files_containing_script(pfiles):
     orig_script_file = Path(__file__).parent / DEMO
@@ -173,6 +169,28 @@ def test_project_files_containing_script(pfiles):
                 assert f"resources/{pfile!s}" in names
 
 
+def test_documentation():
+    script_file = Path(__file__).parent / DEMO
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with tempfile.TemporaryDirectory() as documentation_dir:
+            doc_dir = Path(documentation_dir)
+            license_file = doc_dir / "licenses" / "license.txt"
+            license_file.parent.mkdir()
+            license_file.write_text("Dummy license")
+            index_file = doc_dir / "index.html"
+            index_file.write_text("dummy index")
+
+            FmuBuilder.build_FMU(script_file, dest=tmp_dir, documentation_folder=doc_dir)
+
+        fmu = Path(tmp_dir) / "PythonSlave.fmu"
+
+        with zipfile.ZipFile(fmu) as files:
+            names = files.namelist()
+
+            assert "documentation/index.html" in names
+            assert "documentation/licenses/license.txt" in names
+
+
 @pytest.mark.integration
 def test_simple_integration_pyfmi():
     pyfmi = pytest.importorskip(
@@ -190,6 +208,7 @@ def test_simple_integration_pyfmi():
         res = model.simulate(final_time=2.0)
 
         assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
+
 
 # TODO fmpy generate a Segmentation fault at line PyObject* sys_module = PyImport_ImportModule("sys"); in PyObjectWrapper
 # @pytest.mark.integration

@@ -60,6 +60,7 @@ class FmuBuilder:
         script_file: FilePath,
         dest: FilePath = ".",
         project_files: Iterable[FilePath] = set(),
+        documentation_folder: Optional[FilePath] = None,
         **options,
     ):
         script_file = Path(script_file)
@@ -72,6 +73,11 @@ class FmuBuilder:
         if not dest.exists():
             dest.mkdir(parents=True)
         project_files = set(map(Path, project_files))
+
+        if documentation_folder is not None:
+            documentation_folder = Path(documentation_folder)
+            if not documentation_folder.exists():
+                raise ValueError(f"The documentation folder does not exists {documentation_folder!s}")
 
         script_parent = script_file.resolve().parent.absolute()
         module_name = script_file.stem
@@ -106,6 +112,12 @@ class FmuBuilder:
 
             dest_file = dest / f"{model_identifier}.fmu"
 
+            type_node = xml.find("CoSimulation")
+            option_names = [opt.name for opt in FMI2_MODEL_OPTIONS]
+            for option, value in options.items():
+                if option in option_names:
+                    type_node.set(option, value)
+
             with zipfile.ZipFile(dest_file, "w") as zip_fmu:
 
                 resource = Path("resources")
@@ -120,7 +132,6 @@ class FmuBuilder:
                 zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
 
                 # Add FMI API wrapping Python class source
-                type_node = xml.find("CoSimulation")
                 source_node = SubElement(type_node, "SourceFiles")
                 sources = Path("sources")
                 src = HERE / "pythonfmu-export"
@@ -146,6 +157,14 @@ class FmuBuilder:
                         / f"{model_identifier}{relative_f.suffix}"
                     )
                     zip_fmu.write(f, arcname=arcname)
+
+                # Add the documentation folder
+                if documentation_folder is not None:
+                    documentation = Path("documentation")
+                    for f in documentation_folder.rglob("*"):
+                        if f.is_file():
+                            relative_f = f.relative_to(documentation_folder)
+                            zip_fmu.write(f, arcname=(documentation / relative_f))
 
                 # Add the model description
                 xml_str = parseString(tostring(xml, "UTF-8"))
@@ -175,6 +194,10 @@ def main():
     # )
     parser.add_argument(
         "-d", "--dest", dest="dest", help="Where to save the FMU.", default="."
+    )
+
+    parser.add_argument(
+        "--doc", dest="documentation_folder", help="Documentation folder to include in the FMU.", default=None
     )
 
     # for option in FMI2_MODEL_OPTIONS:
