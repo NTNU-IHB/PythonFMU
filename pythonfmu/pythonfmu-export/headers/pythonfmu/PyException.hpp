@@ -37,6 +37,7 @@ inline void handle_py_exception(const std::string& what)
         Py_XDECREF(pExcTraceback);
 
         auto msg = oss.str();
+        std::cerr << msg << std::endl;
         throw cppfmu::FatalError(msg.c_str());
     }
 }
