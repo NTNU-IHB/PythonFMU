@@ -92,6 +92,30 @@ jobs:
         with:
           name: python-wheel
 
+      - name: Cache conda packages for Linux
+        if: startsWith(runner.os, 'Linux')
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-conda-pkgs
+        with:
+          path: /usr/share/miniconda/pkgs
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+
+      - name: Cache conda packages for Windows
+        if: startsWith(runner.os, 'Windows')
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-conda-pkgs
+        with:
+          path: C:\Miniconda\pkgs
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+
       - name: Setup Python ${{ matrix.python-version }}
         uses: goanpeca/setup-miniconda@v1
         with:
@@ -103,7 +127,7 @@ jobs:
           conda install -c conda-forge pytest pyfmi
           cd python-wheel
           python -m pip install pythonfmu*.whl
-          python -m pytest --pyargs pythonfmu.tests
+          python -m pytest --pyargs pythonfmu
           cd ..
         shell: bash -l {0}
         
@@ -111,8 +135,11 @@ jobs:
         if: startsWith(runner.os, 'Windows')
         run: |
           conda install -c conda-forge pytest pyfmi
+          python -V
+          conda info
+          ls python-wheel
           cd python-wheel
           python -m pip install pythonfmu*.whl
-          python -m pytest --pyargs pythonfmu.tests
+          python -m pytest --pyargs pythonfmu
           cd ..
-        shell: cmd /C call {0}
+        shell: pwsh
