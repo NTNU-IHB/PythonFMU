@@ -37,7 +37,7 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     if (sys_path == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
     }
-    int success = PyList_Append(sys_path, PyUnicode_FromString(resources.c_str()));
+    int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resources.c_str()));
     Py_DECREF(sys_path);
     if (success != 0) {
         handle_py_exception("[ctor] PyList_Append");
