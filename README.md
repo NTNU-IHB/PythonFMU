@@ -19,18 +19,22 @@ pip install git+https://github.com/fcollonval/PythonFMU.git
 
 ```
 usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-d DEST]
+                         [--doc DOCUMENTATION_FOLDER]
                          [Project files [Project files ...]]
 
 Build a FMU from a Python script.
 
 positional arguments:
-  Project files         Additional project files required by the Python script.
+  Project files         Additional project files required by the Python
+                        script.
 
 optional arguments:
   -h, --help            show this help message and exit
   -f SCRIPT_FILE, --file SCRIPT_FILE
                         Path to the Python script.
   -d DEST, --dest DEST  Where to save the FMU.
+  --doc DOCUMENTATION_FOLDER
+                        Documentation folder to include in the FMU.
 ```
 
 ##### Example: 
@@ -80,19 +84,22 @@ Project folders such as this will be recursively copied into the FMU. Multiple p
 
 ###### Use the FMU
 
-The generate FMU can be executed with [`pyfmi`]().
+The generate FMU can be executed with [`pyfmi`](https://jmodelica.org/pyfmi/).
 
 ```bash
-pip install pyfmi
+conda install -c conda-forge pyfmi
 python -c "from pyfmi import load_fmu; m = load_fmu('MyFMU.fmu'); res = m.simulate(final_time=1); print(res['time'])"
 ```
 
+> We recommand to use `conda` package manager to install `pyfmi` as it provides binary
+packages for a larger number of Python and OS versions.
+
 ### Note
 
-PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). 
+PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). But to ease its usage the wrapper is compile using
+the limited Python API. So the provided binary libraries for Linux and Windows 64-bits should
+be compatible of any Python 3 environment.
 PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
-
-To `pip` install PythonFMU you will need a compiler.
 
 ***
 

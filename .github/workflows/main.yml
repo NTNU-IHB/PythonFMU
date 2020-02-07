@@ -84,8 +84,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        # python-version: [3.6, 3.7, 3.x]
-        python-version: [3]
+        python-version: [3.6, 3.7, 3.8]
     
     steps:
       - name: Download python package
@@ -103,7 +102,6 @@ jobs:
         run: |
           conda install -c conda-forge pytest pyfmi
           cd python-wheel
-          ls .
           python -m pip install pythonfmu*.whl
           python -m pytest --pyargs pythonfmu.tests
           cd ..
@@ -114,7 +112,6 @@ jobs:
         run: |
           conda install -c conda-forge pytest pyfmi
           cd python-wheel
-          ls .
           python -m pip install pythonfmu*.whl
           python -m pytest --pyargs pythonfmu.tests
           cd ..
