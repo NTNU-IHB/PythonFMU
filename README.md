@@ -12,7 +12,7 @@
 
 1) Install `pythonfmu` package:
 ```bash
-pip install git+https://github.com/fcollonval/PythonFMU.git
+pip install git+https://github.com/NTNU-IHB/PythonFMU.git
 ```
 2) Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module. 
 3) Run `pythonfmu-builder` to create the fmu.
@@ -81,19 +81,6 @@ In this example a python class named `PythonSlave` that extends `Fmi2Slave` is d
 `pythonfmu` is a optional folder containing additional project files required by the python script. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
 
-
-###### Use the FMU
-
-The generate FMU can be executed with [`pyfmi`](https://jmodelica.org/pyfmi/).
-
-```bash
-conda install -c conda-forge pyfmi
-python -c "from pyfmi import load_fmu; m = load_fmu('MyFMU.fmu'); res = m.simulate(final_time=1); print(res['time'])"
-```
-
-> We recommand to use `conda` package manager to install `pyfmi` as it provides binary
-packages for a larger number of Python and OS versions.
-
 ### Note
 
 PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). But to ease its usage the wrapper is compile using
@@ -105,3 +92,8 @@ PythonFMU does not automatically resolve 3rd party dependencies either. If your 
 
 Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)!  
 Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue! 
+
+
+### Credits
+
+This works has been possible thanks to the contributions of @markaren from NTNU-IHB and @fcollonval from Safran SA.
