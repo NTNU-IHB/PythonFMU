@@ -82,8 +82,8 @@ class Fmi2Slave(ABC):
 
         variables = SubElement(root, 'ModelVariables')
         for v in self.vars.values():
-            if self.__requires_start__(v):
-                self.__set_start__(v)
+            if ScalarVariable.requires_start(v):
+                self.__set_start(v)
             variables.append(v.to_xml())
 
         structure = SubElement(root, 'ModelStructure')
@@ -96,15 +96,7 @@ class Fmi2Slave(ABC):
 
         return root
 
-    @staticmethod
-    def __requires_start__(v: ScalarVariable) -> bool:
-        return v.initial == Fmi2Initial.exact or \
-               v.initial == Fmi2Initial.approx or \
-               v.causality == Fmi2Causality.input or \
-               v.causality == Fmi2Causality.parameter or \
-               v.variability == Fmi2Variability.constant
-
-    def __set_start__(self, var: ScalarVariable):
+    def __set_start(self, var: ScalarVariable):
         refs = [None]
         vrs = [var.value_reference]
 
@@ -113,15 +105,13 @@ class Fmi2Slave(ABC):
         elif isinstance(var, Real):
             self.__get_real__(vrs, refs)
         elif isinstance(var, Boolean):
-            vrs.append(var.value_reference)
             self.__get_boolean__(vrs, refs)
         elif isinstance(var, String):
-            vrs.append(var.value_reference)
             self.__get_string__(vrs, refs)
         else:
             raise Exception(f"Unsupported type!")
 
-        var.__set_start__(refs[0])
+        var.start = refs[0]
 
     def register_variable(self, var: ScalarVariable):
         variable_reference = len(self.vars)
