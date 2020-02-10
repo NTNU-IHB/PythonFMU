@@ -214,7 +214,7 @@ public:
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-    Allocator() : m_memory{fmiCallbackFunctions{}} { }
+    Allocator() : m_memory{FMICallbackFunctions{}} { }
 #pragma GCC diagnostic pop
 #endif
 

@@ -20,10 +20,6 @@ HERE = Path(__file__).parent
 
 logger = logging.getLogger(__name__)
 
-lib_prefix = "lib" if platform.system() == "Linux" else ""
-
-lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(platform.system(), None)
-
 
 class ModelDescriptionFetcher:
     @staticmethod
@@ -155,7 +151,7 @@ class FmuBuilder:
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
                 for f in itertools.chain(
-                    src_binaries.rglob("*.dll"), src_binaries.rglob("*.so")
+                    src_binaries.rglob("*.dll"), src_binaries.rglob("*.so"), src_binaries.rglob("*.dylib")
                 ):
                     relative_f = f.relative_to(src_binaries)
                     arcname = (

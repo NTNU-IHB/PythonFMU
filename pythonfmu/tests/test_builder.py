@@ -26,7 +26,7 @@ def get_platform():
     return platforms[system] + "64" if is_64bits else "32"
 
 
-lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(
+lib_extension = ({"Darwin": "dylib", "Linux": "so", "Windows": "dll"}).get(
     platform.system(), None
 )
 
