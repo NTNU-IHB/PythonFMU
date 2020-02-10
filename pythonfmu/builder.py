@@ -5,6 +5,7 @@ import itertools
 import logging
 import platform
 import shutil
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -36,13 +37,19 @@ class ModelDescriptionFetcher:
         Returns:
             Tuple[str, xml.etree.TreeElement.Element] : FMU model name, model description
         """
-        # Import the user interface
-        spec = importlib.util.spec_from_file_location(module_name, filepath)
-        fmu_interface = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(fmu_interface)
-        # Instantiate the interface
-        class_name = getattr(fmu_interface, "slave_class")
-        instance = getattr(fmu_interface, class_name)()
+        # Add current folder to handle local dependencies
+        sys.path.insert(0, str(filepath.parent))
+        try:
+            # Import the user interface
+            spec = importlib.util.spec_from_file_location(module_name, filepath)
+            fmu_interface = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(fmu_interface)
+            # Instantiate the interface
+            class_name = getattr(fmu_interface, "slave_class")
+            instance = getattr(fmu_interface, class_name)()
+        finally:
+            sys.path.remove(str(filepath.parent))  # remove inserted temporary path
+        
         if not isinstance(instance, Fmi2Slave):
             raise TypeError(
                 f"The provided class '{class_name}' does not inherit from {Fmi2Slave.__qualname__}"

@@ -6,6 +6,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+
 import pythonfmu
 from pythonfmu.builder import FmuBuilder
 
@@ -32,198 +33,144 @@ lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(
 # TODO test xml
 
 
-def test_zip_content():
+def test_zip_content(tmp_path):
     script_file = Path(__file__).parent / DEMO
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        FmuBuilder.build_FMU(script_file, dest=tmp_dir)
 
-        fmu = Path(tmp_dir) / "PythonSlave.fmu"
-        assert fmu.exists()
-        assert zipfile.is_zipfile(fmu)
+    FmuBuilder.build_FMU(script_file, dest=tmp_path)
 
-        with zipfile.ZipFile(fmu) as files:
-            names = files.namelist()
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+    assert zipfile.is_zipfile(fmu)
 
-            assert "modelDescription.xml" in names
-            assert "/".join(("resources", DEMO)) in names
-            module_file = "/".join(("resources", "slavemodule.txt"))
-            assert module_file in names
-            assert (
-                "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}",))
-                in names
-            )
+    with zipfile.ZipFile(fmu) as files:
+        names = files.namelist()
 
-            # Check sources
-            src_folder = Path(pythonfmu.__path__[0]) / "pythonfmu-export"
-            for f in itertools.chain(
-                src_folder.rglob("*.hpp"),
-                src_folder.rglob("*.cpp"),
-                src_folder.rglob("CMakeLists.txt"),
-            ):
-                assert (
-                    "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
-                )
-            assert (
-                len(names) >= 15
-            )  # Library + python script + XML + module name + sources
+        assert "modelDescription.xml" in names
+        assert "/".join(("resources", DEMO)) in names
+        module_file = "/".join(("resources", "slavemodule.txt"))
+        assert module_file in names
+        assert (
+            "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}"))
+            in names
+        )
 
-            with files.open(module_file) as myfile:
-                assert myfile.read() == b"pythonslave"
+        # Check sources
+        src_folder = Path(pythonfmu.__path__[0]) / "pythonfmu-export"
+        for f in itertools.chain(
+            src_folder.rglob("*.hpp"),
+            src_folder.rglob("*.cpp"),
+            src_folder.rglob("CMakeLists.txt"),
+        ):
+            assert "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
+        assert len(names) >= 15  # Library + python script + XML + module name + sources
+
+        with files.open(module_file) as myfile:
+            assert myfile.read() == b"pythonslave"
 
 
-@pytest.mark.parametrize(
-    "pfiles", PROJECT_TEST_CASES,
-)
-def test_project_files(pfiles):
+@pytest.mark.parametrize("pfiles", PROJECT_TEST_CASES)
+def test_project_files(tmp_path, pfiles):
     script_file = Path(__file__).parent / DEMO
     pfiles = map(Path, pfiles)
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with tempfile.TemporaryDirectory() as project_dir:
-            project_dir = Path(project_dir)
 
-            project_files = set()
-            for f in pfiles:
-                full_name = project_dir / f
-                if full_name.suffix:
-                    full_name.parent.mkdir(parents=True, exist_ok=True)
-                    full_name.write_text("dummy content")
-                else:
-                    full_name.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as project_dir:
+        project_dir = Path(project_dir)
 
-                # Add subfolder and not file if common parent exits
-                to_remove = None
-                for p in project_files:
-                    if p.parent == full_name.parent or p == full_name.parent:
-                        to_remove = p
-                        break
-                if to_remove is None:
-                    project_files.add(full_name)
-                else:
-                    project_files.remove(to_remove)
-                    project_files.add(full_name.parent)
+        project_files = set()
+        for f in pfiles:
+            full_name = project_dir / f
+            if full_name.suffix:
+                full_name.parent.mkdir(parents=True, exist_ok=True)
+                full_name.write_text("dummy content")
+            else:
+                full_name.mkdir(parents=True, exist_ok=True)
 
-            FmuBuilder.build_FMU(script_file, dest=tmp_dir, project_files=project_files)
+            # Add subfolder and not file if common parent exits
+            to_remove = None
+            for p in project_files:
+                if p.parent == full_name.parent or p == full_name.parent:
+                    to_remove = p
+                    break
+            if to_remove is None:
+                project_files.add(full_name)
+            else:
+                project_files.remove(to_remove)
+                project_files.add(full_name.parent)
 
-        fmu = Path(tmp_dir) / "PythonSlave.fmu"
-        with zipfile.ZipFile(fmu) as files:
-            names = files.namelist()
+        FmuBuilder.build_FMU(script_file, dest=tmp_path, project_files=project_files)
 
-            parents = [p.parent for p in pfiles]
-            unique_folders = set(parents)
-            common_parents = set()
-            if len(unique_folders) < len(parents):
-                common_parents = set(
-                    filter(lambda f: parents.count(f) > 1, unique_folders)
-                )
+    fmu = tmp_path / "PythonSlave.fmu"
+    with zipfile.ZipFile(fmu) as files:
+        names = files.namelist()
 
-                pfiles = map(
-                    lambda f: f if f.parent in common_parents else f.name, pfiles
-                )
+        parents = [p.parent for p in pfiles]
+        unique_folders = set(parents)
+        common_parents = set()
+        if len(unique_folders) < len(parents):
+            common_parents = set(filter(lambda f: parents.count(f) > 1, unique_folders))
 
-            for pfile in pfiles:
-                assert f"resources/{pfile!s}" in names
+            pfiles = map(lambda f: f if f.parent in common_parents else f.name, pfiles)
+
+        for pfile in pfiles:
+            assert f"resources/{pfile!s}" in names
 
 
-@pytest.mark.parametrize(
-    "pfiles", PROJECT_TEST_CASES,
-)
-def test_project_files_containing_script(pfiles):
+@pytest.mark.parametrize("pfiles", PROJECT_TEST_CASES)
+def test_project_files_containing_script(tmp_path, pfiles):
     orig_script_file = Path(__file__).parent / DEMO
     pfiles = map(Path, pfiles)
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with tempfile.TemporaryDirectory() as project_dir:
-            project_dir = Path(project_dir)
-            script_file = project_dir / DEMO
-            with open(orig_script_file) as script_f:
-                script_file.write_text(script_f.read())
 
-            for f in pfiles:
-                full_name = project_dir / f
-                if full_name.suffix:
-                    full_name.parent.mkdir(parents=True, exist_ok=True)
-                    full_name.write_text("dummy content")
-                else:
-                    full_name.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as project_dir:
+        project_dir = Path(project_dir)
+        script_file = project_dir / DEMO
+        with open(orig_script_file) as script_f:
+            script_file.write_text(script_f.read())
 
-            FmuBuilder.build_FMU(
-                script_file, dest=tmp_dir, project_files=[script_file.parent]
-            )
+        for f in pfiles:
+            full_name = project_dir / f
+            if full_name.suffix:
+                full_name.parent.mkdir(parents=True, exist_ok=True)
+                full_name.write_text("dummy content")
+            else:
+                full_name.mkdir(parents=True, exist_ok=True)
 
-        fmu = Path(tmp_dir) / "PythonSlave.fmu"
-        with zipfile.ZipFile(fmu) as files:
-            names = files.namelist()
+        FmuBuilder.build_FMU(
+            script_file, dest=tmp_path, project_files=[script_file.parent]
+        )
 
-            parents = [p.parent for p in pfiles]
-            unique_folders = set(parents)
-            common_parents = set()
-            if len(unique_folders) < len(parents):
-                common_parents = set(
-                    filter(lambda f: parents.count(f) > 1, unique_folders)
-                )
+    fmu = tmp_path / "PythonSlave.fmu"
+    with zipfile.ZipFile(fmu) as files:
+        names = files.namelist()
 
-                pfiles = map(
-                    lambda f: f if f.parent in common_parents else f.name, pfiles
-                )
+        parents = [p.parent for p in pfiles]
+        unique_folders = set(parents)
+        common_parents = set()
+        if len(unique_folders) < len(parents):
+            common_parents = set(filter(lambda f: parents.count(f) > 1, unique_folders))
 
-            for pfile in pfiles:
-                assert f"resources/{pfile!s}" in names
+            pfiles = map(lambda f: f if f.parent in common_parents else f.name, pfiles)
+
+        for pfile in pfiles:
+            assert f"resources/{pfile!s}" in names
 
 
-def test_documentation():
-    script_file = Path(__file__).parent / DEMO
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        with tempfile.TemporaryDirectory() as documentation_dir:
-            doc_dir = Path(documentation_dir)
-            license_file = doc_dir / "licenses" / "license.txt"
-            license_file.parent.mkdir()
-            license_file.write_text("Dummy license")
-            index_file = doc_dir / "index.html"
-            index_file.write_text("dummy index")
-
-            FmuBuilder.build_FMU(script_file, dest=tmp_dir, documentation_folder=doc_dir)
-
-        fmu = Path(tmp_dir) / "PythonSlave.fmu"
-
-        with zipfile.ZipFile(fmu) as files:
-            names = files.namelist()
-
-            assert "documentation/index.html" in names
-            assert "documentation/licenses/license.txt" in names
-
-
-@pytest.mark.integration
-def test_simple_integration_pyfmi():
-    pyfmi = pytest.importorskip(
-        "pyfmi", reason="pyfmi is required for testing the produced FMU"
-    )
-
+def test_documentation(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        FmuBuilder.build_FMU(script_file, dest=tmp_dir, needsExecutionTool="false")
+    with tempfile.TemporaryDirectory() as documentation_dir:
+        doc_dir = Path(documentation_dir)
+        license_file = doc_dir / "licenses" / "license.txt"
+        license_file.parent.mkdir()
+        license_file.write_text("Dummy license")
+        index_file = doc_dir / "index.html"
+        index_file.write_text("dummy index")
 
-        fmu = Path(tmp_dir) / "PythonSlave.fmu"
-        assert fmu.exists()
-        model = pyfmi.load_fmu(str(fmu))
-        res = model.simulate(final_time=2.0)
+        FmuBuilder.build_FMU(script_file, dest=tmp_path, documentation_folder=doc_dir)
 
-        assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
+    fmu = tmp_path / "PythonSlave.fmu"
 
+    with zipfile.ZipFile(fmu) as files:
+        names = files.namelist()
 
-# TODO fmpy generate a Segmentation fault at line PyObject* sys_module = PyImport_ImportModule("sys"); in PyObjectWrapper
-# @pytest.mark.integration
-# def test_simple_integration_fmpy():
-#     fmpy = pytest.importorskip(
-#         "fmpy", reason="fmpy is not available for testing the produced FMU"
-#     )
-
-#     script_file = Path(__file__).parent / DEMO
-
-#     with tempfile.TemporaryDirectory() as tmp_dir:
-#         FmuBuilder.build_FMU(script_file, dest=tmp_dir)
-
-#         fmu = Path(tmp_dir) / "PythonSlave.fmu"
-#         assert fmu.exists()
-#         res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
-
-#         assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
+        assert "documentation/index.html" in names
+        assert "documentation/licenses/license.txt" in names
