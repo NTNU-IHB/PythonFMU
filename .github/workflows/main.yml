@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build-wrapper:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+
+      - name: Compile wrapper on Windows
+        if: startsWith(runner.os, 'Windows')
+        run: |
+          mkdir tmp-build
+          cd tmp-build
+          cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE="$Env:github_workspace/pythonfmu/resources/binaries/win64" -DCMAKE_BUILD_TYPE=Release -A x64
+          cmake --build . --config Release
+          cd ..
+
+      - name: Compile wrapper on Linux
+        if: startsWith(runner.os, 'Linux')
+        run: |
+          mkdir tmp-build
+          cd tmp-build
+          cmake $GITHUB_WORKSPACE/pythonfmu/pythonfmu-export -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$GITHUB_WORKSPACE/pythonfmu/resources/binaries/linux64 -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+          cd ..
+
+      - name: Archive wrapper library
+        uses: actions/upload-artifact@v1
+        with:
+          name: lib-wrapper
+          path: pythonfmu/resources
+
+  build-python:
+    needs: build-wrapper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+
+      - name: Download wrappers
+        uses: actions/download-artifact@v1
+        with:
+          name: lib-wrapper
+          path: pythonfmu/resources
+    
+      - name: Build distribution artifacts
+        run: |
+          python -m pip install setuptools wheel
+          python setup.py bdist_wheel
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: python-wheel
+          path: dist
+
+  test:
+    needs: build-python
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8]
+    
+    steps:
+      - name: Download python package
+        uses: actions/download-artifact@v1
+        with:
+          name: python-wheel
+
+      - name: Cache conda packages for Linux
+        if: startsWith(runner.os, 'Linux')
+        uses: actions/cache@v1
+        with:
+          path: /usr/share/miniconda/pkgs
+          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-test-cache-conda-pkgs-
+            ${{ runner.os }}-test-
+
+      - name: Cache conda packages for Windows
+        if: startsWith(runner.os, 'Windows')
+        uses: actions/cache@v1
+        with:
+          path: C:\Miniconda\pkgs
+          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-test-cache-conda-pkgs-
+            ${{ runner.os }}-test-
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: goanpeca/setup-miniconda@v1
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+        
+      - name: Run the Tests
+        run: |
+          conda activate test
+          conda install -n test -c conda-forge pytest pyfmi
+          cd python-wheel
+          python -m pip install pythonfmu*.whl
+          python -m pytest --pyargs pythonfmu
+          cd ..
+        shell: bash -l {0}
