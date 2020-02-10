@@ -69,7 +69,7 @@ class Real(ScalarVariable):
         self.__attrs = {"start": start}
 
     def __set_start__(self, value: float):
-        self.__attr["start"] = value
+        self.__attrs["start"] = value
 
     @property
     def start(self) -> Optional[Any]:

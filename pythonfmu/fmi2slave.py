@@ -111,7 +111,6 @@ class Fmi2Slave(ABC):
         if isinstance(var, Integer):
             self.__get_integer__(vrs, refs)
         elif isinstance(var, Real):
-            vrs.append(var.value_reference)
             self.__get_real__(vrs, refs)
         elif isinstance(var, Boolean):
             vrs.append(var.value_reference)
