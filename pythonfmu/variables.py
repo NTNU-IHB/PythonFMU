@@ -68,6 +68,9 @@ class Real(ScalarVariable):
         super().__init__(name, **kwargs)
         self.__attrs = {"start": start}
 
+    def __set_start__(self, value: float):
+        self.__attr["start"] = value
+
     @property
     def start(self) -> Optional[Any]:
         return self.__attrs["start"]
@@ -87,6 +90,9 @@ class Integer(ScalarVariable):
     def __init__(self, name: str, start: Optional[Any] = None, **kwargs):
         super().__init__(name, **kwargs)
         self.__attrs = {"start": start}
+
+    def __set_start__(self, value: int):
+        self.__attrs["start"] = value
 
     @property
     def start(self) -> Optional[Any]:
@@ -108,6 +114,9 @@ class Boolean(ScalarVariable):
         super().__init__(name, **kwargs)
         self.__attrs = {"start": start}
 
+    def __set_start__(self, value: bool):
+        self.__attrs["start"] = value
+
     @property
     def start(self) -> Optional[Any]:
         return self.__attrs["start"]
@@ -127,6 +136,9 @@ class String(ScalarVariable):
     def __init__(self, name: str, start: Optional[Any] = None, **kwargs):
         super().__init__(name, **kwargs)
         self.__attrs = {"start": start}
+
+    def __set_start__(self, value: str):
+        self.__attrs["start"] = value
 
     @property
     def start(self) -> Optional[Any]:

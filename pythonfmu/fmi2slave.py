@@ -6,7 +6,7 @@ from typing import ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
-from .enums import Fmi2Causality
+from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
@@ -82,6 +82,8 @@ class Fmi2Slave(ABC):
 
         variables = SubElement(root, 'ModelVariables')
         for v in self.vars.values():
+            if self.__requires_start__(v):
+                self.__set_start__(v)
             variables.append(v.to_xml())
 
         structure = SubElement(root, 'ModelStructure')
@@ -93,6 +95,34 @@ class Fmi2Slave(ABC):
                 SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
 
         return root
+
+    @staticmethod
+    def __requires_start__(v: ScalarVariable) -> bool:
+        return v.initial == Fmi2Initial.exact or \
+               v.initial == Fmi2Initial.approx or \
+               v.causality == Fmi2Causality.input or \
+               v.causality == Fmi2Causality.parameter or \
+               v.variability == Fmi2Variability.constant
+
+    def __set_start__(self, var: ScalarVariable):
+        refs = [None]
+        vrs = [var.value_reference]
+
+        if isinstance(var, Integer):
+            self.__get_integer__(vrs, refs)
+        elif isinstance(var, Real):
+            vrs.append(var.value_reference)
+            self.__get_real__(vrs, refs)
+        elif isinstance(var, Boolean):
+            vrs.append(var.value_reference)
+            self.__get_boolean__(vrs, refs)
+        elif isinstance(var, String):
+            vrs.append(var.value_reference)
+            self.__get_string__(vrs, refs)
+        else:
+            raise Exception(f"Unsupported type!")
+
+        var.__set_start__(refs[0])
 
     def register_variable(self, var: ScalarVariable):
         variable_reference = len(self.vars)
