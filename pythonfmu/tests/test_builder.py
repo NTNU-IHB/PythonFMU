@@ -30,8 +30,6 @@ lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(
     platform.system(), None
 )
 
-# TODO test xml
-
 
 def test_zip_content(tmp_path):
     script_file = Path(__file__).parent / DEMO

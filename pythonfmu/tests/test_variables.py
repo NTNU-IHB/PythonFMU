@@ -104,6 +104,7 @@ def test_Boolean_constructor(name, start):
 @pytest.mark.parametrize("name,start", [
     ("boolean_name", None),
     ("boolean_another_name", True),
+    ("boolean_yet_another", False),
 ])
 def test_Boolean_to_xml(name, start):
     r = Boolean(name, start)
@@ -111,7 +112,7 @@ def test_Boolean_to_xml(name, start):
     children = list(xml)
     assert len(children) == 1
     if start is not None:
-        assert children[0].attrib['start'] == str(start)
+        assert children[0].attrib['start'] == str(start).lower()
 
 @pytest.mark.parametrize("name,start", [
     ("integer_name", None),
