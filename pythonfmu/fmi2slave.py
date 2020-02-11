@@ -35,7 +35,7 @@ class Fmi2Slave(ABC):
     def __init__(self):
         self.vars = dict()
         if self.modelName is None:
-            raise Exception("No modelName has been specified!")
+            self.modelName = self.__class__.__name__
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
