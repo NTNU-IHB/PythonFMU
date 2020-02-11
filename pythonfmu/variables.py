@@ -136,7 +136,7 @@ class Boolean(ScalarVariable):
         attrib = dict()
         for key, value in self.__attrs.items():
             if value is not None:
-                attrib[key] = str(value)
+                attrib[key] = str(value).lower()
         parent = super().to_xml()
         SubElement(parent, "Boolean", attrib)
 
