@@ -32,7 +32,7 @@ class Fmi2Slave(ABC):
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
 
-    def __init__(self, instance_name):
+    def __init__(self, instance_name: str):
         self.vars = dict()
         self.instance_name = instance_name
         if self.modelName is None:
