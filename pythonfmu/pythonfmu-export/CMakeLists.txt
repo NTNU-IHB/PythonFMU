@@ -84,7 +84,14 @@ endif ()
 
 message("Building pythonfmu-export for platform ${TARGET_PLATFORM}")
 
-set_target_properties(pythonfmu-export
-        PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
-        )
+if (win32)
+  set_target_properties(pythonfmu-export
+          PROPERTIES
+          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
+          )
+else ()
+  set_target_properties(pythonfmu-export
+          PROPERTIES
+          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
+          )
+endif ()
