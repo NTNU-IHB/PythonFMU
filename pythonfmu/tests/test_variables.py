@@ -3,6 +3,7 @@ from random import randint
 
 import pytest
 
+from pythonfmu import Fmi2Slave
 from pythonfmu.enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from pythonfmu.variables import Boolean, Integer, Real, ScalarVariable, String
 
@@ -57,6 +58,42 @@ def test_ScalarVariable_to_xml(causality, initial, variability, name, descriptio
                 assert node.attrib[attr] == value.name
             else:
                 assert node.attrib[attr] == str(value)
+
+
+@pytest.mark.parametrize("var_type, value", [
+    (Boolean, True),
+    (Integer, 23),
+    (Real, 15.),
+    (String, "hello")])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+def test_ScalarVariable_start(var_type, value, causality, initial, variability):
+    var_obj = var_type("var", causality=causality, description="a variable", initial=initial, variability=variability)
+
+    class PySlave(Fmi2Slave):
+
+        modelName = "PySlave"
+
+        def __init__(self):
+            super().__init__()
+            setattr(self, "var", value)
+            self.register_variable(var_obj)
+
+        def do_step(self, current_time: float, step_size: float):
+            return True
+
+    slave = PySlave()
+
+    xml = slave.to_xml()
+    var_node = xml.find(".//ScalarVariable[@name='var']")
+    assert var_node is not None
+
+    if ScalarVariable.requires_start(var_obj):
+        assert var_obj.start == value
+    else:
+        assert var_obj.start is None
+
 
 @pytest.mark.parametrize("name,start", [
     ("boolean_name", None),

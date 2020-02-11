@@ -6,7 +6,7 @@ from typing import ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
-from .enums import Fmi2Causality
+from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
@@ -36,7 +36,7 @@ class Fmi2Slave(ABC):
         self.vars = dict()
         self.instance_name = instance_name
         if self.modelName is None:
-            raise Exception("No modelName has been specified!")
+            self.modelName = self.__class__.__name__
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
@@ -83,6 +83,8 @@ class Fmi2Slave(ABC):
 
         variables = SubElement(root, 'ModelVariables')
         for v in self.vars.values():
+            if ScalarVariable.requires_start(v):
+                self.__apply_start_value(v)
             variables.append(v.to_xml())
 
         structure = SubElement(root, 'ModelStructure')
@@ -94,6 +96,23 @@ class Fmi2Slave(ABC):
                 SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
 
         return root
+
+    def __apply_start_value(self, var: ScalarVariable):
+        refs = [None]
+        vrs = [var.value_reference]
+
+        if isinstance(var, Integer):
+            self.__get_integer__(vrs, refs)
+        elif isinstance(var, Real):
+            self.__get_real__(vrs, refs)
+        elif isinstance(var, Boolean):
+            self.__get_boolean__(vrs, refs)
+        elif isinstance(var, String):
+            self.__get_string__(vrs, refs)
+        else:
+            raise Exception(f"Unsupported type!")
+
+        var.start = refs[0]
 
     def register_variable(self, var: ScalarVariable):
         variable_reference = len(self.vars)

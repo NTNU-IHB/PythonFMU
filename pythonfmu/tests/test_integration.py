@@ -58,14 +58,13 @@ slave_class = "PythonSlaveWithDep"
 
 class PythonSlaveWithDep(Fmi2Slave):
 
-    modelName = "PythonSlaveWithDep"
 
     def __init__(self, instance_name):
         super().__init__(instance_name)
 
         self.realIn = 22.0
         self.realOut = 0.0
-        self.register_variable(Real("realIn", start=22., causality=Fmi2Causality.input))
+        self.register_variable(Real("realIn", causality=Fmi2Causality.input))
         self.register_variable(Real("realOut", causality=Fmi2Causality.output))
 
     def do_step(self, current_time, step_size):
