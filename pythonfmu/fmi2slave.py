@@ -91,8 +91,11 @@ class Fmi2Slave(ABC):
         
         if outputs:
             outputs_node = SubElement(structure, 'Outputs')
-            for i in range(len(outputs)):
-                SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
+            i = 1
+            for v in self.vars.values():
+                if v.causality == Fmi2Causality.output:
+                    SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i)))
+                i += 1
 
         return root
 
