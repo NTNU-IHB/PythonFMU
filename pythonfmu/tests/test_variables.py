@@ -90,7 +90,7 @@ def test_ScalarVariable_start(var_type, value, causality, initial, variability):
     assert var_node is not None
 
     if ScalarVariable.requires_start(var_obj):
-        assert var_obj.start is value
+        assert var_obj.start == value
     else:
         assert var_obj.start is None
 
