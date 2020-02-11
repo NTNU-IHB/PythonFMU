@@ -84,7 +84,10 @@ Project folders such as this will be recursively copied into the FMU. Multiple p
 
 PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). But to ease its usage the wrapper is compile using
 the limited Python API. So the provided binary libraries for Linux and Windows 64-bits should
-be compatible of any Python 3 environment.
+be compatible of any Python 3 environment. If you need to compile the wrapper for on a specific configuration,
+you will need cmake and a compiler C++. The commands for building the wrapper on Linux and on Windows can be seen in 
+the [GitHub workflow](./.github/workflows/main.yml).
+
 PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
 ***
