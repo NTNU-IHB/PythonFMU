@@ -73,10 +73,8 @@ def test_ScalarVariable_start(var_type, value, causality, initial, variability):
 
     class PySlave(Fmi2Slave):
 
-        modelName = "PySlave"
-
-        def __init__(self):
-            super().__init__()
+        def __init__(self, instance_name):
+            super().__init__(instance_name)
             setattr(self, "var", value)
             self.register_variable(var_obj)
 
