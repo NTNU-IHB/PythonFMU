@@ -28,6 +28,83 @@ def test_integration_demo(tmp_path):
     assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
 
 
+@pytest.mark.integration
+def test_integration_get(tmp_path):
+
+    script_file = Path(__file__).parent / DEMO
+
+    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
+
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+    model = pyfmi.load_fmu(str(fmu))
+    
+    to_test = {
+        "intParam": 42,
+        "intOut": 23,
+        "realOut": 3.0,
+        "booleanVariable": True,
+        "stringVariable": "Hello World!",
+        "realIn": 2./3.,
+        "booleanParameter": False,
+        "stringParameter": "dog"
+    }
+
+    variables = model.get_model_variables()
+    for key, value in to_test.items():
+        var = variables[key]
+        if var.type == pyfmi.fmi.FMI2_INTEGER:
+            model_value = model.get_integer([var.value_reference,])[0]
+        elif var.type == pyfmi.fmi.FMI2_REAL:
+            model_value = model.get_real([var.value_reference,])[0]
+        elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
+            model_value = model.get_boolean([var.value_reference,])[0]
+        elif var.type == pyfmi.fmi.FMI2_STRING:
+            model_value = model.get_string([var.value_reference,])[0]
+        else:
+            pytest.xfail("Unsupported type")
+        
+        assert model_value == value
+
+
+@pytest.mark.integration
+def test_integration_set(tmp_path):
+
+    script_file = Path(__file__).parent / DEMO
+
+    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
+
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+    model = pyfmi.load_fmu(str(fmu))
+    
+    to_test = {
+        "intParam": 20,
+        "realIn": 1./3.,
+        "booleanParameter": True,
+        "stringParameter": "cat"
+    }
+
+    variables = model.get_model_variables()
+    for key, value in to_test.items():
+        var = variables[key]
+        if var.type == pyfmi.fmi.FMI2_INTEGER:
+            model.set_integer([var.value_reference, ], [value, ])
+            model_value = model.get_integer([var.value_reference,])[0]
+        elif var.type == pyfmi.fmi.FMI2_REAL:
+            model.set_real([var.value_reference, ], [value, ])
+            model_value = model.get_real([var.value_reference,])[0]
+        elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
+            model.set_boolean([var.value_reference, ], [value, ])
+            model_value = model.get_boolean([var.value_reference,])[0]
+        elif var.type == pyfmi.fmi.FMI2_STRING:
+            model.set_string([var.value_reference, ], [value, ])
+            model_value = model.get_string([var.value_reference,])[0]
+        else:
+            pytest.xfail("Unsupported type")
+        
+        assert model_value == value
+
 # TODO fmpy generate a Segmentation fault at line PyObject* sys_module = PyImport_ImportModule("sys"); in PyObjectWrapper
 # @pytest.mark.integration
 # def test_simple_integration_fmpy(tmp_path):
