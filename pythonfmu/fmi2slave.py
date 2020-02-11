@@ -34,7 +34,7 @@ class Fmi2Slave(ABC):
 
     def __init__(self, instance_name):
         self.vars = dict()
-        self.instance_name = instance_name;
+        self.instance_name = instance_name
         if self.modelName is None:
             raise Exception("No modelName has been specified!")
 
