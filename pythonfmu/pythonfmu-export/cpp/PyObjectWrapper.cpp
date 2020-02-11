@@ -199,9 +199,7 @@ void PyObjectWrapper::getString(const cppfmu::FMIValueReference* vr, std::size_t
 
     for (int i = 0; i < nvr; i++) {
         PyObject* value = PyList_GetItem(refs, i);
-        PyObject* bytesValue = PyUnicode_AsEncodedString(value, "utf-8", nullptr);
-        values[i] = PyBytes_AsString(bytesValue);
-        Py_DECREF(bytesValue);
+        values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", nullptr));
     }
     Py_DECREF(refs);
 }
