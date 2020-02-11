@@ -12,6 +12,7 @@ class PythonSlave(Fmi2Slave):
         super().__init__(instance_name)
 
         self.intParam = 42
+        self.intOut = 23
         self.realOut = 3.0
         self.booleanVariable = True
         self.stringVariable = "Hello World!"
@@ -21,9 +22,9 @@ class PythonSlave(Fmi2Slave):
         self.register_variable(
             Integer("intParam", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
         self.register_variable(Real("realIn", causality=Fmi2Causality.input))
-        self.register_variable(Boolean("booleanParameter", causality=Fmi2Causality.parameter))
-        self.register_variable(String("stringParameter", causality=Fmi2Causality.parameter))
-        
+        self.register_variable(Boolean("booleanParameter", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
+        self.register_variable(String("stringParameter", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
+
         self.register_variable(Integer("intOut", causality=Fmi2Causality.output))
         self.register_variable(Real("realOut", causality=Fmi2Causality.output))
         self.register_variable(Boolean("booleanVariable", causality=Fmi2Causality.local))
