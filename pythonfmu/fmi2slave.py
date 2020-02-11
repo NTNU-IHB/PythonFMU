@@ -83,7 +83,7 @@ class Fmi2Slave(ABC):
         variables = SubElement(root, 'ModelVariables')
         for v in self.vars.values():
             if ScalarVariable.requires_start(v):
-                self.__set_start(v)
+                self.__apply_start_value(v)
             variables.append(v.to_xml())
 
         structure = SubElement(root, 'ModelStructure')
@@ -96,7 +96,7 @@ class Fmi2Slave(ABC):
 
         return root
 
-    def __set_start(self, var: ScalarVariable):
+    def __apply_start_value(self, var: ScalarVariable):
         refs = [None]
         vrs = [var.value_reference]
 
