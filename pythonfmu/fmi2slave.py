@@ -1,6 +1,6 @@
 import datetime
 from abc import ABC, abstractmethod
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from typing import ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
@@ -32,7 +32,7 @@ class Fmi2Slave(ABC):
     description: ClassVar[Optional[str]] = None
 
     def __init__(self, instance_name: str):
-        self.vars = dict()
+        self.vars = OrderedDict()
         self.instance_name = instance_name
         if self.modelName is None:
             self.modelName = self.__class__.__name__
@@ -91,8 +91,9 @@ class Fmi2Slave(ABC):
         
         if outputs:
             outputs_node = SubElement(structure, 'Outputs')
-            for i in range(len(outputs)):
-                SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
+            for i, v in enumerate(self.vars.values()):
+                if v.causality == Fmi2Causality.output:
+                    SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
 
         return root
 
