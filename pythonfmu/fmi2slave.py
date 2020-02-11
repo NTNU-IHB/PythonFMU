@@ -5,7 +5,7 @@ from typing import ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
-from .enums import Fmi2Causality
+from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
