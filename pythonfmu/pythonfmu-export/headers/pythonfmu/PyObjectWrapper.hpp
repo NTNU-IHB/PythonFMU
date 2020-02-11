@@ -13,7 +13,7 @@ class PyObjectWrapper
 {
 
 public:
-    explicit PyObjectWrapper(const std::string& resources);
+    PyObjectWrapper(const std::string& instanceName, const std::string& resources);
 
     void setupExperiment(double startTime);
 
@@ -47,6 +47,7 @@ public:
 
 private:
     PyObject* pInstance_;
+    const std::string& instanceName_;
 };
 
 } // namespace pythonfmu

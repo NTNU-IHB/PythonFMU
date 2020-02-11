@@ -149,7 +149,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIBoolean visible,
     cppfmu::FMIBoolean interactive,
     cppfmu::Memory memory,
-    cppfmu::Logger logger);
+    const cppfmu::Logger& logger);
 
 
 #endif // header guard
