@@ -1,7 +1,7 @@
 import datetime
 from abc import ABC, abstractmethod
 from collections import namedtuple, OrderedDict
-from typing import ClassVar, Dict, List, Optional
+from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
@@ -10,7 +10,7 @@ from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
 
-FMI2_MODEL_OPTIONS = [
+FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("needsExecutionTool", True, "no-external-tool"),
     ModelOptions("canHandleVariableCommunicationStepSize", True, "no-variable-step"),
     ModelOptions("canInterpolateInputs", False, "interpolate-inputs"),
@@ -34,8 +34,8 @@ class Fmi2Slave(ABC):
     def __init__(self, instance_name: str):
         self.vars = OrderedDict()
         self.instance_name = instance_name
-        if self.modelName is None:
-            self.modelName = self.__class__.__name__
+        if self.__class__.modelName is None:
+            self.__class__.modelName = self.__class__.__name__
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
@@ -98,17 +98,16 @@ class Fmi2Slave(ABC):
         return root
 
     def __apply_start_value(self, var: ScalarVariable):
-        refs = [None]
         vrs = [var.value_reference]
 
         if isinstance(var, Integer):
-            self.__get_integer__(vrs, refs)
+            refs = self.get_integer(vrs)
         elif isinstance(var, Real):
-            self.__get_real__(vrs, refs)
+            refs = self.get_real(vrs)
         elif isinstance(var, Boolean):
-            self.__get_boolean__(vrs, refs)
+            refs = self.get_boolean(vrs)
         elif isinstance(var, String):
-            self.__get_string__(vrs, refs)
+            refs = self.get_string(vrs)
         else:
             raise Exception(f"Unsupported type!")
 
@@ -139,74 +138,94 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
-    def __get_integer__(self, vrs: List[int], refs: List[int]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def get_value(self, name: str) -> Any:
+        """Generic variable getter.
+        
+        Args:
+            name (str): Name of the variable
+
+        Returns:
+            (Any) Value of the variable
+        """
+        return getattr(self, name)
+
+    def set_value(self, name: str, value: Any):
+        """Generic variable setter.
+        
+        Args:
+            name (str): Name of the variable
+            value (Any): Value of the variable
+        """
+        setattr(self, name, value)
+
+    def get_integer(self, vrs: List[int]) -> List[int]:
+        refs = list()
+        for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, Integer):
-                refs[i] = getattr(self, var.name)
+                refs.append(int(self.get_value(var.name)))
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type Integer!")
+        return refs
 
-    def __get_real__(self, vrs: List[int], refs: List[float]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def get_real(self, vrs: List[int]) -> List[float]:
+        refs = list()
+        for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, Real):
-                refs[i] = getattr(self, var.name)
+                refs.append(float(self.get_value(var.name)))
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type Real!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type Real!")
+        return refs
 
-    def __get_boolean__(self, vrs: List[int], refs: List[bool]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def get_boolean(self, vrs: List[int]) -> List[bool]:
+        refs = list()
+        for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, Boolean):
-                refs[i] = getattr(self, var.name)
+                refs.append(bool(self.get_value(var.name)))
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type Boolean!")
+        return refs
 
-    def __get_string__(self, vrs: List[int], refs: List[str]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def get_string(self, vrs: List[int]) -> List[str]:
+        refs = list()
+        for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, String):
-                refs[i] = getattr(self, var.name)
+                refs.append(str(self.get_value(var.name)))
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type String!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type String!")
+        return refs
 
-    def __set_integer__(self, vrs: List[int], values: List[int]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def set_integer(self, vrs: List[int], values: List[int]):
+        for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, Integer):
-                setattr(self, var.name, values[i])
+                self.set_value(var.name, value)
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type Integer!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type Integer!")
 
-    def __set_real__(self, vrs: List[int], values: List[float]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def set_real(self, vrs: List[int], values: List[float]):
+        for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, Real):
-                setattr(self, var.name, values[i])
+                self.set_value(var.name, value)
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type Real!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type Real!")
 
-    def __set_boolean__(self, vrs: List[int], values: List[bool]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def set_boolean(self, vrs: List[int], values: List[bool]):
+        for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, Boolean):
-                setattr(self, var.name, values[i])
+                self.set_value(var.name, value)
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type Boolean!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type Boolean!")
 
-    def __set_string__(self, vrs: List[int], values: List[str]):
-        for i in range(len(vrs)):
-            vr = vrs[i]
+    def set_string(self, vrs: List[int], values: List[str]):
+        for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, String):
-                setattr(self, var.name, values[i])
+                self.set_value(var.name, value)
             else:
-                raise Exception(f"Variable with valueReference={vr} is not of type String!")
+                raise TypeError(f"Variable with valueReference={vr} is not of type String!")
