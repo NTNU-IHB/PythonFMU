@@ -55,6 +55,14 @@ class ScalarVariable(ABC):
     def variability(self) -> Optional[Fmi2Variability]:
         return self.__attrs["variability"]
 
+    @staticmethod
+    def requires_start(v) -> bool:
+        return v.initial == Fmi2Initial.exact or \
+               v.initial == Fmi2Initial.approx or \
+               v.causality == Fmi2Causality.input or \
+               v.causality == Fmi2Causality.parameter or \
+               v.variability == Fmi2Variability.constant
+
     def to_xml(self) -> Element:
         attrib = dict()
         for key, value in self.__attrs.items():
@@ -71,6 +79,10 @@ class Real(ScalarVariable):
     @property
     def start(self) -> Optional[Any]:
         return self.__attrs["start"]
+
+    @start.setter
+    def start(self, value: float):
+        self.__attrs["start"] = value
 
     def to_xml(self) -> Element:
         attrib = dict()
@@ -92,6 +104,10 @@ class Integer(ScalarVariable):
     def start(self) -> Optional[Any]:
         return self.__attrs["start"]
 
+    @start.setter
+    def start(self, value: float):
+        self.__attrs["start"] = value
+
     def to_xml(self) -> Element:
         attrib = dict()
         for key, value in self.__attrs.items():
@@ -112,6 +128,10 @@ class Boolean(ScalarVariable):
     def start(self) -> Optional[Any]:
         return self.__attrs["start"]
 
+    @start.setter
+    def start(self, value: float):
+        self.__attrs["start"] = value
+
     def to_xml(self) -> Element:
         attrib = dict()
         for key, value in self.__attrs.items():
@@ -131,6 +151,10 @@ class String(ScalarVariable):
     @property
     def start(self) -> Optional[Any]:
         return self.__attrs["start"]
+
+    @start.setter
+    def start(self, value: float):
+        self.__attrs["start"] = value
 
     def to_xml(self) -> Element:
         attrib = dict()
