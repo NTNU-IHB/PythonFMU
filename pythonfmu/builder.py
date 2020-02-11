@@ -21,6 +21,14 @@ HERE = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
+def get_platform() -> str:
+    """Get FMU binary platform folder name."""
+    system = platform.system()
+    is_64bits = sys.maxsize > 2 ** 32
+    platforms = {"Windows": "win", "Linux": "linux", "Darwin": "darwin"}
+    return platforms.get(system, "unknown") + "64" if is_64bits else "32"
+
+
 class ModelDescriptionFetcher:
     @staticmethod
     def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
@@ -174,6 +182,13 @@ class FmuBuilder:
                 zip_fmu.writestr(
                     "modelDescription.xml", xml_str.toprettyxml(encoding="UTF-8")
                 )
+
+    @staticmethod
+    def has_binary() -> bool:
+        """Does the binary for this platform exits?"""
+        binary_folder = get_platform()
+        src_binaries = HERE / "resources" / "binaries" / binary_folder
+        return src_binaries.exists() and len(list(src_binaries.iterdir())) == 1
 
 
 def main():
