@@ -9,7 +9,7 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Dict, Iterable, Optional, Set, Tuple, Union
+from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 

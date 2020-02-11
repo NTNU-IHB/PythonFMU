@@ -1,7 +1,6 @@
 import datetime
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from io import BytesIO
 from typing import ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
