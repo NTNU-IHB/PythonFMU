@@ -58,7 +58,6 @@ slave_class = "PythonSlaveWithDep"
 
 class PythonSlaveWithDep(Fmi2Slave):
 
-
     def __init__(self, instance_name):
         super().__init__(instance_name)
 
