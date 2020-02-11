@@ -73,17 +73,15 @@ def test_ScalarVariable_start(var_type, value, causality, initial, variability):
 
     class PySlave(Fmi2Slave):
 
-        modelName = "PySlave"
-
-        def __init__(self):
-            super().__init__()
+        def __init__(self, instance_name):
+            super().__init__(instance_name)
             setattr(self, "var", value)
             self.register_variable(var_obj)
 
         def do_step(self, current_time: float, step_size: float):
             return True
 
-    slave = PySlave()
+    slave = PySlave("testInstance")
 
     xml = slave.to_xml()
     var_node = xml.find(".//ScalarVariable[@name='var']")

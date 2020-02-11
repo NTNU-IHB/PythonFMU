@@ -1,13 +1,14 @@
 
+#include "pythonfmu/PyObjectWrapper.hpp"
+
+#include "pythonfmu/PyException.hpp"
+
+#include "cppfmu/cppfmu_common.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <utility>
-#include "pythonfmu/PyException.hpp"
-#include "pythonfmu/PyObjectWrapper.hpp"
-
-#include "cppfmu/cppfmu_common.hpp"
 
 namespace
 {
@@ -25,7 +26,8 @@ inline std::string getline(const std::string& fileName)
 namespace pythonfmu
 {
 
-PyObjectWrapper::PyObjectWrapper(const std::string& resources)
+PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const std::string& resources)
+    : instanceName_(instanceName)
 {
     // Append resources path to python sys path
     PyObject* sys_module = PyImport_ImportModule("sys");
@@ -48,7 +50,7 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     if (pModule == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
     }
-    
+
     PyObject* className = PyObject_GetAttrString(pModule, "slave_class");
     if (className == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
@@ -60,7 +62,9 @@ PyObjectWrapper::PyObjectWrapper(const std::string& resources)
     if (pClass == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttr");
     }
-    pInstance_ = PyObject_CallFunctionObjArgs(pClass, nullptr);
+    PyObject *argList = Py_BuildValue("s", instanceName.c_str());
+    pInstance_ = PyObject_CallFunctionObjArgs(pClass, argList, nullptr);
+    Py_DECREF(argList);
     Py_DECREF(pClass);
     if (pInstance_ == nullptr) {
         handle_py_exception("[ctor] PyObject_CallFunctionObjArgs");

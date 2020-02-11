@@ -8,8 +8,8 @@
 namespace pythonfmu
 {
 
-SlaveInstance::SlaveInstance(const std::string& resources)
-    : instance_(PyObjectWrapper(resources))
+SlaveInstance::SlaveInstance(const std::string& instanceName, const std::string& resources)
+    : instance_(PyObjectWrapper(instanceName, resources))
 {}
 
 void SlaveInstance::SetupExperiment(cppfmu::FMIBoolean, cppfmu::FMIReal, cppfmu::FMIReal tStart, cppfmu::FMIBoolean, cppfmu::FMIReal)
@@ -90,7 +90,7 @@ SlaveInstance::~SlaveInstance() = default;
 std::unique_ptr<pythonfmu::PyState> pyState = nullptr;
 
 cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
-    cppfmu::FMIString,
+    cppfmu::FMIString instanceName,
     cppfmu::FMIString,
     cppfmu::FMIString fmuResourceLocation,
     cppfmu::FMIString,
@@ -98,7 +98,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIBoolean,
     cppfmu::FMIBoolean,
     cppfmu::Memory memory,
-    cppfmu::Logger)
+    const cppfmu::Logger&)
 {
 
     auto resources = std::string(fmuResourceLocation);
@@ -117,5 +117,5 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     }
 
     return cppfmu::AllocateUnique<pythonfmu::SlaveInstance>(
-        memory, resources);
+        memory, instanceName, resources);
 }
