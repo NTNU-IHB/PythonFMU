@@ -35,6 +35,10 @@ public:
     void GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* value) const override;
     void GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* value) const override;
 
+    void GetFMUstate(fmi2FMUstate& state) override;
+    void SetFMUstate(const fmi2FMUstate& state) override;
+    void FreeFMUstate(fmi2FMUstate* state) override;
+
     ~SlaveInstance() override;
 
 
