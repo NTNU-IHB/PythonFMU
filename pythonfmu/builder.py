@@ -46,7 +46,7 @@ class ModelDescriptionFetcher:
             spec.loader.exec_module(fmu_interface)
             # Instantiate the interface
             class_name = getattr(fmu_interface, "slave_class")
-            instance = getattr(fmu_interface, class_name)()
+            instance = getattr(fmu_interface, class_name)("dummyInstance")
         finally:
             sys.path.remove(str(filepath.parent))  # remove inserted temporary path
         

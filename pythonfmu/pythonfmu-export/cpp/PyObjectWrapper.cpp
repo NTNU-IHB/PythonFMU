@@ -62,10 +62,12 @@ PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const std::str
     if (pClass == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttr");
     }
-    pInstance_ = PyObject_CallFunctionObjArgs(pClass, nullptr);
+    PyObject *argList = Py_BuildValue("s", instanceName.c_str());
+    pInstance_ = PyObject_CallFunctionObjArgs(pClass, argList, nullptr);
+    Py_DECREF(argList);
     Py_DECREF(pClass);
     if (pInstance_ == nullptr) {
-        handle_py_exception("[ctor] PyObject_CallFunctionObjArgs");
+        handle_py_exception("[ctor] PyObject_CallObject");
     }
 }
 

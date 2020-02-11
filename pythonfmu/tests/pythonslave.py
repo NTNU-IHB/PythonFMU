@@ -9,8 +9,8 @@ class PythonSlave(Fmi2Slave):
     modelName = "PythonSlave"  # REQUIRED
     description = "A simple description"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, instance_name):
+        super().__init__(instance_name)
 
         self.intOut = 1
         self.realOut = 3.0

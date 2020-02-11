@@ -60,8 +60,8 @@ class PythonSlaveWithDep(Fmi2Slave):
 
     modelName = "PythonSlaveWithDep"
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, instance_name):
+        super().__init__(instance_name)
 
         self.realIn = 22.0
         self.realOut = 0.0
