@@ -1,12 +1,11 @@
 import datetime
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from io import BytesIO
 from typing import ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
-from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
+from .enums import Fmi2Causality
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])

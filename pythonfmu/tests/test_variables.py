@@ -7,7 +7,6 @@ from pythonfmu import Fmi2Slave
 from pythonfmu.enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from pythonfmu.variables import Boolean, Integer, Real, ScalarVariable, String
 
-
 SCALAR_VARIABLE_ATTRIBUTES = ["name", "valueReference", "description", "causality", "variability", "initial"]
 
 def test_ScalarVariable_reference_set_once_only():

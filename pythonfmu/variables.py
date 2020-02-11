@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from enum import Enum
-from typing import Any, ClassVar, Optional
+from typing import Any, Optional
 from xml.etree.ElementTree import Element, SubElement
 
 from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
