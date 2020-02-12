@@ -15,6 +15,7 @@ PY2FMI = dict([(v, k) for k, v in FMI2PY.items()])
 
 @pytest.mark.parametrize("model", ["theModelName", None])
 def test_Fmi2Slave_constructor(model):
+
     class Slave(Fmi2Slave):
         modelName = model
 
@@ -68,6 +69,7 @@ def test_Fmi2Slave_getters(fmi_type, value):
     "hello_world",
 ])
 def test_Fmi2Slave_setters(fmi_type, value):
+
     class Slave(Fmi2Slave):
         def __init__(self, args):
             super().__init__(args)
