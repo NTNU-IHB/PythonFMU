@@ -42,7 +42,7 @@ PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const std::str
     int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resources.c_str()));
     Py_DECREF(sys_path);
     if (success != 0) {
-        handle_py_exception("[ctor] PyList_Append");
+        handle_py_exception("[ctor] PyList_Insert");
     }
 
     auto moduleName = getline(resources + "/slavemodule.txt");

@@ -5,6 +5,7 @@ import pytest
 
 from pythonfmu.builder import FmuBuilder
 
+pytestmark = pytest.mark.skipif(not FmuBuilder.has_binary(), reason="No binary available for the current platform.")
 pyfmi = pytest.importorskip(
     "pyfmi", reason="pyfmi is required for testing the produced FMU"
 )
@@ -15,7 +16,6 @@ DEMO = "pythonslave.py"
 
 @pytest.mark.integration
 def test_integration_demo(tmp_path):
-
     script_file = Path(__file__).parent / DEMO
 
     FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")

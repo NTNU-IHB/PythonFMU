@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 import pythonfmu
-from pythonfmu.builder import FmuBuilder
+from pythonfmu.builder import FmuBuilder, get_platform
 
 DEMO = "pythonslave.py"
 PROJECT_TEST_CASES = [
@@ -19,14 +19,7 @@ PROJECT_TEST_CASES = [
 ]
 
 
-def get_platform():
-    system = platform.system()
-    is_64bits = sys.maxsize > 2 ** 32
-    platforms = {"Windows": "win", "Linux": "linux", "Darwin": "darwin"}
-    return platforms[system] + "64" if is_64bits else "32"
-
-
-lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(
+lib_extension = ({"Darwin": "dylib", "Linux": "so", "Windows": "dll"}).get(
     platform.system(), None
 )
 
@@ -47,10 +40,15 @@ def test_zip_content(tmp_path):
         assert "/".join(("resources", DEMO)) in names
         module_file = "/".join(("resources", "slavemodule.txt"))
         assert module_file in names
-        assert (
-            "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}"))
-            in names
-        )
+
+        nfiles = 15 
+        if FmuBuilder.has_binary():
+            assert (
+                "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}"))
+                in names
+            )
+        else:
+            nfiles = 14
 
         # Check sources
         src_folder = Path(pythonfmu.__path__[0]) / "pythonfmu-export"
@@ -60,7 +58,8 @@ def test_zip_content(tmp_path):
             src_folder.rglob("CMakeLists.txt"),
         ):
             assert "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
-        assert len(names) >= 15  # Library + python script + XML + module name + sources
+
+        assert len(names) >= nfiles  # Library + python script + XML + module name + sources
 
         with files.open(module_file) as myfile:
             assert myfile.read() == b"pythonslave"
