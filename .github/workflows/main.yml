@@ -34,8 +34,8 @@ jobs:
           cmake --build . --config Release
           cd ..
 
-      - name: Compile wrapper on Linux
-        if: startsWith(runner.os, 'Linux')
+      - name: Compile wrapper on Linux / macOS
+        if: startsWith(runner.os, 'Linux') || startsWith(runner.os, 'macOS')
         run: |
           mkdir tmp-build
           cd tmp-build
@@ -70,7 +70,7 @@ jobs:
       - name: Build distribution artifacts
         run: |
           python -m pip install setuptools wheel
-          python setup.py bdist_wheel
+          python setup.py sdist bdist_wheel
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v1
@@ -94,6 +94,16 @@ jobs:
 
       - name: Cache conda packages for Linux
         if: startsWith(runner.os, 'Linux')
+        uses: actions/cache@v1
+        with:
+          path: /usr/share/miniconda/pkgs
+          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+          restore-keys: |
+            ${{ runner.os }}-test-cache-conda-pkgs-
+            ${{ runner.os }}-test-
+
+      - name: Cache conda packages for Mac OS
+        if: startsWith(runner.os, 'macOS')
         uses: actions/cache@v1
         with:
           path: /usr/share/miniconda/pkgs

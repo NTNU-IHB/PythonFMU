@@ -20,9 +20,13 @@ HERE = Path(__file__).parent
 
 logger = logging.getLogger(__name__)
 
-lib_prefix = "lib" if platform.system() == "Linux" else ""
 
-lib_extension = ({"Darwin": "so", "Linux": "so", "Windows": "dll"}).get(platform.system(), None)
+def get_platform() -> str:
+    """Get FMU binary platform folder name."""
+    system = platform.system()
+    is_64bits = sys.maxsize > 2 ** 32
+    platforms = {"Windows": "win", "Linux": "linux", "Darwin": "darwin"}
+    return platforms.get(system, "unknown") + "64" if is_64bits else "32"
 
 
 class ModelDescriptionFetcher:
@@ -155,7 +159,7 @@ class FmuBuilder:
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
                 for f in itertools.chain(
-                    src_binaries.rglob("*.dll"), src_binaries.rglob("*.so")
+                    src_binaries.rglob("*.dll"), src_binaries.rglob("*.so"), src_binaries.rglob("*.dylib")
                 ):
                     relative_f = f.relative_to(src_binaries)
                     arcname = (
@@ -178,6 +182,13 @@ class FmuBuilder:
                 zip_fmu.writestr(
                     "modelDescription.xml", xml_str.toprettyxml(encoding="UTF-8")
                 )
+
+    @staticmethod
+    def has_binary() -> bool:
+        """Does the binary for this platform exits?"""
+        binary_folder = get_platform()
+        src_binaries = HERE / "resources" / "binaries" / binary_folder
+        return src_binaries.exists() and len(list(src_binaries.iterdir())) == 1
 
 
 def main():
