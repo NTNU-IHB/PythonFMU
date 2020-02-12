@@ -37,12 +37,11 @@ class Fmi2Slave(ABC):
         if "instance_name" in args.keys():
             self.instance_name = args["instance_name"]
         else:
-            raise Exception(f"Required key 'instance_name' not provided!")
+            raise Exception("Required key 'instance_name' not provided!")
 
+        self.visible = False
         if "visible" in args.keys():
             self.visible = args["visible"]
-        else:
-            self.visible = False
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
