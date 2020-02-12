@@ -127,7 +127,7 @@ class FmuBuilder:
             option_names = [opt.name for opt in FMI2_MODEL_OPTIONS]
             for option, value in options.items():
                 if option in option_names:
-                    type_node.set(option, value)
+                    type_node.set(option, str(value).lower())
 
             with zipfile.ZipFile(dest_file, "w") as zip_fmu:
 
@@ -218,9 +218,9 @@ def main():
         "--doc", dest="documentation_folder", help="Documentation folder to include in the FMU.", default=None
     )
 
-    # for option in FMI2_MODEL_OPTIONS:
-    #     action = "store_true" if option.value else "store_false"
-    #     parser.add_argument(f"--{option.cli}", dest=option.name, action=action)
+    for option in FMI2_MODEL_OPTIONS:
+        action = "store_false" if option.value else "store_true"
+        parser.add_argument(f"--{option.cli}", dest=option.name, action=action)
 
     parser.add_argument(
         "project_files",
