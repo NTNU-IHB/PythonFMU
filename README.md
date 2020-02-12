@@ -4,8 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
-![CI](https://github.com/NTNU-IHB/PythonFMU/workflows/CI/badge.svg)
-![PyPI](https://img.shields.io/pypi/v/pythonfmu)
+[![CI](https://github.com/NTNU-IHB/PythonFMU/workflows/CI/badge.svg)](https://github.com/NTNU-IHB/PythonFMU/actions?query=workflow%3ACI)
+[![PyPI](https://img.shields.io/pypi/v/pythonfmu)](https://pypi.org/project/pythonfmu/)
 
 [![Gitter](https://badges.gitter.im/NTNU-IHB/FMI4j.svg)](https://gitter.im/NTNU-IHB/PythonFMU?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
