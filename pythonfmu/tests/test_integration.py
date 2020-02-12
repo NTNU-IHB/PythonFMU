@@ -134,8 +134,8 @@ slave_class = "PythonSlaveWithDep"
 
 class PythonSlaveWithDep(Fmi2Slave):
 
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(self, instance_name):
+        super().__init__(instance_name)
 
         self.realIn = 22.0
         self.realOut = 0.0

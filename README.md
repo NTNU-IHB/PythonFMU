@@ -55,8 +55,8 @@ class PythonSlave(Fmi2Slave):
     author = "John Doe"
     description = "A simple description"
 
-    def __init__(self, instance_name):
-        super().__init__(instance_name)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self.intOut = 1
         self.realOut = 3.0
