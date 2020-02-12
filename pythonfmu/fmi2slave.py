@@ -31,9 +31,19 @@ class Fmi2Slave(ABC):
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
 
-    def __init__(self, instance_name: str):
+    def __init__(self, args: Dict):
         self.vars = OrderedDict()
-        self.instance_name = instance_name
+
+        if "instance_name" in args.keys():
+            self.instance_name = args["instance_name"]
+        else:
+            raise Exception(f"Required key 'instance_name' not provided!")
+
+        if "visible" in args.keys():
+            self.visible = args["visible"]
+        else:
+            self.visible = False
+
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
 
