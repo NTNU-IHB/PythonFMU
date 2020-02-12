@@ -1,12 +1,16 @@
+import re
 import datetime
 from abc import ABC, abstractmethod
 from collections import namedtuple, OrderedDict
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
-
+from pathlib import Path
 from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
+
+HERE = Path(__file__).parent
+VERSION = re.search('(?<=\")(.*?)(?=\")', open(HERE / "_version.py", "r").read()).group(0)
 
 ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
 
@@ -22,11 +26,10 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
 
 
 class Fmi2Slave(ABC):
-
     guid: ClassVar[str] = uuid1()
+    version: ClassVar[str] = VERSION
     author: ClassVar[Optional[str]] = None
     license: ClassVar[Optional[str]] = None
-    version: ClassVar[Optional[str]] = None
     copyright: ClassVar[Optional[str]] = None
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
@@ -50,7 +53,7 @@ class Fmi2Slave(ABC):
         t = datetime.datetime.now(datetime.timezone.utc)
         date_str = t.isoformat(timespec='seconds')
 
-        attrib=dict(
+        attrib = dict(
             fmiVersion="2.0",
             modelName=self.modelName,
             guid=f"{self.guid!s}",
@@ -76,7 +79,7 @@ class Fmi2Slave(ABC):
             value = model_options.get(option.name, option.value)
             v = "true" if value else "false"
             options[option.name] = v
-        options["modelIdentifier"]=self.modelName
+        options["modelIdentifier"] = self.modelName
 
         SubElement(root, 'CoSimulation', attrib=options)
 
@@ -88,12 +91,12 @@ class Fmi2Slave(ABC):
 
         structure = SubElement(root, 'ModelStructure')
         outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars.values()))
-        
+
         if outputs:
             outputs_node = SubElement(structure, 'Outputs')
             for i, v in enumerate(self.vars.values()):
                 if v.causality == Fmi2Causality.output:
-                    SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
+                    SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i + 1)))
 
         return root
 
