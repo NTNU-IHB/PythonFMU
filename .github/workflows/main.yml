@@ -10,8 +10,8 @@ on:
 
 jobs:
   build-wrapper:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -50,7 +50,6 @@ jobs:
           path: pythonfmu/resources
 
   build-python:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: build-wrapper
     runs-on: ubuntu-latest
     steps:
@@ -80,7 +79,6 @@ jobs:
           path: dist
 
   test:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     needs: build-python
     runs-on: ${{ matrix.os }}
     strategy:
