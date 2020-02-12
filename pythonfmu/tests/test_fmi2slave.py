@@ -41,8 +41,8 @@ def test_Fmi2Slave_constructor(model):
 def test_Fmi2Slave_getters(fmi_type, value):
     
     class Slave(Fmi2Slave):
-        def __init__(self, instance_name):
-            super().__init__(instance_name)
+        def __init__(self, args):
+            super().__init__(args)
             self.var = value
             self.register_variable(PY2FMI[type(value)]("var"))
 
@@ -52,7 +52,7 @@ def test_Fmi2Slave_getters(fmi_type, value):
     py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 
-    slave = Slave("instanceSlave")
+    slave = Slave(dict(instance_name="slaveInstance"))
     if type(value) is py_type:
         assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
     else:
@@ -69,15 +69,15 @@ def test_Fmi2Slave_getters(fmi_type, value):
 ])
 def test_Fmi2Slave_setters(fmi_type, value):
     class Slave(Fmi2Slave):
-        def __init__(self, instance_name):
-            super().__init__(instance_name)
+        def __init__(self, args):
+            super().__init__(args)
             self.var = None
             self.register_variable(PY2FMI[type(value)]("var"))
 
         def do_step(self, t, dt):
             return True
     
-    slave = Slave("instanceSlave")
+    slave = Slave(dict(instance_name="slaveInstance"))
     py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 
