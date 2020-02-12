@@ -278,27 +278,26 @@ void PyObjectWrapper::setString(const cppfmu::FMIValueReference* vr, std::size_t
 
 void PyObjectWrapper::getFMUstate(fmi2FMUstate& state)
 {
-    auto f = PyObject_CallMethod(pInstance_, "__get_fmu_state", nullptr);
+    auto f = PyObject_CallMethod(pInstance_, "_get_fmu_state", nullptr);
     if (f == nullptr) {
-        handle_py_exception("[__get_fmu_state] PyObject_CallMethod");
+        handle_py_exception("[_get_fmu_state] PyObject_CallMethod");
     }
-    std::cout << "per" << std::endl;
     state = reinterpret_cast<fmi2FMUstate*>(f);
 }
 
 void PyObjectWrapper::setFMUstate(const fmi2FMUstate& state)
 {
     auto pyState = reinterpret_cast<PyObject*>(state);
-    auto f = PyObject_CallMethod(pInstance_, "__set_fmu_state", "(O)", pyState);
+    auto f = PyObject_CallMethod(pInstance_, "_set_fmu_state", "(O)", pyState);
     if (f == nullptr) {
-        handle_py_exception("[__set_fmu_state] PyObject_CallMethod");
+        handle_py_exception("[_set_fmu_state] PyObject_CallMethod");
     }
 }
 
 void PyObjectWrapper::freeFMUstate(fmi2FMUstate* state)
 {
     auto f = reinterpret_cast<PyObject*>(state);
-    Py_DecRef(f);
+    Py_DECREF(f);
 }
 
 PyObjectWrapper::~PyObjectWrapper()

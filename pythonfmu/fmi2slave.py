@@ -15,7 +15,7 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("canHandleVariableCommunicationStepSize", True, "no-variable-step"),
     ModelOptions("canInterpolateInputs", False, "interpolate-inputs"),
     ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
-    ModelOptions("canGetAndSetFMUstate", True, "handle-state"),
+    ModelOptions("canGetAndSetFMUstate", False, "handle-state"),
     ModelOptions("canSerializeFMUstate", False, "serialize-state"),
     ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management"),
 ]
@@ -230,13 +230,12 @@ class Fmi2Slave(ABC):
             else:
                 raise TypeError(f"Variable with valueReference={vr} is not of type String!")
 
-    def __get_fmu_state(self) -> Dict[int, Any]:
+    def _get_fmu_state(self) -> Dict[int, Any]:
         state = dict()
-        for var in self.vars:
+        for var in self.vars.values():
             state[var.value_reference] = self.get_value(var.name)
         return state
 
-    def __set_fmu_state(self, state: Dict[int, Any]):
-        print(state)
-        for vr, value in state:
+    def _set_fmu_state(self, state: Dict[int, Any]):
+        for vr, value in state.items():
             self.set_value(self.vars[vr].name, value)
