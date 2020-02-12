@@ -27,9 +27,9 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
 
 class Fmi2Slave(ABC):
     guid: ClassVar[str] = uuid1()
-    version: ClassVar[str] = VERSION
     author: ClassVar[Optional[str]] = None
     license: ClassVar[Optional[str]] = None
+    version: ClassVar[Optional[str]] = None
     copyright: ClassVar[Optional[str]] = None
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
@@ -57,7 +57,7 @@ class Fmi2Slave(ABC):
             fmiVersion="2.0",
             modelName=self.modelName,
             guid=f"{self.guid!s}",
-            generationTool="PythonFMU",
+            generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
             variableNamingConvention="structured"
         )
