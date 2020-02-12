@@ -9,7 +9,15 @@ on:
       - '*'
 
 jobs:
+  test_api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
   build-wrapper:
+    if: 1 == 0
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
