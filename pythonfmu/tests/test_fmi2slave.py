@@ -17,20 +17,23 @@ PY2FMI = dict([(v, k) for k, v in FMI2PY.items()])
 def test_Fmi2Slave_constructor(model):
 
     class Slave(Fmi2Slave):
+
         modelName = model
 
-        def __init__(self, args):
-            super().__init__(args)
+        def __init__(self, instance_name):
+            super().__init__(instance_name)
 
         def do_step(self, t, dt):
             return True
 
     if model is None:
-        _ = Slave(dict(instance_name="slaveInstance"))
+        slave = Slave("slaveInstance")
         assert Slave.modelName == "Slave"
+        assert slave.instance_name == "slaveInstance"
     else:
-        _ = Slave(dict(instance_name="slaveInstance"))
+        slave = Slave("slaveInstance")
         assert Slave.modelName == model
+        assert slave.instance_name == "slaveInstance"
 
 @pytest.mark.parametrize("fmi_type", FMI2PY)
 @pytest.mark.parametrize("value", [

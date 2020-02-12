@@ -80,7 +80,7 @@ def test_ScalarVariable_start(var_type, value, causality, initial, variability):
         def do_step(self, current_time: float, step_size: float):
             return True
 
-    slave = PySlave("slaveInstance")
+    slave = PySlave("testInstance")
 
     xml = slave.to_xml()
     var_node = xml.find(".//ScalarVariable[@name='var']")
