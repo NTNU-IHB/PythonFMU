@@ -53,7 +53,7 @@ class ModelDescriptionFetcher:
             instance = getattr(fmu_interface, class_name)("dummyInstance")
         finally:
             sys.path.remove(str(filepath.parent))  # remove inserted temporary path
-        
+
         if not isinstance(instance, Fmi2Slave):
             raise TypeError(
                 f"The provided class '{class_name}' does not inherit from {Fmi2Slave.__qualname__}"
@@ -88,7 +88,9 @@ class FmuBuilder:
         if documentation_folder is not None:
             documentation_folder = Path(documentation_folder)
             if not documentation_folder.exists():
-                raise ValueError(f"The documentation folder does not exists {documentation_folder!s}")
+                raise ValueError(
+                    f"The documentation folder does not exists {documentation_folder!s}"
+                )
 
         script_parent = script_file.resolve().parent.absolute()
         module_name = script_file.stem
@@ -159,7 +161,9 @@ class FmuBuilder:
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
                 for f in itertools.chain(
-                    src_binaries.rglob("*.dll"), src_binaries.rglob("*.so"), src_binaries.rglob("*.dylib")
+                    src_binaries.rglob("*.dll"),
+                    src_binaries.rglob("*.so"),
+                    src_binaries.rglob("*.dylib"),
                 ):
                     relative_f = f.relative_to(src_binaries)
                     arcname = (
@@ -215,7 +219,10 @@ def main():
     )
 
     parser.add_argument(
-        "--doc", dest="documentation_folder", help="Documentation folder to include in the FMU.", default=None
+        "--doc",
+        dest="documentation_folder",
+        help="Documentation folder to include in the FMU.",
+        default=None,
     )
 
     # for option in FMI2_MODEL_OPTIONS:

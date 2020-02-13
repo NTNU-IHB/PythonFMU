@@ -1,6 +1,7 @@
 import pytest
 
 from pythonfmu import Fmi2Slave, Boolean, Integer, Real, String
+from pythonfmu import __version__ as VERSION
 
 # TODO test xml
 
@@ -26,6 +27,16 @@ def test_Fmi2Slave_constructor(model):
     else:
         _ = Slave("instanceSlave")
         assert Slave.modelName == model
+
+def test_Fmi2Slave_generation_tool():
+    class Slave(Fmi2Slave):
+        def do_step(self, t, dt):
+            return True
+    
+    slave = Slave("instance")
+    xml = slave.to_xml()
+
+    assert xml.attrib['generationTool'] == f"PythonFMU {VERSION}"
 
 @pytest.mark.parametrize("fmi_type", FMI2PY)
 @pytest.mark.parametrize("value", [
