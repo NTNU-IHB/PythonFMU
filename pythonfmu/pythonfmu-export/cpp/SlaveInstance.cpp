@@ -92,7 +92,7 @@ void SlaveInstance::SetFMUstate(const fmi2FMUstate& state)
     instance_.setFMUstate(state);
 }
 
-void SlaveInstance::FreeFMUstate(fmi2FMUstate* state)
+void SlaveInstance::FreeFMUstate(fmi2FMUstate& state)
 {
     instance_.freeFMUstate(state);
 }

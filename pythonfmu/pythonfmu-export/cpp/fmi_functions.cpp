@@ -411,7 +411,7 @@ fmi2Status fmi2FreeFMUstate(
 {
     const auto component = reinterpret_cast<Component*>(c);
     try {
-        component->slave->FreeFMUstate(state);
+        component->slave->FreeFMUstate(*state);
         return fmi2OK;
     } catch (const cppfmu::FatalError& e) {
         component->logger.Log(fmi2Fatal, "", e.what());

@@ -47,7 +47,7 @@ public:
 
     void setFMUstate(const fmi2FMUstate& state);
 
-    void freeFMUstate(fmi2FMUstate* state);
+    void freeFMUstate(fmi2FMUstate& state);
 
     ~PyObjectWrapper();
 

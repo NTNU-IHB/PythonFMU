@@ -115,7 +115,7 @@ public:
 
     virtual void SetFMUstate(const fmi2FMUstate& state) = 0;
 
-    virtual void FreeFMUstate(fmi2FMUstate* state) = 0;
+    virtual void FreeFMUstate(fmi2FMUstate& state) = 0;
 
     // The instance is destroyed in fmi2FreeInstance()/fmiFreeSlaveInstance().
     virtual ~SlaveInstance() CPPFMU_NOEXCEPT;

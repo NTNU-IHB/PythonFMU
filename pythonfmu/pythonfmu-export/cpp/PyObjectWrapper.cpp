@@ -294,7 +294,7 @@ void PyObjectWrapper::setFMUstate(const fmi2FMUstate& state)
     }
 }
 
-void PyObjectWrapper::freeFMUstate(fmi2FMUstate* state)
+void PyObjectWrapper::freeFMUstate(fmi2FMUstate& state)
 {
     auto f = reinterpret_cast<PyObject*>(state);
     Py_XDECREF(f);

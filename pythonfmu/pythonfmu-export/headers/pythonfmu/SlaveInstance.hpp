@@ -37,7 +37,7 @@ public:
 
     void GetFMUstate(fmi2FMUstate& state) override;
     void SetFMUstate(const fmi2FMUstate& state) override;
-    void FreeFMUstate(fmi2FMUstate* state) override;
+    void FreeFMUstate(fmi2FMUstate& state) override;
 
     ~SlaveInstance() override;
 
