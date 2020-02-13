@@ -1,9 +1,7 @@
 """Define the abstract facade class."""
 import datetime
-import re
 from abc import ABC, abstractmethod
 from collections import OrderedDict, namedtuple
-from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
