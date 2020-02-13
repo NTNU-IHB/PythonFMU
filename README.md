@@ -4,6 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
+
 [![CI](https://github.com/NTNU-IHB/PythonFMU/workflows/CI/badge.svg)](https://github.com/NTNU-IHB/PythonFMU/actions?query=workflow%3ACI)
 [![PyPI](https://img.shields.io/pypi/v/pythonfmu)](https://pypi.org/project/pythonfmu/)
 
@@ -55,8 +56,8 @@ class PythonSlave(Fmi2Slave):
     author = "John Doe"
     description = "A simple description"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.intOut = 1
         self.realOut = 3.0
@@ -78,16 +79,16 @@ class PythonSlave(Fmi2Slave):
 pythonfmu-builder -f pythonslave.py pythonfmu
 ```
 
-In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`. 
-`pythonfmu` is a optional folder containing additional project files required by the python script. 
+In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`,
+where `pythonfmu` is an optional folder containing additional project files required by the python script. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
 
 ### Note
 
 PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). But to ease its usage the wrapper is compile using
 the limited Python API. So the provided binary libraries for Linux and Windows 64-bits should
-be compatible with any Python 3 environment. If you need to compile the wrapper for on a specific configuration,
-you will need cmake and a C++ compiler. The commands for building the wrapper on Linux and on Windows can be seen in 
+be compatible with any Python 3 environment. If you need to compile the wrapper for a specific configuration,
+you will need CMake and a C++ compiler. The commands for building the wrapper on Linux and on Windows can be seen in 
 the [GitHub workflow](./.github/workflows/main.yml).
 
 PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
