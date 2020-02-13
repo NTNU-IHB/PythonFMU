@@ -21,9 +21,6 @@ def test_Fmi2Slave_constructor(model):
 
         modelName = model
 
-        def __init__(self, instance_name):
-            super().__init__(instance_name)
-
         def do_step(self, t, dt):
             return True
 

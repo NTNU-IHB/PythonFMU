@@ -38,9 +38,7 @@ class Fmi2Slave(ABC):
         self.vars = OrderedDict()
         self.instance_name = args[0]
 
-        self.visible = False
-        if "visible" in kwargs:
-            self.visible = kwargs["visible"]
+        self.visible = kwargs.get("visible", False)
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__

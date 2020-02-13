@@ -64,7 +64,7 @@ PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const bool vis
     }
 
     PyObject* args = Py_BuildValue("s", instanceName.c_str());
-    PyObject* kwargs = Py_BuildValue("{s:i}", "visible", visible);
+    PyObject* kwargs = Py_BuildValue("{si}", "visible", visible);
     pInstance_ = PyObject_CallFunctionObjArgs(pClass, args, kwargs, nullptr);
     Py_DECREF(args);
     Py_DECREF(kwargs);
