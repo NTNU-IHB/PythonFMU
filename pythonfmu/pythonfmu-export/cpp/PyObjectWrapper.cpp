@@ -70,7 +70,7 @@ PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const bool vis
     Py_DECREF(kwargs);
     Py_DECREF(pClass);
     if (pInstance_ == nullptr) {
-        handle_py_exception("[ctor] PyObject_CallFunctionObjArgs");
+        handle_py_exception("[ctor] PyObject_Call");
     }
 }
 
