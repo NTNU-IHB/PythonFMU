@@ -25,11 +25,11 @@ def test_Fmi2Slave_constructor(model):
             return True
 
     if model is None:
-        slave = Slave("slaveInstance")
+        slave = Slave(instance_name="slaveInstance")
         assert Slave.modelName == "Slave"
         assert slave.instance_name == "slaveInstance"
     else:
-        slave = Slave("slaveInstance")
+        slave = Slave(instance_name="slaveInstance")
         assert Slave.modelName == model
         assert slave.instance_name == "slaveInstance"
 
@@ -38,7 +38,7 @@ def test_Fmi2Slave_generation_tool():
         def do_step(self, t, dt):
             return True
     
-    slave = Slave("instance")
+    slave = Slave(instance_name="instance")
     xml = slave.to_xml()
 
     assert xml.attrib['generationTool'] == f"PythonFMU {VERSION}"
@@ -54,8 +54,8 @@ def test_Fmi2Slave_getters(fmi_type, value):
     
     class Slave(Fmi2Slave):
 
-        def __init__(self, instance_name):
-            super().__init__(instance_name)
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
             self.var = value
             self.register_variable(PY2FMI[type(value)]("var"))
 
@@ -65,7 +65,7 @@ def test_Fmi2Slave_getters(fmi_type, value):
     py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 
-    slave = Slave("slaveInstance")
+    slave = Slave(instance_name="slaveInstance")
     if type(value) is py_type:
         assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
     else:
@@ -84,15 +84,15 @@ def test_Fmi2Slave_setters(fmi_type, value):
 
     class Slave(Fmi2Slave):
 
-        def __init__(self, instance_name):
-            super().__init__(instance_name)
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
             self.var = None
             self.register_variable(PY2FMI[type(value)]("var"))
 
         def do_step(self, t, dt):
             return True
     
-    slave = Slave("slaveInstance")
+    slave = Slave(instance_name="slaveInstance")
     py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 

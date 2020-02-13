@@ -63,9 +63,9 @@ PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const bool vis
         handle_py_exception("[ctor] PyObject_GetAttr");
     }
 
-    PyObject* args = Py_BuildValue("s", instanceName.c_str());
-    PyObject* kwargs = Py_BuildValue("{si}", "visible", visible);
-    pInstance_ = PyObject_CallFunctionObjArgs(pClass, args, kwargs, nullptr);
+    PyObject* args = PyTuple_New(0);
+    PyObject* kwargs = Py_BuildValue("{sssi}", "instance_name", instanceName.c_str(), "visible", visible);
+    pInstance_ = PyObject_Call(pClass, args, kwargs);
     Py_DECREF(args);
     Py_DECREF(kwargs);
     Py_DECREF(pClass);

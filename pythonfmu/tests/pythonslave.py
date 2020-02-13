@@ -8,8 +8,8 @@ class PythonSlave(Fmi2Slave):
     author = "John Doe"
     description = "A simple description"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.intParam = 42
         self.intOut = 23
