@@ -1,3 +1,4 @@
+"""Classes describing interface variables."""
 from abc import ABC
 from enum import Enum
 from typing import Any, Optional
@@ -57,11 +58,13 @@ class ScalarVariable(ABC):
 
     @staticmethod
     def requires_start(v) -> bool:
-        return v.initial == Fmi2Initial.exact or \
-               v.initial == Fmi2Initial.approx or \
-               v.causality == Fmi2Causality.input or \
-               v.causality == Fmi2Causality.parameter or \
-               v.variability == Fmi2Variability.constant
+        return (
+            v.initial == Fmi2Initial.exact
+            or v.initial == Fmi2Initial.approx
+            or v.causality == Fmi2Causality.input
+            or v.causality == Fmi2Causality.parameter
+            or v.variability == Fmi2Variability.constant
+        )
 
     def to_xml(self) -> Element:
         attrib = dict()

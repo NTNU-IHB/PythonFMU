@@ -1,14 +1,16 @@
+"""Define the abstract facade class."""
 import datetime
 from abc import ABC, abstractmethod
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict, namedtuple
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 
+from ._version import __version__ as VERSION
 from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
-ModelOptions = namedtuple('ModelOptions', ['name', 'value', 'cli'])
+ModelOptions = namedtuple("ModelOptions", ["name", "value", "cli"])
 
 FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("needsExecutionTool", True, "no-external-tool"),
@@ -22,6 +24,7 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
 
 
 class Fmi2Slave(ABC):
+    """Abstract facade class to execute Python through FMI standard."""
 
     guid: ClassVar[str] = uuid1()
     author: ClassVar[Optional[str]] = None
@@ -53,52 +56,54 @@ class Fmi2Slave(ABC):
         """
 
         t = datetime.datetime.now(datetime.timezone.utc)
-        date_str = t.isoformat(timespec='seconds')
+        date_str = t.isoformat(timespec="seconds")
 
-        attrib=dict(
+        attrib = dict(
             fmiVersion="2.0",
             modelName=self.modelName,
             guid=f"{self.guid!s}",
-            generationTool="PythonFMU",
+            generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
-            variableNamingConvention="structured"
+            variableNamingConvention="structured",
         )
         if self.description is not None:
-            attrib['description'] = self.description
+            attrib["description"] = self.description
         if self.author is not None:
-            attrib['author'] = self.author
+            attrib["author"] = self.author
         if self.license is not None:
-            attrib['license'] = self.license
+            attrib["license"] = self.license
         if self.version is not None:
-            attrib['version'] = self.version
+            attrib["version"] = self.version
         if self.copyright is not None:
-            attrib['copyright'] = self.copyright
+            attrib["copyright"] = self.copyright
 
-        root = Element('fmiModelDescription', attrib)
+        root = Element("fmiModelDescription", attrib)
 
         options = dict()
         for option in FMI2_MODEL_OPTIONS:
             value = model_options.get(option.name, option.value)
             v = "true" if value else "false"
             options[option.name] = v
-        options["modelIdentifier"]=self.modelName
+        options["modelIdentifier"] = self.modelName
 
-        SubElement(root, 'CoSimulation', attrib=options)
+        SubElement(root, "CoSimulation", attrib=options)
 
-        variables = SubElement(root, 'ModelVariables')
+        variables = SubElement(root, "ModelVariables")
         for v in self.vars.values():
             if ScalarVariable.requires_start(v):
                 self.__apply_start_value(v)
             variables.append(v.to_xml())
 
-        structure = SubElement(root, 'ModelStructure')
-        outputs = list(filter(lambda v: v.causality == Fmi2Causality.output, self.vars.values()))
-        
+        structure = SubElement(root, "ModelStructure")
+        outputs = list(
+            filter(lambda v: v.causality == Fmi2Causality.output, self.vars.values())
+        )
+
         if outputs:
-            outputs_node = SubElement(structure, 'Outputs')
+            outputs_node = SubElement(structure, "Outputs")
             for i, v in enumerate(self.vars.values()):
                 if v.causality == Fmi2Causality.output:
-                    SubElement(outputs_node, 'Unknown', attrib=dict(index=str(i+1)))
+                    SubElement(outputs_node, "Unknown", attrib=dict(index=str(i + 1)))
 
         return root
 
@@ -170,7 +175,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, Integer):
                 refs.append(int(self.get_value(var.name)))
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type Integer!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type Integer!"
+                )
         return refs
 
     def get_real(self, vrs: List[int]) -> List[float]:
@@ -180,7 +187,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, Real):
                 refs.append(float(self.get_value(var.name)))
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type Real!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type Real!"
+                )
         return refs
 
     def get_boolean(self, vrs: List[int]) -> List[bool]:
@@ -190,7 +199,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, Boolean):
                 refs.append(bool(self.get_value(var.name)))
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type Boolean!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type Boolean!"
+                )
         return refs
 
     def get_string(self, vrs: List[int]) -> List[str]:
@@ -200,7 +211,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, String):
                 refs.append(str(self.get_value(var.name)))
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type String!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type String!"
+                )
         return refs
 
     def set_integer(self, vrs: List[int], values: List[int]):
@@ -209,7 +222,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, Integer):
                 self.set_value(var.name, value)
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type Integer!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type Integer!"
+                )
 
     def set_real(self, vrs: List[int], values: List[float]):
         for vr, value in zip(vrs, values):
@@ -217,7 +232,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, Real):
                 self.set_value(var.name, value)
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type Real!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type Real!"
+                )
 
     def set_boolean(self, vrs: List[int], values: List[bool]):
         for vr, value in zip(vrs, values):
@@ -225,7 +242,9 @@ class Fmi2Slave(ABC):
             if isinstance(var, Boolean):
                 self.set_value(var.name, value)
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type Boolean!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type Boolean!"
+                )
 
     def set_string(self, vrs: List[int], values: List[str]):
         for vr, value in zip(vrs, values):
@@ -233,4 +252,6 @@ class Fmi2Slave(ABC):
             if isinstance(var, String):
                 self.set_value(var.name, value)
             else:
-                raise TypeError(f"Variable with valueReference={vr} is not of type String!")
+                raise TypeError(
+                    f"Variable with valueReference={vr} is not of type String!"
+                )
