@@ -13,7 +13,7 @@ class PyObjectWrapper
 {
 
 public:
-    PyObjectWrapper(const std::string& instanceName, const std::string& resources);
+    PyObjectWrapper(const std::string& instanceName, bool visible, bool loggingOn, const std::string& resources);
 
     void setupExperiment(double startTime);
 

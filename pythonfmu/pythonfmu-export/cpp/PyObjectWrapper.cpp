@@ -26,7 +26,7 @@ inline std::string getline(const std::string& fileName)
 namespace pythonfmu
 {
 
-PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const std::string& resources)
+PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const bool visible, const bool loggingOn, const std::string& resources)
     : instanceName_(instanceName)
 {
     // Append resources path to python sys path
@@ -62,12 +62,15 @@ PyObjectWrapper::PyObjectWrapper(const std::string& instanceName, const std::str
     if (pClass == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttr");
     }
-    PyObject *argList = Py_BuildValue("s", instanceName.c_str());
-    pInstance_ = PyObject_CallFunctionObjArgs(pClass, argList, nullptr);
-    Py_DECREF(argList);
+
+    PyObject* args = PyTuple_New(0);
+    PyObject* kwargs = Py_BuildValue("{sssi}", "instance_name", instanceName.c_str(), "visible", visible);
+    pInstance_ = PyObject_Call(pClass, args, kwargs);
+    Py_DECREF(args);
+    Py_DECREF(kwargs);
     Py_DECREF(pClass);
     if (pInstance_ == nullptr) {
-        handle_py_exception("[ctor] PyObject_CallFunctionObjArgs");
+        handle_py_exception("[ctor] PyObject_Call");
     }
 }
 
