@@ -29,6 +29,28 @@ def test_integration_demo(tmp_path):
 
 
 @pytest.mark.integration
+def test_integration_reset(tmp_path):
+    script_file = Path(__file__).parent / DEMO
+
+    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
+
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+
+    vr = 5  # realOut
+    dt = 0.1
+    model = pyfmi.load_fmu(str(fmu))
+    initial_value = model.get_real([vr])[0]
+    assert initial_value == pytest.approx(3.0, rel=1e7)
+    model.do_step(0.0, dt, True)
+    read = model.get_real([vr])[0]
+    assert read == pytest.approx(dt, rel=1e7)
+    model.reset()
+    read = model.get_real([vr])[0]
+    assert read == pytest.approx(initial_value, rel=1e7)
+
+
+@pytest.mark.integration
 def test_integration_get(tmp_path):
 
     script_file = Path(__file__).parent / DEMO

@@ -23,7 +23,7 @@ inline std::string getLine(const std::string& fileName)
 }
 
 PySlaveInstance::PySlaveInstance(const std::string& instanceName, const bool visible, const bool loggingOn, const std::string& resources)
-    : instanceName_(instanceName)
+    : visible_(visible), loggingOn_(loggingOn), instanceName_(instanceName)
 {
     // Append resources path to python sys path
     PyObject* sys_module = PyImport_ImportModule("sys");
@@ -42,25 +42,30 @@ PySlaveInstance::PySlaveInstance(const std::string& instanceName, const bool vis
     }
 
     auto moduleName = getLine(resources + "/slavemodule.txt");
-    PyObject* pModule = PyImport_ImportModule(moduleName.c_str());
-    if (pModule == nullptr) {
+    pModule_ = PyImport_ImportModule(moduleName.c_str());
+    if (pModule_ == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
     }
 
-    PyObject* className = PyObject_GetAttrString(pModule, "slave_class");
+}
+
+void PySlaveInstance::initialize()
+{
+    Py_XDECREF(pInstance_);
+
+    PyObject* className = PyObject_GetAttrString(pModule_, "slave_class");
     if (className == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
     }
 
-    PyObject* pClass = PyObject_GetAttr(pModule, className);
-    Py_DECREF(pModule);
+    PyObject* pClass = PyObject_GetAttr(pModule_, className);
     Py_DECREF(className);
     if (pClass == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttr");
     }
 
     PyObject* args = PyTuple_New(0);
-    PyObject* kwargs = Py_BuildValue("{sssi}", "instance_name", instanceName.c_str(), "visible", visible);
+    PyObject* kwargs = Py_BuildValue("{sssi}", "instance_name", instanceName_.c_str(), "visible", visible_);
     pInstance_ = PyObject_Call(pClass, args, kwargs);
     Py_DECREF(args);
     Py_DECREF(kwargs);
@@ -301,6 +306,7 @@ void PySlaveInstance::FreeFMUstate(fmi2FMUstate& state)
 
 PySlaveInstance::~PySlaveInstance()
 {
+    Py_XDECREF(pModule_);
     Py_XDECREF(pInstance_);
 }
 

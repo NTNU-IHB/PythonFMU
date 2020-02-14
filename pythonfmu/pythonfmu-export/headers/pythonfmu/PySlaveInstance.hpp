@@ -16,6 +16,8 @@ class PySlaveInstance : public cppfmu::SlaveInstance
 public:
     PySlaveInstance(const std::string& instanceName, bool visible, bool loggingOn, const std::string& resources);
 
+    void initialize();
+
     void SetupExperiment(cppfmu::FMIBoolean toleranceDefined, cppfmu::FMIReal tolerance, cppfmu::FMIReal tStart, cppfmu::FMIBoolean stopTimeDefined, cppfmu::FMIReal tStop) override;
     void EnterInitializationMode() override;
     void ExitInitializationMode() override;
@@ -41,7 +43,11 @@ public:
 
 
 private:
+    PyObject* pModule_;
     PyObject* pInstance_;
+
+    const bool visible_;
+    const bool loggingOn_;
     const std::string& instanceName_;
 };
 
