@@ -29,6 +29,12 @@ def get_platform() -> str:
     return platforms.get(system, "unknown") + "64" if is_64bits else "32"
 
 
+def get_lib_extension() -> str:
+    """Get FMU library platform extension."""
+    platforms = {"Darwin": "dylib", "Linux": "so", "Windows": "dll"}
+    return platforms.get(platform.system(), "")
+
+
 class ModelDescriptionFetcher:
     @staticmethod
     def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
@@ -191,8 +197,9 @@ class FmuBuilder:
     def has_binary() -> bool:
         """Does the binary for this platform exits?"""
         binary_folder = get_platform()
+        lib_ext = get_lib_extension() or "*"  # if library extension is unknown, it will look for '*.*' in src_binaries
         src_binaries = HERE / "resources" / "binaries" / binary_folder
-        return src_binaries.exists() and len(list(src_binaries.iterdir())) == 1
+        return src_binaries.exists() and len(list(src_binaries.glob(f"*.{lib_ext}"))) >= 1
 
 
 def main():
