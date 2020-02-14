@@ -41,14 +41,14 @@ def test_zip_content(tmp_path):
         module_file = "/".join(("resources", "slavemodule.txt"))
         assert module_file in names
 
-        nfiles = 15 
+        nfiles = 13
         if FmuBuilder.has_binary():
             assert (
                 "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}"))
                 in names
             )
         else:
-            nfiles = 14
+            nfiles = 12
 
         # Check sources
         src_folder = Path(pythonfmu.__path__[0]) / "pythonfmu-export"
