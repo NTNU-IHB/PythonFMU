@@ -140,9 +140,6 @@ class Fmi2Slave(ABC):
     def do_step(self, current_time: float, step_size: float) -> bool:
         pass
 
-    def reset(self):
-        pass
-
     def terminate(self):
         pass
 
