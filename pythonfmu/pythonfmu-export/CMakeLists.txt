@@ -49,8 +49,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers)
 set(sources
         cpp/cppfmu_cs.cpp
         cpp/fmi_functions.cpp
-        cpp/PyObjectWrapper.cpp
-        cpp/SlaveInstance.cpp
+        cpp/PySlaveInstance.cpp
         )
 
 add_library(pythonfmu-export ${sources})
