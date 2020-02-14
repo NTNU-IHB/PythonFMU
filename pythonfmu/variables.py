@@ -91,7 +91,9 @@ class Real(ScalarVariable):
         attrib = dict()
         for key, value in self.__attrs.items():
             if value is not None:
-                attrib[key] = str(value)
+                # In order to not loose precision, a number of this type should be 
+                # stored on an XML file with at least 16 significant digits
+                attrib[key] = f"{value:.16g}"
         parent = super().to_xml()
         SubElement(parent, "Real", attrib)
 
