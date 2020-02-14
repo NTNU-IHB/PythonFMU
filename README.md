@@ -15,7 +15,7 @@
 
 1) Install `pythonfmu` package:
 ```bash
-pip install git+https://github.com/NTNU-IHB/PythonFMU.git
+pip install pythonfmu
 ```
 2) Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module. 
 3) Run `pythonfmu-builder` to create the fmu.
