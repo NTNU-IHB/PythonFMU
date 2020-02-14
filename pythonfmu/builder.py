@@ -227,7 +227,12 @@ def main():
 
     for option in FMI2_MODEL_OPTIONS:
         action = "store_false" if option.value else "store_true"
-        parser.add_argument(f"--{option.cli}", dest=option.name, action=action)
+        parser.add_argument(
+            f"--{option.cli}",
+            dest=option.name,
+            help=f"If given, {option.name}={action[6:]}",
+            action=action
+        )
 
     parser.add_argument(
         "project_files",
