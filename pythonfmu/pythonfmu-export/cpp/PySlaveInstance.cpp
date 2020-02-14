@@ -48,7 +48,6 @@ PySlaveInstance::PySlaveInstance(const std::string& instanceName, const bool vis
     }
 
     initialize();
-
 }
 
 void PySlaveInstance::initialize()
@@ -57,13 +56,13 @@ void PySlaveInstance::initialize()
 
     PyObject* className = PyObject_GetAttrString(pModule_, "slave_class");
     if (className == nullptr) {
-        handle_py_exception("[ctor] PyObject_GetAttrString");
+        handle_py_exception("[initialize] PyObject_GetAttrString");
     }
 
     PyObject* pClass = PyObject_GetAttr(pModule_, className);
     Py_DECREF(className);
     if (pClass == nullptr) {
-        handle_py_exception("[ctor] PyObject_GetAttr");
+        handle_py_exception("[initialize] PyObject_GetAttr");
     }
 
     PyObject* args = PyTuple_New(0);
@@ -73,7 +72,7 @@ void PySlaveInstance::initialize()
     Py_DECREF(kwargs);
     Py_DECREF(pClass);
     if (pInstance_ == nullptr) {
-        handle_py_exception("[ctor] PyObject_Call");
+        handle_py_exception("[initialize] PyObject_Call");
     }
 }
 
