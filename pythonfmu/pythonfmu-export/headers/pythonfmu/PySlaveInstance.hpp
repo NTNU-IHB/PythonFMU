@@ -2,8 +2,6 @@
 #ifndef PYTHONFMU_SLAVEINSTANCE_HPP
 #define PYTHONFMU_SLAVEINSTANCE_HPP
 
-#include "pythonfmu/PyObjectWrapper.hpp"
-
 #include "cppfmu/cppfmu_cs.hpp"
 
 #include <Python.h>
@@ -12,11 +10,11 @@
 namespace pythonfmu
 {
 
-class SlaveInstance : public cppfmu::SlaveInstance
+class PySlaveInstance : public cppfmu::SlaveInstance
 {
 
 public:
-    SlaveInstance(const std::string& instanceName, bool visible, bool loggingOn, const std::string& resources);
+    PySlaveInstance(const std::string& instanceName, bool visible, bool loggingOn, const std::string& resources);
 
     void SetupExperiment(cppfmu::FMIBoolean toleranceDefined, cppfmu::FMIReal tolerance, cppfmu::FMIReal tStart, cppfmu::FMIBoolean stopTimeDefined, cppfmu::FMIReal tStop) override;
     void EnterInitializationMode() override;
@@ -39,11 +37,12 @@ public:
     void SetFMUstate(const fmi2FMUstate& state) override;
     void FreeFMUstate(fmi2FMUstate& state) override;
 
-    ~SlaveInstance() override;
+    ~PySlaveInstance() override;
 
 
 private:
-    PyObjectWrapper instance_;
+    PyObject* pInstance_;
+    const std::string& instanceName_;
 };
 
 } // namespace pythonfmu
