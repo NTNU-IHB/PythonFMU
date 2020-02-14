@@ -373,35 +373,53 @@ fmi2Status fmi2SetString(
 
 fmi2Status fmi2GetFMUstate(
     fmi2Component c,
-    fmi2FMUstate*)
+    fmi2FMUstate* state)
 {
-    reinterpret_cast<Component*>(c)->logger.Log(
-        fmi2Error,
-        "cppfmu",
-        "FMI function not supported: fmi2GetFMUstate");
-    return fmi2Error;
+    const auto component = reinterpret_cast<Component*>(c);
+    try {
+        component->slave->GetFMUstate(*state);
+        return fmi2OK;
+    } catch (const cppfmu::FatalError& e) {
+        component->logger.Log(fmi2Fatal, "", e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger.Log(fmi2Error, "", e.what());
+        return fmi2Error;
+    }
 }
 
 fmi2Status fmi2SetFMUstate(
     fmi2Component c,
-    fmi2FMUstate)
+    fmi2FMUstate state)
 {
-    reinterpret_cast<Component*>(c)->logger.Log(
-        fmi2Error,
-        "cppfmu",
-        "FMI function not supported: fmi2SetFMUstate");
-    return fmi2Error;
+    const auto component = reinterpret_cast<Component*>(c);
+    try {
+        component->slave->SetFMUstate(state);
+        return fmi2OK;
+    } catch (const cppfmu::FatalError& e) {
+        component->logger.Log(fmi2Fatal, "", e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger.Log(fmi2Error, "", e.what());
+        return fmi2Error;
+    }
 }
 
 fmi2Status fmi2FreeFMUstate(
     fmi2Component c,
-    fmi2FMUstate*)
+    fmi2FMUstate* state)
 {
-    reinterpret_cast<Component*>(c)->logger.Log(
-        fmi2Error,
-        "cppfmu",
-        "FMI function not supported: fmi2FreeFMUstate");
-    return fmi2Error;
+    const auto component = reinterpret_cast<Component*>(c);
+    try {
+        component->slave->FreeFMUstate(*state);
+        return fmi2OK;
+    } catch (const cppfmu::FatalError& e) {
+        component->logger.Log(fmi2Fatal, "", e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger.Log(fmi2Error, "", e.what());
+        return fmi2Error;
+    }
 }
 
 fmi2Status fmi2SerializedFMUstateSize(

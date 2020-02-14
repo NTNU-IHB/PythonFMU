@@ -154,7 +154,7 @@ def test_Real_to_xml(name, start):
     children = list(xml)
     assert len(children) == 1
     if start is not None:
-        assert children[0].attrib['start'] == str(start)
+        assert children[0].attrib['start'] == f"{start:.16g}"
 
 @pytest.mark.parametrize("name,start", [
     ("string_name", None),

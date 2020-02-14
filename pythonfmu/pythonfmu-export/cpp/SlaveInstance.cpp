@@ -82,6 +82,21 @@ void SlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t n
     instance_.getString(vr, nvr, value);
 }
 
+void SlaveInstance::GetFMUstate(fmi2FMUstate& state)
+{
+    instance_.getFMUstate(state);
+}
+
+void SlaveInstance::SetFMUstate(const fmi2FMUstate& state)
+{
+    instance_.setFMUstate(state);
+}
+
+void SlaveInstance::FreeFMUstate(fmi2FMUstate& state)
+{
+    instance_.freeFMUstate(state);
+}
+
 SlaveInstance::~SlaveInstance() = default;
 
 

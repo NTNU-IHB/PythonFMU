@@ -43,6 +43,12 @@ public:
 
     void setString(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIString* value);
 
+    void getFMUstate(fmi2FMUstate& state);
+
+    void setFMUstate(const fmi2FMUstate& state);
+
+    void freeFMUstate(fmi2FMUstate& state);
+
     ~PyObjectWrapper();
 
 private:

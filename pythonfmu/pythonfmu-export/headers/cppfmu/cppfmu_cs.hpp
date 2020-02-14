@@ -6,8 +6,9 @@
 #ifndef CPPFMU_CS_HPP
 #define CPPFMU_CS_HPP
 
-#include <vector>
 #include "cppfmu_common.hpp"
+
+#include <vector>
 
 namespace cppfmu
 {
@@ -109,6 +110,12 @@ public:
         FMIReal communicationStepSize,
         FMIBoolean newStep,
         FMIReal& endOfStep) = 0;
+
+    virtual void GetFMUstate(fmi2FMUstate& state) = 0;
+
+    virtual void SetFMUstate(const fmi2FMUstate& state) = 0;
+
+    virtual void FreeFMUstate(fmi2FMUstate& state) = 0;
 
     // The instance is destroyed in fmi2FreeInstance()/fmiFreeSlaveInstance().
     virtual ~SlaveInstance() CPPFMU_NOEXCEPT;
