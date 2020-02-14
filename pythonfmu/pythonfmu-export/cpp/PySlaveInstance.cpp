@@ -47,6 +47,8 @@ PySlaveInstance::PySlaveInstance(const std::string& instanceName, const bool vis
         handle_py_exception("[ctor] PyImport_ImportModule");
     }
 
+    initialize();
+
 }
 
 void PySlaveInstance::initialize()
