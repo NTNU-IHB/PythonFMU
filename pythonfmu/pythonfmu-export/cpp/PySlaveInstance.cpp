@@ -116,11 +116,7 @@ bool PySlaveInstance::DoStep(cppfmu::FMIReal currentTime, cppfmu::FMIReal stepSi
 
 void PySlaveInstance::Reset()
 {
-    auto f = PyObject_CallMethod(pInstance_, "reset", nullptr);
-    if (f == nullptr) {
-        handle_py_exception("[reset] PyObject_CallMethod");
-    }
-    Py_DECREF(f);
+    initialize();
 }
 
 void PySlaveInstance::Terminate()
