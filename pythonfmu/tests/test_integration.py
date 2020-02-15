@@ -41,13 +41,13 @@ def test_integration_reset(tmp_path):
     dt = 0.1
     model = pyfmi.load_fmu(str(fmu))
     initial_value = model.get_real([vr])[0]
-    assert initial_value == pytest.approx(3.0, rel=1e7)
+    assert initial_value == pytest.approx(3.0, rel=1e-7)
     model.do_step(0.0, dt, True)
     read = model.get_real([vr])[0]
-    assert read == pytest.approx(dt, rel=1e7)
+    assert read == pytest.approx(dt, rel=1e-7)
     model.reset()
     read = model.get_real([vr])[0]
-    assert read == pytest.approx(initial_value, rel=1e7)
+    assert read == pytest.approx(initial_value, rel=1e-7)
 
 
 @pytest.mark.integration
