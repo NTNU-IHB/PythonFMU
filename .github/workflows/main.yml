@@ -134,6 +134,6 @@ jobs:
           conda install -n test -c conda-forge pytest pyfmi fmpy
           cd python-wheel
           python -m pip install pythonfmu*.whl
-          python -m pytest --pyargs pythonfmu
+          python -m pytest --pyargs pythonfmu -sv
           cd ..
         shell: bash -l {0}
