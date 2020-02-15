@@ -38,13 +38,13 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
     if (sys_path == nullptr) {
         handle_py_exception("[ctor] PyObject_GetAttrString");
     }
-    int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resources.c_str()));
+    int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resources_.c_str()));
     Py_DECREF(sys_path);
     if (success != 0) {
         handle_py_exception("[ctor] PyList_Insert");
     }
 
-    auto moduleName = getLine(resources_ + "/slavemodule.txt");
+    std::string moduleName = getLine(resources_ + "/slavemodule.txt");
     pModule_ = PyImport_ImportModule(moduleName.c_str());
     if (pModule_ == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
@@ -330,7 +330,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     const cppfmu::Logger&)
 {
 
-    std::string resources = fmuResourceLocation;
+    auto resources = std::string(fmuResourceLocation);
     auto find = resources.find("file://");
 
     if (find != std::string::npos) {
