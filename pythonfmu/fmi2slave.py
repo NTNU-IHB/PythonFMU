@@ -37,7 +37,7 @@ class Fmi2Slave(ABC):
     def __init__(self, **kwargs):
         self.vars = OrderedDict()
         self.instance_name = kwargs["instance_name"]
-
+        self.resources = kwargs.get("resources", None)
         self.visible = kwargs.get("visible", False)
 
         if self.__class__.modelName is None:

@@ -22,8 +22,11 @@ inline std::string getLine(const std::string& fileName)
     return line;
 }
 
-PySlaveInstance::PySlaveInstance(const std::string& instanceName, const bool visible, const bool loggingOn, const std::string& resources)
-    : visible_(visible), loggingOn_(loggingOn), instanceName_(instanceName)
+PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const bool visible)
+    : instanceName_(std::move(instanceName))
+    , resources_(std::move(resources))
+    , visible_(visible)
+
 {
     // Append resources path to python sys path
     PyObject* sys_module = PyImport_ImportModule("sys");
@@ -41,7 +44,7 @@ PySlaveInstance::PySlaveInstance(const std::string& instanceName, const bool vis
         handle_py_exception("[ctor] PyList_Insert");
     }
 
-    auto moduleName = getLine(resources + "/slavemodule.txt");
+    auto moduleName = getLine(resources_ + "/slavemodule.txt");
     pModule_ = PyImport_ImportModule(moduleName.c_str());
     if (pModule_ == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
@@ -66,7 +69,10 @@ void PySlaveInstance::initialize()
     }
 
     PyObject* args = PyTuple_New(0);
-    PyObject* kwargs = Py_BuildValue("{sssi}", "instance_name", instanceName_.c_str(), "visible", visible_);
+    PyObject* kwargs = Py_BuildValue("{sssssi}",
+        "instance_name", instanceName_.c_str(),
+        "resources", resources_.c_str(),
+        "visible", visible_);
     pInstance_ = PyObject_Call(pClass, args, kwargs);
     Py_DECREF(args);
     Py_DECREF(kwargs);
@@ -319,12 +325,12 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIString,
     cppfmu::FMIReal,
     cppfmu::FMIBoolean visible,
-    cppfmu::FMIBoolean loggingOn,
+    cppfmu::FMIBoolean,
     cppfmu::Memory memory,
     const cppfmu::Logger&)
 {
 
-    auto resources = std::string(fmuResourceLocation);
+    std::string resources = fmuResourceLocation;
     auto find = resources.find("file://");
 
     if (find != std::string::npos) {
@@ -340,5 +346,5 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     }
 
     return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
-        memory, instanceName, visible, loggingOn, resources);
+        memory, instanceName, resources, visible);
 }
