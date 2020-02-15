@@ -42,7 +42,7 @@ public:
     ~PySlaveInstance() override;
 
 private:
-    PyObject* pModule_;
+    PyObject* pClass_;
     PyObject* pInstance_;
 
     const bool visible_;

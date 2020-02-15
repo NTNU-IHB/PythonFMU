@@ -45,9 +45,21 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
     }
 
     std::string moduleName = getLine(resources_ + "/slavemodule.txt");
-    pModule_ = PyImport_ImportModule(moduleName.c_str());
-    if (pModule_ == nullptr) {
+    PyObject* pModule = PyImport_ImportModule(moduleName.c_str());
+    if (pModule == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
+    }
+
+    PyObject* className = PyObject_GetAttrString(pModule, "slave_class");
+    if (className == nullptr) {
+        handle_py_exception("[initialize] PyObject_GetAttrString");
+    }
+
+    pClass_ = PyObject_GetAttr(pModule, className);
+    Py_DECREF(className);
+    Py_DECREF(pModule);
+    if (pClass_ == nullptr) {
+        handle_py_exception("[initialize] PyObject_GetAttr");
     }
 
     initialize();
@@ -57,26 +69,15 @@ void PySlaveInstance::initialize()
 {
     Py_XDECREF(pInstance_);
 
-    PyObject* className = PyObject_GetAttrString(pModule_, "slave_class");
-    if (className == nullptr) {
-        handle_py_exception("[initialize] PyObject_GetAttrString");
-    }
-
-    PyObject* pClass = PyObject_GetAttr(pModule_, className);
-    Py_DECREF(className);
-    if (pClass == nullptr) {
-        handle_py_exception("[initialize] PyObject_GetAttr");
-    }
-
     PyObject* args = PyTuple_New(0);
     PyObject* kwargs = Py_BuildValue("{sssssi}",
         "instance_name", instanceName_.c_str(),
         "resources", resources_.c_str(),
         "visible", visible_);
-    pInstance_ = PyObject_Call(pClass, args, kwargs);
+    pInstance_ = PyObject_Call(pClass_, args, kwargs);
     Py_DECREF(args);
     Py_DECREF(kwargs);
-    Py_DECREF(pClass);
+    //    Py_DECREF(pClass_);
     if (pInstance_ == nullptr) {
         handle_py_exception("[initialize] PyObject_Call");
     }
@@ -309,7 +310,7 @@ void PySlaveInstance::FreeFMUstate(fmi2FMUstate& state)
 
 PySlaveInstance::~PySlaveInstance()
 {
-    Py_XDECREF(pModule_);
+    Py_XDECREF(pClass_);
     Py_XDECREF(pInstance_);
 }
 
