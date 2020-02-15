@@ -1,4 +1,5 @@
 """Define the abstract facade class."""
+import json
 import datetime
 from abc import ABC, abstractmethod
 from collections import OrderedDict, namedtuple
@@ -251,12 +252,17 @@ class Fmi2Slave(ABC):
                     f"Variable with valueReference={vr} is not of type String!"
                 )
 
-    def _get_fmu_state(self) -> Dict[str, Any]:
+    def store_custom_state(self, state: Dict[str, Any]):
+        pass
+
+    def _get_fmu_state(self) -> bytes:
         state = dict()
         for var in self.vars.values():
             state[var.name] = self.get_value(var.name)
-        return state
+        self.store_custom_state(state)
+        return json.dumps(state).encode("utf-8")
 
-    def _set_fmu_state(self, state: Dict[str, Any]):
-        for name, value in state.items():
+    def _set_fmu_state(self, state: bytes):
+        py_state: Dict[str, Any] = json.loads(state.decode("utf-8"))
+        for name, value in py_state.items():
             self.set_value(name, value)

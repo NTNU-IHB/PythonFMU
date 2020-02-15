@@ -424,40 +424,58 @@ fmi2Status fmi2FreeFMUstate(
 
 fmi2Status fmi2SerializedFMUstateSize(
     fmi2Component c,
-    fmi2FMUstate,
-    size_t*)
+    fmi2FMUstate state,
+    size_t* size)
 {
-    reinterpret_cast<Component*>(c)->logger.Log(
-        fmi2Error,
-        "cppfmu",
-        "FMI function not supported: fmi2SerializedFMUstateSize");
-    return fmi2Error;
+    const auto component = reinterpret_cast<Component*>(c);
+    try {
+        *size = component->slave->SerializedFMUstateSize(state);
+        return fmi2OK;
+    } catch (const cppfmu::FatalError& e) {
+        component->logger.Log(fmi2Fatal, "", e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger.Log(fmi2Error, "", e.what());
+        return fmi2Error;
+    }
 }
 
 fmi2Status fmi2SerializeFMUstate(
     fmi2Component c,
-    fmi2FMUstate,
-    fmi2Byte[],
-    size_t)
+    fmi2FMUstate state,
+    fmi2Byte bytes[],
+    size_t size)
 {
-    reinterpret_cast<Component*>(c)->logger.Log(
-        fmi2Error,
-        "cppfmu",
-        "FMI function not supported: fmi2SerializeFMUstate");
-    return fmi2Error;
+    const auto component = reinterpret_cast<Component*>(c);
+    try {
+        component->slave->SerializeFMUstate(state, bytes, size);
+        return fmi2OK;
+    } catch (const cppfmu::FatalError& e) {
+        component->logger.Log(fmi2Fatal, "", e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger.Log(fmi2Error, "", e.what());
+        return fmi2Error;
+    }
 }
 
 fmi2Status fmi2DeSerializeFMUstate(
     fmi2Component c,
-    const fmi2Byte[],
-    size_t,
-    fmi2FMUstate*)
+    const fmi2Byte bytes[],
+    size_t size,
+    fmi2FMUstate* state)
 {
-    reinterpret_cast<Component*>(c)->logger.Log(
-        fmi2Error,
-        "cppfmu",
-        "FMI function not supported: fmi2DeSerializeFMUstate");
-    return fmi2Error;
+    const auto component = reinterpret_cast<Component*>(c);
+    try {
+        component->slave->DeSerializeFMUstate(bytes, size, *state);
+        return fmi2OK;
+    } catch (const cppfmu::FatalError& e) {
+        component->logger.Log(fmi2Fatal, "", e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger.Log(fmi2Error, "", e.what());
+        return fmi2Error;
+    }
 }
 
 

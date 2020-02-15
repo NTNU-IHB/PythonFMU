@@ -307,12 +307,36 @@ void PySlaveInstance::FreeFMUstate(fmi2FMUstate& state)
     Py_XDECREF(f);
 }
 
+size_t PySlaveInstance::SerializedFMUstateSize(const fmi2FMUstate& state)
+{
+    auto f = reinterpret_cast<PyObject*>(state);
+    return PyBytes_Size(f);
+}
+
+void PySlaveInstance::SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* bytes, size_t size)
+{
+    auto f = reinterpret_cast<PyObject*>(state);
+    char* c = PyBytes_AsString(f);
+    for (int i = 0; i < size; i++) {
+        bytes[i] = c[i];
+    }
+}
+
+void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state)
+{
+    PyObject* pyState = PyBytes_FromStringAndSize(bytes, size);
+    if (pyState == nullptr) {
+        handle_py_exception("[DeSerializeFMUstate] PyBytes_FromStringAndSize");
+    }
+    state = reinterpret_cast<fmi2FMUstate*>(pyState);
+}
+
+
 PySlaveInstance::~PySlaveInstance()
 {
     Py_XDECREF(pClass_);
     Py_XDECREF(pInstance_);
 }
-
 
 } // namespace pythonfmu
 

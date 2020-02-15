@@ -112,10 +112,12 @@ public:
         FMIReal& endOfStep) = 0;
 
     virtual void GetFMUstate(fmi2FMUstate& state) = 0;
-
     virtual void SetFMUstate(const fmi2FMUstate& state) = 0;
-
     virtual void FreeFMUstate(fmi2FMUstate& state) = 0;
+
+    virtual size_t SerializedFMUstateSize(const fmi2FMUstate& state) = 0;
+    virtual void SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte bytes[], size_t size) = 0;
+    virtual void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) = 0;
 
     // The instance is destroyed in fmi2FreeInstance()/fmiFreeSlaveInstance().
     virtual ~SlaveInstance() CPPFMU_NOEXCEPT;

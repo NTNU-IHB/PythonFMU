@@ -39,6 +39,10 @@ public:
     void SetFMUstate(const fmi2FMUstate& state) override;
     void FreeFMUstate(fmi2FMUstate& state) override;
 
+    size_t SerializedFMUstateSize(const fmi2FMUstate& state) override;
+    void SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte bytes[], size_t size) override;
+    void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) override;
+
     ~PySlaveInstance() override;
 
 private:
