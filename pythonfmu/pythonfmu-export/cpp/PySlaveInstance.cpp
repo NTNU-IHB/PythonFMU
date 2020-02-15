@@ -77,7 +77,6 @@ void PySlaveInstance::initialize()
     pInstance_ = PyObject_Call(pClass_, args, kwargs);
     Py_DECREF(args);
     Py_DECREF(kwargs);
-    //    Py_DECREF(pClass_);
     if (pInstance_ == nullptr) {
         handle_py_exception("[initialize] PyObject_Call");
     }
