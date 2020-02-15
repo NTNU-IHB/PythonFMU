@@ -14,7 +14,7 @@ class PySlaveInstance : public cppfmu::SlaveInstance
 {
 
 public:
-    PySlaveInstance(const std::string& instanceName, bool visible, bool loggingOn, const std::string& resources);
+    PySlaveInstance(std::string instanceName, std::string resources, bool visible);
 
     void initialize();
 
@@ -41,14 +41,13 @@ public:
 
     ~PySlaveInstance() override;
 
-
 private:
-    PyObject* pModule_;
+    PyObject* pClass_;
     PyObject* pInstance_;
 
     const bool visible_;
-    const bool loggingOn_;
-    const std::string& instanceName_;
+    const std::string instanceName_;
+    const std::string resources_;
 };
 
 } // namespace pythonfmu
