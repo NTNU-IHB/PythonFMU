@@ -250,12 +250,12 @@ class Fmi2Slave(ABC):
                     f"Variable with valueReference={vr} is not of type String!"
                 )
 
-    def _get_fmu_state(self) -> Dict[int, Any]:
+    def _get_fmu_state(self) -> Dict[str, Any]:
         state = dict()
         for var in self.vars.values():
-            state[var.value_reference] = self.get_value(var.name)
+            state[var.name] = self.get_value(var.name)
         return state
 
-    def _set_fmu_state(self, state: Dict[int, Any]):
-        for vr, value in state.items():
-            self.set_value(self.vars[vr].name, value)
+    def _set_fmu_state(self, state: Dict[str, Any]):
+        for name, value in state.items():
+            self.set_value(name, value)

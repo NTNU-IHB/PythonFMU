@@ -51,6 +51,37 @@ def test_integration_reset(tmp_path):
 
 
 @pytest.mark.integration
+def test_integration_state(tmp_path):
+    script_file = Path(__file__).parent / DEMO
+
+    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false", canGetAndSetFMUstate="true")
+
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+
+    vr = 5  # realOut
+    dt = 0.1
+    t = 0.0
+
+    def step(model):
+        nonlocal t
+        model.do_step(t, dt, True)
+        t += dt
+
+    model = pyfmi.load_fmu(str(fmu))
+    step(model)
+    state = model.get_fmu_state()
+    assert model.get_real([vr])[0] == pytest.approx(dt, rel=1e-7)
+    step(model)
+    assert model.get_real([vr])[0] == pytest.approx(dt * 2, rel=1e-7)
+    model.set_fmu_state(state)
+    assert model.get_real([vr])[0] == pytest.approx(dt, rel=1e-7)
+    step(model)
+    assert model.get_real([vr])[0] == pytest.approx(dt * 3, rel=1e-7)
+    model.free_fmu_state(state)
+
+
+@pytest.mark.integration
 def test_integration_get(tmp_path):
 
     script_file = Path(__file__).parent / DEMO
