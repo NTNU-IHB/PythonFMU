@@ -19,7 +19,12 @@ __pycache__
 .vscode
 *.egg-info
 .pytest_cache
+dist/
+build/
 
-# pyfmi test artifacts
-*_result.mat
-*_log.txt
+/**/.ipynb_checkpoints
+
+# test and examples artifacts
+/**/*_log.txt
+/**/*_result.mat
+/**/*.fmu
