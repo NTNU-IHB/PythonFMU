@@ -19,11 +19,11 @@ class Resistor(Fmi2Slave):
         self.i = 0.001
         self.R = 10000.
         
-        self.register_variable(Real("R", causality=Fmi2Causality.parameter))
+        self.register_variable(Real("R", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
 
-        self.register_variable(Real("positive_pin_v", causality=Fmi2Causality.input, variability=Fmi2Variability.tunable))
+        self.register_variable(Real("positive_pin_v", causality=Fmi2Causality.input))
         self.register_variable(Real("positive_pin_i", causality=Fmi2Causality.output))
-        self.register_variable(Real("negative_pin_v", causality=Fmi2Causality.input, variability=Fmi2Variability.tunable))
+        self.register_variable(Real("negative_pin_v", causality=Fmi2Causality.input))
         self.register_variable(Real("negative_pin_i", causality=Fmi2Causality.output))
 
         self.register_variable(Real("delta_v", causality=Fmi2Causality.local))
