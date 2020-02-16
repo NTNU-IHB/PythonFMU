@@ -2,8 +2,6 @@
 
 > A lightweight framework that enables the packaging of Python3.x code as co-simulation FMUs.
 
-Test it now: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/PythonFMU/nb-example?urlpath=lab/tree/examples/demo.ipynb)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
 
@@ -84,6 +82,10 @@ pythonfmu-builder -f pythonslave.py pythonfmu
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`,
 where `pythonfmu` is an optional folder containing additional project files required by the python script. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
+
+###### Test it online
+
+Test it on [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/PythonFMU/nb-example?urlpath=lab/tree/examples/demo.ipynb)
 
 ### Note
 
