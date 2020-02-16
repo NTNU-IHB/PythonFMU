@@ -252,14 +252,10 @@ class Fmi2Slave(ABC):
                     f"Variable with valueReference={vr} is not of type String!"
                 )
 
-    def store_custom_state(self, state: Dict[str, Any]):
-        pass
-
     def _get_fmu_state(self) -> bytes:
         state = dict()
         for var in self.vars.values():
             state[var.name] = self.get_value(var.name)
-        self.store_custom_state(state)
         return json.dumps(state).encode("utf-8")
 
     def _set_fmu_state(self, state: bytes):
