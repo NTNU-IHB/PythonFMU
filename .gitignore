@@ -1,52 +1,25 @@
 
-
-#Java class files
-*.class
-
-
-# Package Files #
-*.jar
-*.war
-*.ear
-
+# binaries
 *.dll
 *.dll.manifest
 *.so
 
-bin/
-tmp/
+# pythonfmu binaries folder
+/**/pythonfmu/resources/binaries
 
-.metadata
-.gradle
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
-.settings/
-.loadpath
-
-gradle.properties
-
-.nb-gradle/
-
-.idea/
-out/
-build/
-
-*.iml
-
-/**/out/
-/**/build/
-
-/**/src/test/resources/fmus
-
+# CLion
 /**/cmake-build-debug
 /**/cmake-build-release
 
+# Jetbrains tooling
+.idea
+
+#Python
 __pycache__
 .vscode
 *.egg-info
 .pytest_cache
 
-/**/pythonfmu/resources
+# pyfmi test artifacts
+*_result.mat
+*_log.txt
