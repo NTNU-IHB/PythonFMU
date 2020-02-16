@@ -81,8 +81,7 @@ class Fmi2Slave(ABC):
         options = dict()
         for option in FMI2_MODEL_OPTIONS:
             value = model_options.get(option.name, option.value)
-            v = "true" if value else "false"
-            options[option.name] = v
+            options[option.name] = str(value).lower()
         options["modelIdentifier"] = self.modelName
 
         SubElement(root, "CoSimulation", attrib=options)
