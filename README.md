@@ -2,7 +2,7 @@
 
 > A lightweight framework that enables the packaging of Python3.x code as co-simulation FMUs.
 
-Test it now: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/NTNU-IHB/PythonFMU/master?urlpath=lab/tree/examples/demo.ipynb)
+Test it now: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/PythonFMU/nb-example?urlpath=lab/tree/examples/demo.ipynb)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
