@@ -311,6 +311,9 @@ size_t PySlaveInstance::SerializedFMUstateSize(const fmi2FMUstate& state)
 {
     auto pyState = reinterpret_cast<PyObject*>(state);
     PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
+    if (pyStateBytes == nullptr) {
+        handle_py_exception("[SerializedFMUstateSize] PyObject_CallMethod");
+    }
     auto size = PyBytes_Size(pyStateBytes);
     Py_DECREF(pyStateBytes);
     return size;
