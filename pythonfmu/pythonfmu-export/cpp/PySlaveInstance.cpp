@@ -307,12 +307,54 @@ void PySlaveInstance::FreeFMUstate(fmi2FMUstate& state)
     Py_XDECREF(f);
 }
 
+size_t PySlaveInstance::SerializedFMUstateSize(const fmi2FMUstate& state)
+{
+    auto pyState = reinterpret_cast<PyObject*>(state);
+    PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
+    if (pyStateBytes == nullptr) {
+        handle_py_exception("[SerializedFMUstateSize] PyObject_CallMethod");
+    }
+    auto size = PyBytes_Size(pyStateBytes);
+    Py_DECREF(pyStateBytes);
+    return size;
+}
+
+void PySlaveInstance::SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* bytes, size_t size)
+{
+    auto pyState = reinterpret_cast<PyObject*>(state);
+    PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
+    if (pyStateBytes == nullptr) {
+        handle_py_exception("[SerializeFMUstate] PyObject_CallMethod");
+    }
+    char* c = PyBytes_AsString(pyStateBytes);
+    if (c == nullptr) {
+        handle_py_exception("[SerializeFMUstate] PyBytes_AsString");
+    }
+    for (int i = 0; i < size; i++) {
+        bytes[i] = c[i];
+    }
+    Py_DECREF(pyStateBytes);
+}
+
+void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state)
+{
+    PyObject* pyStateBytes = PyBytes_FromStringAndSize(bytes, size);
+    if (pyStateBytes == nullptr) {
+        handle_py_exception("[DeSerializeFMUstate] PyBytes_FromStringAndSize");
+    }
+    PyObject* pyState = PyObject_CallMethod(pClass_, "_fmu_state_from_bytes", "(O)", pyStateBytes);
+    if (pyState == nullptr) {
+        handle_py_exception("[DeSerializeFMUstate] PyObject_CallMethod");
+    }
+    state = reinterpret_cast<fmi2FMUstate*>(pyState);
+    Py_DECREF(pyStateBytes);
+}
+
 PySlaveInstance::~PySlaveInstance()
 {
     Py_XDECREF(pClass_);
     Py_XDECREF(pInstance_);
 }
-
 
 } // namespace pythonfmu
 

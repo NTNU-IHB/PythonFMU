@@ -1,4 +1,5 @@
 """Define the abstract facade class."""
+import json
 import datetime
 from abc import ABC, abstractmethod
 from collections import OrderedDict, namedtuple
@@ -259,3 +260,11 @@ class Fmi2Slave(ABC):
     def _set_fmu_state(self, state: Dict[str, Any]):
         for name, value in state.items():
             self.set_value(name, value)
+
+    @staticmethod
+    def _fmu_state_to_bytes(state: Dict[str, Any]) -> bytes:
+        return json.dumps(state).encode("utf-8")
+
+    @staticmethod
+    def _fmu_state_from_bytes(state: bytes) -> Dict[str, Any]:
+        return json.loads(state.decode("utf-8"))
