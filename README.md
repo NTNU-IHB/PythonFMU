@@ -83,9 +83,9 @@ In this example a python class named `PythonSlave` that extends `Fmi2Slave` is d
 where `pythonfmu` is an optional folder containing additional project files required by the python script. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
 
-###### Test it online
+### Test it online
 
-Test it on [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/PythonFMU/nb-example?urlpath=lab/tree/examples/demo.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/NTNU-IHB/PythonFMU/master?urlpath=lab/tree/examples/demo.ipynb)
 
 ### Note
 
