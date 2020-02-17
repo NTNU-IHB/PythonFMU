@@ -8,42 +8,42 @@
 
 namespace pythonfmu
 {
+    
+inline void run(const std::function<void()>& f)
+{
+    PyGILState_STATE gil_state = PyGILState_Ensure();
+    f();
+    PyGILState_Release(gil_state);
+}
+
 
 class PyState
 {
 public:
-    static volatile bool was_initialized_;
-
     PyState()
     {
         was_initialized_ = Py_IsInitialized();
 
         if (!was_initialized_) {
+            Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
-        }
-    }
-
-    static inline void run(const std::function<void()>& f)
-    {
-        if (!was_initialized_) {
-            f();
-        } else {
-            PyGILState_STATE gil_state = PyGILState_Ensure();
-            f();
-            PyGILState_Release(gil_state);
+            PyEval_InitThreads();
+            _mainPyThread = PyEval_SaveThread();
         }
     }
 
     ~PyState()
     {
         if (!was_initialized_) {
+            PyEval_RestoreThread(_mainPyThread);
             Py_Finalize();
         }
     }
 
+private:
+    bool was_initialized_;
+    PyThreadState* _mainPyThread;
 };
-
-volatile bool PyState::was_initialized_ = false;
 
 } // namespace pythonfmu
 
