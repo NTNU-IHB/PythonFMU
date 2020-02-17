@@ -20,19 +20,21 @@ public:
             Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
             PyEval_InitThreads();
-            PyThreadState* mainPyThread = PyEval_SaveThread();
+            _mainPyThread = PyEval_SaveThread();
         }
     }
 
     ~PyState()
     {
         if (!_wasInitialized) {
+            PyEval_RestoreThread(_mainPyThread);
             Py_Finalize();
         }
     }
 
 private:
     bool _wasInitialized;
+    PyThreadState* _mainPyThread;
 };
 
 } // namespace pythonfmu
