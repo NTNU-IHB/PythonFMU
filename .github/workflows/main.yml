@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /usr/share/miniconda/pkgs
-          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
           restore-keys: |
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
@@ -107,7 +107,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /usr/share/miniconda/pkgs
-          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
           restore-keys: |
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
@@ -117,7 +117,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: C:\Miniconda\pkgs
-          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
           restore-keys: |
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
@@ -131,7 +131,8 @@ jobs:
       - name: Run the Tests
         run: |
           conda activate test
-          conda install -n test -c conda-forge pytest pyfmi
+          # Install test dependencies - update environment.yml if they changed
+          conda env update --name=test --file=environment.yml
           cd python-wheel
           python -m pip install pythonfmu*.whl
           python -m pytest --pyargs pythonfmu
