@@ -15,16 +15,18 @@ public:
     {
         _wasInitialized = Py_IsInitialized();
 
-        if(!_wasInitialized){
+        if (!_wasInitialized) {
             std::cout << "Initialize Python" << std::endl;
             Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
+            PyEval_InitThreads();
+            PyThreadState* mainPyThread = PyEval_SaveThread();
         }
     }
 
     ~PyState()
     {
-        if(!_wasInitialized){
+        if (!_wasInitialized) {
             Py_Finalize();
         }
     }
