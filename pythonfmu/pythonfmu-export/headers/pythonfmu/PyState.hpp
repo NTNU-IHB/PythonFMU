@@ -16,7 +16,6 @@ public:
         _wasInitialized = Py_IsInitialized();
 
         if (!_wasInitialized) {
-            std::cout << "Initialize Python" << std::endl;
             Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
             PyEval_InitThreads();
