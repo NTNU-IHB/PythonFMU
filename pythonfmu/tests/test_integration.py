@@ -128,13 +128,13 @@ def test_integration_get_serialize_state(tmp_path):
     step(model)
     assert model.getReal([vr])[0] == pytest.approx(dt * 3, rel=1e-7)
 
-    serialize_fm_ustate = model.serializeFMUstate(state)
+    serialize_fmu_state = model.serializeFMUstate(state)
     model.freeFMUstate(state)
-    de_serialize_fm_ustate = model.deSerializeFMUstate(serialize_fm_ustate)
-    model.setFMUstate(de_serialize_fm_ustate)
+    de_serialize_fmu_state = model.deSerializeFMUstate(serialize_fmu_state)
+    model.setFMUstate(de_serialize_fmu_state)
     assert model.getReal([vr])[0] == pytest.approx(dt, rel=1e-7)
 
-    model.freeFMUstate(de_serialize_fm_ustate)
+    model.freeFMUstate(de_serialize_fmu_state)
     model.terminate()
 
 
