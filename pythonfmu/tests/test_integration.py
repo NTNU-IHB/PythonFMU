@@ -158,7 +158,7 @@ def test_integration_set(tmp_path):
         
         assert model_value == value
 
-# TODO fmpy generate a Segmentation fault at line PyObject* sys_module = PyImport_ImportModule("sys"); in PyObjectWrapper
+
 @pytest.mark.integration
 def test_simple_integration_fmpy(tmp_path):
     fmpy = pytest.importorskip(
