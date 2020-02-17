@@ -87,6 +87,8 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
     
     steps:
+      - uses: actions/checkout@v2
+
       - name: Download python package
         uses: actions/download-artifact@v1
         with:
