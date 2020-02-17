@@ -335,7 +335,7 @@ void PySlaveInstance::SetFMUstate(const fmi2FMUstate& state)
             handle_py_exception("[_set_fmu_state] PyObject_CallMethod");
         }
     });
-} // namespace pythonfmu
+}
 
 void PySlaveInstance::FreeFMUstate(fmi2FMUstate& state)
 {
