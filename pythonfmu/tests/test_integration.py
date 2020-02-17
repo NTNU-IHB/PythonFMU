@@ -53,7 +53,11 @@ def test_integration_reset(tmp_path):
 def test_integration_get_state(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false", canGetAndSetFMUstate="true")
+    FmuBuilder.build_FMU(
+        script_file,
+        dest=tmp_path,
+        needsExecutionTool="false",
+        canGetAndSetFMUstate="true")
 
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
@@ -62,21 +66,21 @@ def test_integration_get_state(tmp_path):
     dt = 0.1
     t = 0.0
 
-    def step(model):
-        nonlocal t
+    def step_model():
+        nonlocal t, model
         model.do_step(t, dt, True)
         t += dt
 
     model = pyfmi.load_fmu(str(fmu))
     model.initialize()
-    step(model)
+    step_model()
     state = model.get_fmu_state()
     assert model.get_real([vr])[0] == pytest.approx(dt, rel=1e-7)
-    step(model)
+    step_model()
     assert model.get_real([vr])[0] == pytest.approx(dt * 2, rel=1e-7)
     model.set_fmu_state(state)
     assert model.get_real([vr])[0] == pytest.approx(dt, rel=1e-7)
-    step(model)
+    step_model()
     assert model.get_real([vr])[0] == pytest.approx(dt * 3, rel=1e-7)
     model.free_fmu_state(state)
 
@@ -89,18 +93,21 @@ def test_integration_get_serialize_state(tmp_path):
 
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path)
+    FmuBuilder.build_FMU(
+        script_file,
+        dest=tmp_path,
+        canGetAndSetFMUstate="true",
+        canSerializeFMUstate="true")
 
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
 
     model_description = fmpy.read_model_description(fmu)
-
-    unzipdir = fmpy.extract(fmu)
+    unzip_dir = fmpy.extract(fmu)
 
     model = fmpy.fmi2.FMU2Slave(
         guid=model_description.guid,
-        unzipDirectory=unzipdir,
+        unzipDirectory=unzip_dir,
         modelIdentifier=model_description.coSimulation.modelIdentifier,
         instanceName='instance1')
 
@@ -108,8 +115,8 @@ def test_integration_get_serialize_state(tmp_path):
     t = 0.0
     dt = 0.1
 
-    def step(model):
-        nonlocal t
+    def step_model():
+        nonlocal t, model
         model.doStep(t, dt)
         t += dt
 
@@ -118,14 +125,14 @@ def test_integration_get_serialize_state(tmp_path):
     model.enterInitializationMode()
     model.exitInitializationMode()
 
-    step(model)
+    step_model()
     state = model.getFMUstate()
     assert model.getReal([vr])[0] == pytest.approx(dt, rel=1e-7)
-    step(model)
+    step_model()
     assert model.getReal([vr])[0] == pytest.approx(dt * 2, rel=1e-7)
     model.setFMUstate(state)
     assert model.getReal([vr])[0] == pytest.approx(dt, rel=1e-7)
-    step(model)
+    step_model()
     assert model.getReal([vr])[0] == pytest.approx(dt * 3, rel=1e-7)
 
     serialize_fmu_state = model.serializeFMUstate(state)
