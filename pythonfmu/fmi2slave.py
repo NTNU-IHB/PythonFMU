@@ -257,7 +257,7 @@ class Fmi2Slave(ABC):
             state[var.name] = self.get_value(var.name)
         return state
 
-    def _set_fmu_state(self, state: Dict[str, any]):
+    def _set_fmu_state(self, state: Dict[str, Any]):
         for name, value in state.items():
             self.set_value(name, value)
 
