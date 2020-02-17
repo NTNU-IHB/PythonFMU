@@ -158,22 +158,22 @@ def test_integration_set(tmp_path):
         
         assert model_value == value
 
-# TODO fmpy generate a Segmentation fault at line PyObject* sys_module = PyImport_ImportModule("sys"); in PyObjectWrapper
-# @pytest.mark.integration
-# def test_simple_integration_fmpy(tmp_path):
-#     fmpy = pytest.importorskip(
-#         "fmpy", reason="fmpy is not available for testing the produced FMU"
-#     )
 
-#     script_file = Path(__file__).parent / DEMO
+@pytest.mark.integration
+def test_simple_integration_fmpy(tmp_path):
+    fmpy = pytest.importorskip(
+        "fmpy", reason="fmpy is not available for testing the produced FMU"
+    )
 
-#     FmuBuilder.build_FMU(script_file, dest=tmp_path)
+    script_file = Path(__file__).parent / DEMO
 
-#     fmu = tmp_path / "PythonSlave.fmu"
-#     assert fmu.exists()
-#     res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
+    FmuBuilder.build_FMU(script_file, dest=tmp_path)
 
-#     assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+    res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
+
+    assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
 
 
 @pytest.mark.integration

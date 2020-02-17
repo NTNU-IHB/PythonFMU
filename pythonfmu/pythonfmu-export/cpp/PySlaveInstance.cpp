@@ -28,7 +28,9 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
     , visible_(visible)
 
 {
-    // Append resources path to python sys path
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
+    // Append resources path to python sys path    
     PyObject* sys_module = PyImport_ImportModule("sys");
     if (sys_module == nullptr) {
         handle_py_exception("[ctor] PyImport_ImportModule");
@@ -63,6 +65,8 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
     }
 
     initialize();
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::initialize()
@@ -84,58 +88,84 @@ void PySlaveInstance::initialize()
 
 void PySlaveInstance::SetupExperiment(cppfmu::FMIBoolean, cppfmu::FMIReal, cppfmu::FMIReal startTime, cppfmu::FMIBoolean, cppfmu::FMIReal)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(d)", startTime);
     if (f == nullptr) {
         handle_py_exception("[setupExperiment] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::EnterInitializationMode()
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = PyObject_CallMethod(pInstance_, "enter_initialization_mode", nullptr);
     if (f == nullptr) {
         handle_py_exception("[enterInitializationMode] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::ExitInitializationMode()
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = PyObject_CallMethod(pInstance_, "exit_initialization_mode", nullptr);
     if (f == nullptr) {
         handle_py_exception("[exitInitializationMode] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 bool PySlaveInstance::DoStep(cppfmu::FMIReal currentTime, cppfmu::FMIReal stepSize, cppfmu::FMIBoolean, cppfmu::FMIReal& endOfStep)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = PyObject_CallMethod(pInstance_, "do_step", "(dd)", currentTime, stepSize);
     if (f == nullptr) {
         handle_py_exception("[doStep] PyObject_CallMethod");
     }
     bool status = static_cast<bool>(PyObject_IsTrue(f));
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
+
     return status;
 }
 
 void PySlaveInstance::Reset()
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
     initialize();
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::Terminate()
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = PyObject_CallMethod(pInstance_, "terminate", nullptr);
     if (f == nullptr) {
         handle_py_exception("[terminate] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* values)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
@@ -150,10 +180,14 @@ void PySlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t n
         handle_py_exception("[setReal] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* values)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
@@ -168,10 +202,14 @@ void PySlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_
         handle_py_exception("[setInteger] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* values)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
@@ -186,10 +224,14 @@ void PySlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_
         handle_py_exception("[setBoolean] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString const* values)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     PyObject* refs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
@@ -204,10 +246,14 @@ void PySlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t
         handle_py_exception("[setString] PyObject_CallMethod");
     }
     Py_DECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* values) const
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
         PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -224,10 +270,14 @@ void PySlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t n
         values[i] = PyFloat_AsDouble(value);
     }
     Py_DECREF(refs);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* values) const
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
         PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -243,10 +293,14 @@ void PySlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_
         values[i] = static_cast<cppfmu::FMIInteger>(PyLong_AsLong(value));
     }
     Py_DECREF(refs);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* values) const
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
         PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -262,10 +316,14 @@ void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_
         values[i] = PyObject_IsTrue(value);
     }
     Py_DECREF(refs);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* values) const
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* vrs = PyList_New(nvr);
     for (int i = 0; i < nvr; i++) {
         PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -281,34 +339,50 @@ void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t
         values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", nullptr));
     }
     Py_DECREF(refs);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::GetFMUstate(fmi2FMUstate& state)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = PyObject_CallMethod(pInstance_, "_get_fmu_state", nullptr);
     if (f == nullptr) {
         handle_py_exception("[_get_fmu_state] PyObject_CallMethod");
     }
     state = reinterpret_cast<fmi2FMUstate*>(f);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::SetFMUstate(const fmi2FMUstate& state)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto pyState = reinterpret_cast<PyObject*>(state);
     auto f = PyObject_CallMethod(pInstance_, "_set_fmu_state", "(O)", pyState);
     if (f == nullptr) {
         handle_py_exception("[_set_fmu_state] PyObject_CallMethod");
     }
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::FreeFMUstate(fmi2FMUstate& state)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto f = reinterpret_cast<PyObject*>(state);
     Py_XDECREF(f);
+
+    PyGILState_Release(gilstate);
 }
 
 size_t PySlaveInstance::SerializedFMUstateSize(const fmi2FMUstate& state)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto pyState = reinterpret_cast<PyObject*>(state);
     PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
     if (pyStateBytes == nullptr) {
@@ -316,11 +390,16 @@ size_t PySlaveInstance::SerializedFMUstateSize(const fmi2FMUstate& state)
     }
     auto size = PyBytes_Size(pyStateBytes);
     Py_DECREF(pyStateBytes);
+
+    PyGILState_Release(gilstate);
+
     return size;
 }
 
 void PySlaveInstance::SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* bytes, size_t size)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     auto pyState = reinterpret_cast<PyObject*>(state);
     PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
     if (pyStateBytes == nullptr) {
@@ -334,10 +413,14 @@ void PySlaveInstance::SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* byt
         bytes[i] = c[i];
     }
     Py_DECREF(pyStateBytes);
+
+    PyGILState_Release(gilstate);
 }
 
 void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state)
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     PyObject* pyStateBytes = PyBytes_FromStringAndSize(bytes, size);
     if (pyStateBytes == nullptr) {
         handle_py_exception("[DeSerializeFMUstate] PyBytes_FromStringAndSize");
@@ -348,12 +431,18 @@ void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, f
     }
     state = reinterpret_cast<fmi2FMUstate*>(pyState);
     Py_DECREF(pyStateBytes);
+
+    PyGILState_Release(gilstate);
 }
 
 PySlaveInstance::~PySlaveInstance()
 {
+    PyGILState_STATE gilstate = PyGILState_Ensure();
+
     Py_XDECREF(pClass_);
     Py_XDECREF(pInstance_);
+
+    PyGILState_Release(gilstate);
 }
 
 } // namespace pythonfmu

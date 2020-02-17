@@ -14,19 +14,26 @@ public:
     PyState()
     {
         _wasInitialized = Py_IsInitialized();
-        if(!_wasInitialized){
+
+        if (!_wasInitialized) {
+            Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
+            PyEval_InitThreads();
+            _mainPyThread = PyEval_SaveThread();
         }
     }
 
     ~PyState()
     {
-        if(!_wasInitialized){
+        if (!_wasInitialized) {
+            PyEval_RestoreThread(_mainPyThread);
             Py_Finalize();
         }
     }
+
 private:
     bool _wasInitialized;
+    PyThreadState* _mainPyThread;
 };
 
 } // namespace pythonfmu
