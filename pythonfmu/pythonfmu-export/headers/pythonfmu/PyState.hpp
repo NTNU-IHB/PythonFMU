@@ -3,6 +3,7 @@
 #define PYTHONFMU_PYTHONSTATE_HPP
 
 #include <Python.h>
+#include <functional>
 #include <iostream>
 
 namespace pythonfmu
@@ -11,30 +12,38 @@ namespace pythonfmu
 class PyState
 {
 public:
+    static volatile bool was_initialized_;
+
     PyState()
     {
-        _wasInitialized = Py_IsInitialized();
+        was_initialized_ = Py_IsInitialized();
 
-        if (!_wasInitialized) {
-            Py_SetProgramName(L"./PythonFMU");
+        if (!was_initialized_) {
             Py_Initialize();
-            PyEval_InitThreads();
-            _mainPyThread = PyEval_SaveThread();
+        }
+    }
+
+    static inline void run(const std::function<void()>& f)
+    {
+        if (!was_initialized_) {
+            f();
+        } else {
+            PyGILState_STATE gil_state = PyGILState_Ensure();
+            f();
+            PyGILState_Release(gil_state);
         }
     }
 
     ~PyState()
     {
-        if (!_wasInitialized) {
-            PyEval_RestoreThread(_mainPyThread);
+        if (!was_initialized_) {
             Py_Finalize();
         }
     }
 
-private:
-    bool _wasInitialized;
-    PyThreadState* _mainPyThread;
 };
+
+volatile bool PyState::was_initialized_ = false;
 
 } // namespace pythonfmu
 
