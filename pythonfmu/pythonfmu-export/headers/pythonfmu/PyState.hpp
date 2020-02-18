@@ -13,9 +13,9 @@ class PyState
 public:
     PyState()
     {
-        _wasInitialized = Py_IsInitialized();
+        was_initialized_ = Py_IsInitialized();
 
-        if (!_wasInitialized) {
+        if (!was_initialized_) {
             Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
             PyEval_InitThreads();
@@ -25,14 +25,14 @@ public:
 
     ~PyState()
     {
-        if (!_wasInitialized) {
+        if (!was_initialized_) {
             PyEval_RestoreThread(_mainPyThread);
             Py_Finalize();
         }
     }
 
 private:
-    bool _wasInitialized;
+    bool was_initialized_;
     PyThreadState* _mainPyThread;
 };
 
