@@ -143,3 +143,42 @@ jobs:
           python -m pytest --pyargs pythonfmu
           cd ..
         shell: bash -l {0}
+
+  test-notebook:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache conda packages for Linux
+        if: startsWith(runner.os, 'Linux')
+        uses: actions/cache@v1
+        with:
+          path: /usr/share/miniconda/pkgs
+          key: ${{ runner.os }}-test-nb-cache-conda-pkgs-${{ hashFiles('binder/environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-nb-cache-conda-pkgs-
+            ${{ runner.os }}-test-nb-
+
+      - name: Setup Python
+        uses: goanpeca/setup-miniconda@v1
+        with:
+          auto-update-conda: true
+        
+      - name: Run the Tests
+        run: |
+          conda activate test
+          # Install binder dependencies - update binder/environment.yml if they changed
+          cp binder/* .
+          conda env update --name=test --file=environment.yml
+          bash ./postBuild
+          cd ./examples
+          jupyter nbconvert --to notebook --execute demo.ipynb
+          cd ..
+        shell: bash -l {0}
+
+      - name: Archive executed notbook
+        uses: actions/upload-artifact@v1
+        with:
+          name: nb-examples
+          path: examples
