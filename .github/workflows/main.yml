@@ -172,6 +172,6 @@ jobs:
           cp binder/* .
           conda env update --name=test --file=environment.yml
           bash ./postBuild
-          cd ../examples
+          cd ./examples
           jupyter nbconvert --to notebook --execute demo.ipynb
         shell: bash -l {0}
