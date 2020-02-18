@@ -120,7 +120,7 @@ void PySlaveInstance::ExitInitializationMode()
 bool PySlaveInstance::DoStep(cppfmu::FMIReal currentTime, cppfmu::FMIReal stepSize, cppfmu::FMIBoolean, cppfmu::FMIReal& endOfStep)
 {
     bool status;
-    py_safe_run([this, &status, &currentTime, &stepSize] {
+    py_safe_run([this, &status, currentTime, stepSize] {
         auto f = PyObject_CallMethod(pInstance_, "do_step", "(dd)", currentTime, stepSize);
         if (f == nullptr) {
             handle_py_exception("[doStep] PyObject_CallMethod");
@@ -152,7 +152,7 @@ void PySlaveInstance::Terminate()
 
 void PySlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* values)
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         PyObject* refs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
@@ -172,7 +172,7 @@ void PySlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t n
 
 void PySlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* values)
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         PyObject* refs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
@@ -192,7 +192,7 @@ void PySlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_
 
 void PySlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* values)
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         PyObject* refs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
@@ -212,7 +212,7 @@ void PySlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_
 
 void PySlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString const* values)
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         PyObject* refs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
@@ -232,7 +232,7 @@ void PySlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t
 
 void PySlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* values) const
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
             PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -254,7 +254,7 @@ void PySlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t n
 
 void PySlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* values) const
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
             PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -275,7 +275,7 @@ void PySlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_
 
 void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* values) const
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
             PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -296,7 +296,7 @@ void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_
 
 void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* values) const
 {
-    py_safe_run([this, &vr, &nvr, &values] {
+    py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
             PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -362,7 +362,7 @@ size_t PySlaveInstance::SerializedFMUstateSize(const fmi2FMUstate& state)
 
 void PySlaveInstance::SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* bytes, size_t size)
 {
-    py_safe_run([this, &state, &bytes, &size] {
+    py_safe_run([this, &state, &bytes, size] {
         auto pyState = reinterpret_cast<PyObject*>(state);
         PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
         if (pyStateBytes == nullptr) {
@@ -381,7 +381,7 @@ void PySlaveInstance::SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* byt
 
 void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state)
 {
-    py_safe_run([this, &bytes, &size, &state] {
+    py_safe_run([this, &bytes, size, &state] {
         PyObject* pyStateBytes = PyBytes_FromStringAndSize(bytes, size);
         if (pyStateBytes == nullptr) {
             handle_py_exception("[DeSerializeFMUstate] PyBytes_FromStringAndSize");
