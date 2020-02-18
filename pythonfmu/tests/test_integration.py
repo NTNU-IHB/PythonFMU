@@ -5,11 +5,13 @@ import pytest
 
 from pythonfmu.builder import FmuBuilder
 
-pytestmark = pytest.mark.skipif(not FmuBuilder.has_binary(), reason="No binary available for the current platform.")
+pytestmark = pytest.mark.skipif(
+    not FmuBuilder.has_binary(), 
+    reason="No binary available for the current platform."
+)
 pyfmi = pytest.importorskip(
     "pyfmi", reason="pyfmi is required for testing the produced FMU"
 )
-
 
 DEMO = "pythonslave.py"
 
@@ -51,39 +53,105 @@ def test_integration_reset(tmp_path):
 
 
 @pytest.mark.integration
-def test_integration_state(tmp_path):
+def test_integration_get_state(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false", canGetAndSetFMUstate="true")
+    FmuBuilder.build_FMU(
+        script_file,
+        dest=tmp_path,
+        needsExecutionTool="false",
+        canGetAndSetFMUstate="true")
 
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
 
-    vr = 5  # realOut
+    model = pyfmi.load_fmu(str(fmu))
+
+    vr = model.get_model_variables()["realOut"].value_reference
     dt = 0.1
     t = 0.0
 
-    def step(model):
+    def step_model():
         nonlocal t
         model.do_step(t, dt, True)
         t += dt
 
-    model = pyfmi.load_fmu(str(fmu))
-    step(model)
+    model.initialize()
+    step_model()
     state = model.get_fmu_state()
     assert model.get_real([vr])[0] == pytest.approx(dt, rel=1e-7)
-    step(model)
+    step_model()
     assert model.get_real([vr])[0] == pytest.approx(dt * 2, rel=1e-7)
     model.set_fmu_state(state)
     assert model.get_real([vr])[0] == pytest.approx(dt, rel=1e-7)
-    step(model)
+    step_model()
     assert model.get_real([vr])[0] == pytest.approx(dt * 3, rel=1e-7)
     model.free_fmu_state(state)
 
 
 @pytest.mark.integration
-def test_integration_get(tmp_path):
+def test_integration_get_serialize_state(tmp_path):
+    fmpy = pytest.importorskip(
+        "fmpy", reason="fmpy is not available for testing the produced FMU"
+    )
 
+    script_file = Path(__file__).parent / DEMO
+
+    FmuBuilder.build_FMU(
+        script_file,
+        dest=tmp_path,
+        canGetAndSetFMUstate="true",
+        canSerializeFMUstate="true")
+
+    fmu = tmp_path / "PythonSlave.fmu"
+    assert fmu.exists()
+
+    model_description = fmpy.read_model_description(fmu)
+    unzip_dir = fmpy.extract(fmu)
+
+    model = fmpy.fmi2.FMU2Slave(
+        guid=model_description.guid,
+        unzipDirectory=unzip_dir,
+        modelIdentifier=model_description.coSimulation.modelIdentifier,
+        instanceName='instance1')
+
+    realOut = filter(lambda var: var.name == "realOut", model_description.modelVariables)
+    vrs = list(map(lambda var: var.valueReference, realOut))
+    t = 0.0
+    dt = 0.1
+
+    def step_model():
+        nonlocal t
+        model.doStep(t, dt)
+        t += dt
+
+    model.instantiate()
+    model.setupExperiment()
+    model.enterInitializationMode()
+    model.exitInitializationMode()
+
+    step_model()
+    state = model.getFMUstate()
+    assert model.getReal(vrs)[0] == pytest.approx(dt, rel=1e-7)
+    step_model()
+    assert model.getReal(vrs)[0] == pytest.approx(dt * 2, rel=1e-7)
+    model.setFMUstate(state)
+    assert model.getReal(vrs)[0] == pytest.approx(dt, rel=1e-7)
+    step_model()
+    assert model.getReal(vrs)[0] == pytest.approx(dt * 3, rel=1e-7)
+
+    serialize_fmu_state = model.serializeFMUstate(state)
+    model.freeFMUstate(state)
+    de_serialize_fmu_state = model.deSerializeFMUstate(serialize_fmu_state)
+    model.setFMUstate(de_serialize_fmu_state)
+    assert model.getReal(vrs)[0] == pytest.approx(dt, rel=1e-7)
+
+    model.freeFMUstate(de_serialize_fmu_state)
+    model.terminate()
+
+
+@pytest.mark.integration
+def test_integration_get(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
     FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
@@ -91,14 +159,14 @@ def test_integration_get(tmp_path):
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
-    
+
     to_test = {
         "intParam": 42,
         "intOut": 23,
         "realOut": 3.0,
         "booleanVariable": True,
         "stringVariable": "Hello World!",
-        "realIn": 2./3.,
+        "realIn": 2. / 3.,
         "booleanParameter": False,
         "stringParameter": "dog"
     }
@@ -107,22 +175,21 @@ def test_integration_get(tmp_path):
     for key, value in to_test.items():
         var = variables[key]
         if var.type == pyfmi.fmi.FMI2_INTEGER:
-            model_value = model.get_integer([var.value_reference,])[0]
+            model_value = model.get_integer([var.value_reference, ])[0]
         elif var.type == pyfmi.fmi.FMI2_REAL:
-            model_value = model.get_real([var.value_reference,])[0]
+            model_value = model.get_real([var.value_reference, ])[0]
         elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
-            model_value = model.get_boolean([var.value_reference,])[0]
+            model_value = model.get_boolean([var.value_reference, ])[0]
         elif var.type == pyfmi.fmi.FMI2_STRING:
-            model_value = model.get_string([var.value_reference,])[0]
+            model_value = model.get_string([var.value_reference, ])[0]
         else:
             pytest.xfail("Unsupported type")
-        
+
         assert model_value == value
 
 
 @pytest.mark.integration
 def test_integration_set(tmp_path):
-
     script_file = Path(__file__).parent / DEMO
 
     FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
@@ -130,10 +197,10 @@ def test_integration_set(tmp_path):
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
-    
+
     to_test = {
         "intParam": 20,
-        "realIn": 1./3.,
+        "realIn": 1. / 3.,
         "booleanParameter": True,
         "stringParameter": "cat"
     }
@@ -143,19 +210,19 @@ def test_integration_set(tmp_path):
         var = variables[key]
         if var.type == pyfmi.fmi.FMI2_INTEGER:
             model.set_integer([var.value_reference, ], [value, ])
-            model_value = model.get_integer([var.value_reference,])[0]
+            model_value = model.get_integer([var.value_reference, ])[0]
         elif var.type == pyfmi.fmi.FMI2_REAL:
             model.set_real([var.value_reference, ], [value, ])
-            model_value = model.get_real([var.value_reference,])[0]
+            model_value = model.get_real([var.value_reference, ])[0]
         elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
             model.set_boolean([var.value_reference, ], [value, ])
-            model_value = model.get_boolean([var.value_reference,])[0]
+            model_value = model.get_boolean([var.value_reference, ])[0]
         elif var.type == pyfmi.fmi.FMI2_STRING:
             model.set_string([var.value_reference, ], [value, ])
-            model_value = model.get_string([var.value_reference,])[0]
+            model_value = model.get_string([var.value_reference, ])[0]
         else:
             pytest.xfail("Unsupported type")
-        
+
         assert model_value == value
 
 
