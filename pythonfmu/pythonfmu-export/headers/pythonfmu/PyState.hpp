@@ -8,8 +8,8 @@
 
 namespace pythonfmu
 {
-    
-inline void run(const std::function<void()>& f)
+
+inline void py_safe_run(const std::function<void()>& f)
 {
     PyGILState_STATE gil_state = PyGILState_Ensure();
     f();
