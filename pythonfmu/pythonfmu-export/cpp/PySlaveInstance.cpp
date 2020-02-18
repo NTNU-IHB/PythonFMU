@@ -7,7 +7,7 @@
 #include "cppfmu/cppfmu_cs.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <functional>
 #include <sstream>
 #include <utility>
 
@@ -20,6 +20,13 @@ inline std::string getLine(const std::string& fileName)
     std::ifstream infile(fileName);
     std::getline(infile, line);
     return line;
+}
+
+inline void py_safe_run(const std::function<void()>& f)
+{
+    PyGILState_STATE gil_state = PyGILState_Ensure();
+    f();
+    PyGILState_Release(gil_state);
 }
 
 PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const bool visible)

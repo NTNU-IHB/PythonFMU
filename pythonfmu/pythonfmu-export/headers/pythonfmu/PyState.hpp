@@ -3,19 +3,10 @@
 #define PYTHONFMU_PYTHONSTATE_HPP
 
 #include <Python.h>
-#include <functional>
 #include <iostream>
 
 namespace pythonfmu
 {
-
-inline void py_safe_run(const std::function<void()>& f)
-{
-    PyGILState_STATE gil_state = PyGILState_Ensure();
-    f();
-    PyGILState_Release(gil_state);
-}
-
 
 class PyState
 {
