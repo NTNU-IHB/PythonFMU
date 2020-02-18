@@ -101,6 +101,7 @@ jobs:
           path: /usr/share/miniconda/pkgs
           key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
           restore-keys: |
+            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
 
@@ -111,6 +112,7 @@ jobs:
           path: /usr/share/miniconda/pkgs
           key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
           restore-keys: |
+            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
 
@@ -121,6 +123,7 @@ jobs:
           path: C:\Miniconda\pkgs
           key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
           restore-keys: |
+            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
 
