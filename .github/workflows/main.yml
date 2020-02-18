@@ -174,4 +174,11 @@ jobs:
           bash ./postBuild
           cd ./examples
           jupyter nbconvert --to notebook --execute demo.ipynb
+          cd ..
         shell: bash -l {0}
+
+      - name: Archive executed notbook
+        uses: actions/upload-artifact@v1
+        with:
+          name: nb-examples
+          path: examples
