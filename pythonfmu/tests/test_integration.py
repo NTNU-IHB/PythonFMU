@@ -5,7 +5,10 @@ import pytest
 
 from pythonfmu.builder import FmuBuilder
 
-pytestmark = pytest.mark.skipif(not FmuBuilder.has_binary(), reason="No binary available for the current platform.")
+pytestmark = pytest.mark.skipif(
+    not FmuBuilder.has_binary(), 
+    reason="No binary available for the current platform."
+)
 pyfmi = pytest.importorskip(
     "pyfmi", reason="pyfmi is required for testing the produced FMU"
 )
@@ -62,16 +65,17 @@ def test_integration_get_state(tmp_path):
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
 
-    vr = 5  # realOut
+    model = pyfmi.load_fmu(str(fmu))
+
+    vr = model.get_model_variables()["realOut"].value_reference
     dt = 0.1
     t = 0.0
 
     def step_model():
-        nonlocal t, model
+        nonlocal t
         model.do_step(t, dt, True)
         t += dt
 
-    model = pyfmi.load_fmu(str(fmu))
     model.initialize()
     step_model()
     state = model.get_fmu_state()
@@ -111,12 +115,13 @@ def test_integration_get_serialize_state(tmp_path):
         modelIdentifier=model_description.coSimulation.modelIdentifier,
         instanceName='instance1')
 
-    vr = 5  # realOut
+    realOut = filter(lambda var: var.name == "realOut", model_description.modelVariables)
+    vrs = list(map(lambda var: var.valueReference, realOut))
     t = 0.0
     dt = 0.1
 
     def step_model():
-        nonlocal t, model
+        nonlocal t
         model.doStep(t, dt)
         t += dt
 
@@ -127,19 +132,19 @@ def test_integration_get_serialize_state(tmp_path):
 
     step_model()
     state = model.getFMUstate()
-    assert model.getReal([vr])[0] == pytest.approx(dt, rel=1e-7)
+    assert model.getReal(vrs)[0] == pytest.approx(dt, rel=1e-7)
     step_model()
-    assert model.getReal([vr])[0] == pytest.approx(dt * 2, rel=1e-7)
+    assert model.getReal(vrs)[0] == pytest.approx(dt * 2, rel=1e-7)
     model.setFMUstate(state)
-    assert model.getReal([vr])[0] == pytest.approx(dt, rel=1e-7)
+    assert model.getReal(vrs)[0] == pytest.approx(dt, rel=1e-7)
     step_model()
-    assert model.getReal([vr])[0] == pytest.approx(dt * 3, rel=1e-7)
+    assert model.getReal(vrs)[0] == pytest.approx(dt * 3, rel=1e-7)
 
     serialize_fmu_state = model.serializeFMUstate(state)
     model.freeFMUstate(state)
     de_serialize_fmu_state = model.deSerializeFMUstate(serialize_fmu_state)
     model.setFMUstate(de_serialize_fmu_state)
-    assert model.getReal([vr])[0] == pytest.approx(dt, rel=1e-7)
+    assert model.getReal(vrs)[0] == pytest.approx(dt, rel=1e-7)
 
     model.freeFMUstate(de_serialize_fmu_state)
     model.terminate()
