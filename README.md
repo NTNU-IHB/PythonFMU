@@ -17,19 +17,19 @@
 ```bash
 pip install pythonfmu
 ```
-2) Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module. 
+2) Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example). 
 3) Run `pythonfmu-builder` to create the fmu.
 
 ```
-usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-d DEST]
-                         [--doc DOCUMENTATION_FOLDER]
+usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-d DEST] [--doc DOCUMENTATION_FOLDER]
+                         [--no-external-tool] [--no-variable-step] [--interpolate-inputs] [--only-one-per-process]
+                         [--handle-state] [--serialize-state] [--use-memory-management]
                          [Project files [Project files ...]]
 
 Build a FMU from a Python script.
 
 positional arguments:
-  Project files         Additional project files required by the Python
-                        script.
+  Project files         Additional project files required by the Python script.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -38,6 +38,16 @@ optional arguments:
   -d DEST, --dest DEST  Where to save the FMU.
   --doc DOCUMENTATION_FOLDER
                         Documentation folder to include in the FMU.
+                        
+  --no-external-tool    If given, needsExecutionTool=false
+  --no-variable-step    If given, canHandleVariableCommunicationStepSize=false
+  --interpolate-inputs  If given, canInterpolateInputs=true
+  --only-one-per-process
+                        If given, canBeInstantiatedOnlyOncePerProcess=true
+  --handle-state        If given, canGetAndSetFMUstate=true
+  --serialize-state     If given, canSerializeFMUstate=true
+  --use-memory-management
+                        If given, canNotUseMemoryManagementFunctions=false
 ```
 
 ##### Example: 
