@@ -53,7 +53,8 @@ private:
     const std::string instanceName_;
     const std::string resources_;
 
-    inline void cleanPyObject() const{
+    inline void cleanPyObject() const
+    {
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
     }

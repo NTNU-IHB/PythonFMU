@@ -401,15 +401,6 @@ void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, f
     });
 }
 
-PySlaveInstance::~PySlaveInstance()
-{
-    py_safe_run([this](PyGILState_STATE gilState) {
-        cleanPyObject();
-    });
-}
-
-
-
 void PySlaveInstance::handle_py_exception(const std::string& what, PyGILState_STATE gilState) const
 {
     auto err = PyErr_Occurred();
@@ -441,6 +432,13 @@ void PySlaveInstance::handle_py_exception(const std::string& what, PyGILState_ST
         auto msg = oss.str();
         throw cppfmu::FatalError(msg.c_str());
     }
+}
+
+PySlaveInstance::~PySlaveInstance()
+{
+    py_safe_run([this](PyGILState_STATE gilState) {
+        cleanPyObject();
+    });
 }
 
 } // namespace pythonfmu
