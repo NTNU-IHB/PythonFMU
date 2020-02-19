@@ -315,8 +315,9 @@ void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t
         }
 
         for (int i = 0; i < nvr; i++) {
-            PyObject* value = PyList_GetItem(refs, i);
-            values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", nullptr));
+            PyObject* value = PyUnicode_AsEncodedString(PyList_GetItem(refs, i), "utf-8", nullptr);
+            values[i] = PyBytes_AsString(value);
+            Py_DECREF(value);
         }
         Py_DECREF(refs);
     });
