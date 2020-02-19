@@ -6,6 +6,8 @@
 
 #include <Python.h>
 #include <string>
+#include <vector>
+#include <memory>
 
 namespace pythonfmu
 {
@@ -52,6 +54,18 @@ private:
     const bool visible_;
     const std::string instanceName_;
     const std::string resources_;
+
+    mutable std::vector<PyObject*> strBuffer;
+
+    inline void clearStrBuffer() const {
+        if (!strBuffer.empty()) {
+            for (auto obj : strBuffer) {
+                Py_DECREF(obj);
+            }
+            strBuffer.clear();
+        }
+    }
+
 };
 
 } // namespace pythonfmu

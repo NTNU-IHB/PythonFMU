@@ -303,6 +303,8 @@ void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_
 
 void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* values) const
 {
+    clearStrBuffer();
+
     py_safe_run([this, &vr, nvr, &values] {
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
@@ -317,7 +319,7 @@ void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t
         for (int i = 0; i < nvr; i++) {
             PyObject* value = PyUnicode_AsEncodedString(PyList_GetItem(refs, i), "utf-8", nullptr);
             values[i] = PyBytes_AsString(value);
-            Py_DECREF(value);
+            strBuffer.emplace_back(value);
         }
         Py_DECREF(refs);
     });
@@ -405,6 +407,7 @@ void PySlaveInstance::DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, f
 
 PySlaveInstance::~PySlaveInstance()
 {
+    clearStrBuffer();
     py_safe_run([this] {
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
