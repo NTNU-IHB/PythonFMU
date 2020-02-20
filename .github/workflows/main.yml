@@ -116,16 +116,16 @@ jobs:
             ${{ runner.os }}-test-cache-conda-pkgs-
             ${{ runner.os }}-test-
 
-      - name: Cache conda packages for Windows
-        if: startsWith(runner.os, 'Windows')
-        uses: actions/cache@v1
-        with:
-          path: C:\Miniconda\pkgs
-          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
-            ${{ runner.os }}-test-cache-conda-pkgs-
-            ${{ runner.os }}-test-
+#      - name: Cache conda packages for Windows
+#        if: startsWith(runner.os, 'Windows')
+#        uses: actions/cache@v1
+#        with:
+#          path: C:\Miniconda\pkgs
+#          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+#            ${{ runner.os }}-test-cache-conda-pkgs-
+#            ${{ runner.os }}-test-
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: goanpeca/setup-miniconda@v1
