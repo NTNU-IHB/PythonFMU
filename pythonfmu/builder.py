@@ -13,6 +13,7 @@ from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 
+from ._version import __version__
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
 
 FilePath = Union[str, Path]
@@ -69,16 +70,15 @@ class ModelDescriptionFetcher:
 
 
 class FmuBuilder:
-
     FMI2SLAVE_FILENAME = HERE / "fmi2slave.py"
 
     @staticmethod
     def build_FMU(
-        script_file: FilePath,
-        dest: FilePath = ".",
-        project_files: Iterable[FilePath] = set(),
-        documentation_folder: Optional[FilePath] = None,
-        **options,
+            script_file: FilePath,
+            dest: FilePath = ".",
+            project_files: Iterable[FilePath] = set(),
+            documentation_folder: Optional[FilePath] = None,
+            **options,
     ):
         script_file = Path(script_file)
         if not script_file.exists():
@@ -155,7 +155,7 @@ class FmuBuilder:
                 sources = Path("sources")
                 src = HERE / "pythonfmu-export"
                 for f in itertools.chain(
-                    src.rglob("*.hpp"), src.rglob("*.cpp"), src.rglob("CMakeLists.txt")
+                        src.rglob("*.hpp"), src.rglob("*.cpp"), src.rglob("CMakeLists.txt")
                 ):
                     relative_f = f.relative_to(src)
                     SubElement(
@@ -167,15 +167,15 @@ class FmuBuilder:
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
                 for f in itertools.chain(
-                    src_binaries.rglob("*.dll"),
-                    src_binaries.rglob("*.so"),
-                    src_binaries.rglob("*.dylib"),
+                        src_binaries.rglob("*.dll"),
+                        src_binaries.rglob("*.so"),
+                        src_binaries.rglob("*.dylib"),
                 ):
                     relative_f = f.relative_to(src_binaries)
                     arcname = (
-                        binaries
-                        / relative_f.parent
-                        / f"{model_identifier}{relative_f.suffix}"
+                            binaries
+                            / relative_f.parent
+                            / f"{model_identifier}{relative_f.suffix}"
                     )
                     zip_fmu.write(f, arcname=arcname)
 
@@ -208,19 +208,20 @@ def main():
     )
 
     parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=__version__
+    )
+
+    parser.add_argument(
         "-f",
         "--file",
         dest="script_file",
         help="Path to the Python script.",
         required=True,
     )
-    # parser.add_argument(
-    #     "-c",
-    #     "--class",
-    #     dest="class_name",
-    #     help="Class name of the inter",
-    #     default=None,
-    # )
+
     parser.add_argument(
         "-d", "--dest", dest="dest", help="Where to save the FMU.", default="."
     )
