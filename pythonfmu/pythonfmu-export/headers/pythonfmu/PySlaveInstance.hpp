@@ -6,6 +6,7 @@
 
 #include <Python.h>
 #include <string>
+#include <vector>
 
 namespace pythonfmu
 {
@@ -53,13 +54,26 @@ private:
     const std::string instanceName_;
     const std::string resources_;
 
+    mutable std::vector<PyObject*> strBuffer;
+
+    void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const;
+
+    inline void clearStrBuffer() const {
+        if (!strBuffer.empty()) {
+            for (auto obj : strBuffer) {
+                Py_DECREF(obj);
+            }
+            strBuffer.clear();
+        }
+    }
+
     inline void cleanPyObject() const
     {
+        clearStrBuffer();
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
     }
 
-    void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const;
 };
 
 } // namespace pythonfmu

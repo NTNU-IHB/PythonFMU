@@ -303,6 +303,7 @@ void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_
 void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* values) const
 {
     py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
+        clearStrBuffer();
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
             PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -314,8 +315,9 @@ void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t
         }
 
         for (int i = 0; i < nvr; i++) {
-            PyObject* value = PyList_GetItem(refs, i);
-            values[i] = PyBytes_AsString(PyUnicode_AsEncodedString(value, "utf-8", nullptr));
+            PyObject* value = PyUnicode_AsEncodedString(PyList_GetItem(refs, i), "utf-8", nullptr);
+            values[i] = PyBytes_AsString(value);
+            strBuffer.emplace_back(value);
         }
         Py_DECREF(refs);
     });
@@ -415,7 +417,9 @@ void PySlaveInstance::handle_py_exception(const std::string& what, PyGILState_ST
         oss << what << "\n";
         if (pExcValue != nullptr) {
             PyObject* pRepr = PyObject_Repr(pExcValue);
-            oss << PyBytes_AsString(PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr));
+            PyObject* pyStr = PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr);
+            oss << PyBytes_AsString(pyStr);
+            Py_DECREF(pyStr);
             Py_DECREF(pRepr);
         } else {
             oss << "unknown error";
