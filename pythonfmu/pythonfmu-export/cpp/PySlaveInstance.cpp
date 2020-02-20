@@ -302,9 +302,8 @@ void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_
 
 void PySlaveInstance::GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* values) const
 {
-    clearStrBuffer();
-
     py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
+        clearStrBuffer();
         PyObject* vrs = PyList_New(nvr);
         for (int i = 0; i < nvr; i++) {
             PyList_SetItem(vrs, i, Py_BuildValue("i", vr[i]));
@@ -441,7 +440,6 @@ void PySlaveInstance::handle_py_exception(const std::string& what, PyGILState_ST
 
 PySlaveInstance::~PySlaveInstance()
 {
-    clearStrBuffer();
     py_safe_run([this](PyGILState_STATE gilState) {
         cleanPyObject();
     });

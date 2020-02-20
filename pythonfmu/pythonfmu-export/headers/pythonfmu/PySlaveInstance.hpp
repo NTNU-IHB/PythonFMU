@@ -69,6 +69,7 @@ private:
 
     inline void cleanPyObject() const
     {
+        clearStrBuffer();
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
     }
