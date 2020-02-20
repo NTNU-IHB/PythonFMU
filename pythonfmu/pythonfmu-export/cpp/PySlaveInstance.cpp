@@ -418,7 +418,9 @@ void PySlaveInstance::handle_py_exception(const std::string& what, PyGILState_ST
         oss << what << "\n";
         if (pExcValue != nullptr) {
             PyObject* pRepr = PyObject_Repr(pExcValue);
-            oss << PyBytes_AsString(PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr));
+            PyObject* pyStr = PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr);
+            oss << PyBytes_AsString(pyStr);
+            Py_DECREF(pyStr);
             Py_DECREF(pRepr);
         } else {
             oss << "unknown error";
