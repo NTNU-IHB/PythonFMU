@@ -74,11 +74,11 @@ class FmuBuilder:
 
     @staticmethod
     def build_FMU(
-            script_file: FilePath,
-            dest: FilePath = ".",
-            project_files: Iterable[FilePath] = set(),
-            documentation_folder: Optional[FilePath] = None,
-            **options,
+        script_file: FilePath,
+        dest: FilePath = ".",
+        project_files: Iterable[FilePath] = set(),
+        documentation_folder: Optional[FilePath] = None,
+        **options,
     ):
         script_file = Path(script_file)
         if not script_file.exists():
@@ -155,7 +155,7 @@ class FmuBuilder:
                 sources = Path("sources")
                 src = HERE / "pythonfmu-export"
                 for f in itertools.chain(
-                        src.rglob("*.hpp"), src.rglob("*.cpp"), src.rglob("CMakeLists.txt")
+                    src.rglob("*.hpp"), src.rglob("*.cpp"), src.rglob("CMakeLists.txt")
                 ):
                     relative_f = f.relative_to(src)
                     SubElement(
@@ -167,15 +167,15 @@ class FmuBuilder:
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
                 for f in itertools.chain(
-                        src_binaries.rglob("*.dll"),
-                        src_binaries.rglob("*.so"),
-                        src_binaries.rglob("*.dylib"),
+                    src_binaries.rglob("*.dll"),
+                    src_binaries.rglob("*.so"),
+                    src_binaries.rglob("*.dylib"),
                 ):
                     relative_f = f.relative_to(src_binaries)
                     arcname = (
-                            binaries
-                            / relative_f.parent
-                            / f"{model_identifier}{relative_f.suffix}"
+                        binaries
+                        / relative_f.parent
+                        / f"{model_identifier}{relative_f.suffix}"
                     )
                     zip_fmu.write(f, arcname=arcname)
 
