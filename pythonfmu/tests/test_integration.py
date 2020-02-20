@@ -296,3 +296,42 @@ def get_time_constant():
     assert res["realOut"][-1] == pytest.approx(
         22.0 * 5.0 * math.exp(res["time"][-1] / 0.1), rel=1e-7
     )
+
+
+@pytest.mark.integration
+def test_integration_throw_py_error(tmp_path):
+    fmpy = pytest.importorskip(
+        "fmpy", reason="fmpy is not available for testing the produced FMU"
+    )
+
+    slave_code = """from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Integer, Real, Boolean, String
+
+slave_class = "PythonSlaveWithException"
+
+
+class PythonSlaveWithException(Fmi2Slave):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.realIn = 22.0
+        self.realOut = 0.0
+        self.register_variable(Real("realIn", causality=Fmi2Causality.input))
+        self.register_variable(Real("realOut", causality=Fmi2Causality.output))
+
+    def do_step(self, current_time, step_size):
+        raise RuntimeError()
+        return True
+"""
+
+    script_file = tmp_path / "orig" / "slavewithexception.py"
+    script_file.parent.mkdir(parents=True, exist_ok=True)
+    script_file.write_text(slave_code)
+
+    FmuBuilder.build_FMU(script_file, dest=tmp_path)
+
+    fmu = tmp_path / "PythonSlaveWithException.fmu"
+    assert fmu.exists()
+
+    with pytest.raises(Exception):
+        fmpy.simulate_fmu(str(fmu), stop_time=1.0)
