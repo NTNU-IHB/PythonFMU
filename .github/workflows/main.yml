@@ -94,27 +94,27 @@ jobs:
         with:
           name: python-wheel
 
-      - name: Cache conda packages for Linux
-        if: startsWith(runner.os, 'Linux')
-        uses: actions/cache@v1
-        with:
-          path: /usr/share/miniconda/pkgs
-          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
-            ${{ runner.os }}-test-cache-conda-pkgs-
-            ${{ runner.os }}-test-
+#      - name: Cache conda packages for Linux
+#        if: startsWith(runner.os, 'Linux')
+#        uses: actions/cache@v1
+#        with:
+#          path: /usr/share/miniconda/pkgs
+#          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+#            ${{ runner.os }}-test-cache-conda-pkgs-
+#            ${{ runner.os }}-test-
 
-      - name: Cache conda packages for Mac OS
-        if: startsWith(runner.os, 'macOS')
-        uses: actions/cache@v1
-        with:
-          path: /usr/share/miniconda/pkgs
-          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
-            ${{ runner.os }}-test-cache-conda-pkgs-
-            ${{ runner.os }}-test-
+#      - name: Cache conda packages for Mac OS
+#        if: startsWith(runner.os, 'macOS')
+#        uses: actions/cache@v1
+#        with:
+#          path: /usr/share/miniconda/pkgs
+#          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
+#          restore-keys: |
+#            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
+#            ${{ runner.os }}-test-cache-conda-pkgs-
+#            ${{ runner.os }}-test-
 
 #      - name: Cache conda packages for Windows
 #        if: startsWith(runner.os, 'Windows')
