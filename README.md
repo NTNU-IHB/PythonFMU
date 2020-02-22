@@ -86,11 +86,11 @@ class PythonSlave(Fmi2Slave):
 ###### Create the FMU 
 
 ```
-pythonfmu-builder -f pythonslave.py pythonfmu
+pythonfmu-builder -f pythonslave.py myproject
 ```
 
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`,
-where `pythonfmu` is an optional folder containing additional project files required by the python script. 
+where `myproject` is an optional folder containing additional project files required by the python script. 
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
 
 ### Test it online
@@ -99,13 +99,14 @@ Project folders such as this will be recursively copied into the FMU. Multiple p
 
 ### Note
 
-PythonFMU does not bundle Python, which makes it a tool coupling solution. This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). But to ease its usage the wrapper is compile using
-the limited Python API. So the provided binary libraries for Linux and Windows 64-bits should
-be compatible with any Python 3 environment. If you need to compile the wrapper for a specific configuration,
+PythonFMU does not bundle Python, which makes it a tool coupling solution. 
+This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). 
+But to ease its usage the wrapper uses the limited Python API, making the pre-built binaries for Linux and Windows 64-bits
+compatible with any Python 3 environment. If you need to compile the wrapper for a specific configuration,
 you will need CMake and a C++ compiler. The commands for building the wrapper on Linux and on Windows can be seen in 
 the [GitHub workflow](./.github/workflows/main.yml).
 
-PythonFMU does not automatically resolve 3rd party dependencies either. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
+PythonFMU does not automatically resolve 3rd party dependencies. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
 ***
 
