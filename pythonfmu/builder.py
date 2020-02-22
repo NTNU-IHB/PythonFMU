@@ -2,6 +2,7 @@
 import argparse
 import importlib
 import itertools
+import glob
 import logging
 import platform
 import shutil
@@ -100,10 +101,15 @@ class FmuBuilder:
 
         script_parent = script_file.resolve().parent.absolute()
         module_name = script_file.stem
+        deps = glob.glob(str(HERE) + "/*.py")
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
             shutil.copy2(script_file, temp_dir)
+            dep_folder = temp_dir / "pythonfmu"
+            dep_folder.mkdir()
+            for dep in deps:
+                shutil.copy2(dep, dep_folder)
             for file_ in project_files:
                 if file_ == script_file.parent:
                     new_folder = temp_dir / file_.name
