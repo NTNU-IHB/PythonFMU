@@ -4,6 +4,7 @@ import importlib
 import itertools
 import logging
 import platform
+import re
 import shutil
 import sys
 import tempfile
@@ -36,6 +37,12 @@ def get_lib_extension() -> str:
     return platforms.get(platform.system(), "")
 
 
+def get_class_name(file_name: Path) -> str:
+    with open(str(file_name), 'r') as file:
+        data = file.read()
+        return re.search('class (.*)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
+
+
 class ModelDescriptionFetcher:
     @staticmethod
     def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
@@ -56,7 +63,7 @@ class ModelDescriptionFetcher:
             fmu_interface = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(fmu_interface)
             # Instantiate the interface
-            class_name = getattr(fmu_interface, "slave_class")
+            class_name = get_class_name(filepath)
             instance = getattr(fmu_interface, class_name)(instance_name="dummyInstance")
         finally:
             sys.path.remove(str(filepath.parent))  # remove inserted temporary path

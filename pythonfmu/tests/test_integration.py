@@ -249,8 +249,6 @@ def test_integration_has_local_dep(tmp_path):
 from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Integer, Real, Boolean, String
 from localmodule import get_amplitude, get_time_constant
 
-slave_class = "PythonSlaveWithDep"
-
 
 class PythonSlaveWithDep(Fmi2Slave):
 
@@ -305,8 +303,6 @@ def test_integration_throw_py_error(tmp_path):
     )
 
     slave_code = """from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Integer, Real, Boolean, String
-
-slave_class = "PythonSlaveWithException"
 
 
 class PythonSlaveWithException(Fmi2Slave):
