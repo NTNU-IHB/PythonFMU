@@ -58,8 +58,6 @@ optional arguments:
 
 from pythonfmu import Fmi2Causality, Fmi2Slave, Boolean, Integer, Real, String
 
-slave_class = "PythonSlave"  # REQUIRED - Name of the class extending Fmi2Slave
-
 
 class PythonSlave(Fmi2Slave):
 
