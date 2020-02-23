@@ -1,7 +1,5 @@
 from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Fmi2Variability, Integer, Real, Boolean, String
 
-slave_class = "PythonSlave"  # REQUIRED - Name of the class extending Fmi2Slave
-
 
 class PythonSlave(Fmi2Slave):
 

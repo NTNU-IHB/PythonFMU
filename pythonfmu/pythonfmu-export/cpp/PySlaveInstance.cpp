@@ -7,18 +7,34 @@
 
 #include <fstream>
 #include <functional>
+#include <regex>
 #include <sstream>
 #include <utility>
 
 namespace pythonfmu
 {
 
-inline std::string getLine(const std::string& fileName)
+inline std::string getline(const std::string& fileName)
 {
     std::string line;
     std::ifstream infile(fileName);
     std::getline(infile, line);
     return line;
+}
+
+inline std::string findClassName(const std::string& fileName)
+{
+    std::string line;
+    std::ifstream infile(fileName);
+    std::string regexStr(R"(^class (\w+)\(\s*Fmi2Slave\s*\)\s*:)");
+    while (getline(infile, line)) {
+        std::smatch m;
+        std::regex re(regexStr);
+        if (std::regex_search(line, m, re)) {
+            return m[1];
+        }
+    }
+    return "";
 }
 
 inline void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
@@ -51,22 +67,28 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
             handle_py_exception("[ctor] PyList_Insert", gilState);
         }
 
-        std::string moduleName = getLine(resources_ + "/slavemodule.txt");
+        std::string moduleName = getline(resources_ + "/slavemodule.txt");
         PyObject* pModule = PyImport_ImportModule(moduleName.c_str());
         if (pModule == nullptr) {
             handle_py_exception("[ctor] PyImport_ImportModule", gilState);
         }
 
-        PyObject* className = PyObject_GetAttrString(pModule, "slave_class");
-        if (className == nullptr) {
-            handle_py_exception("[initialize] PyObject_GetAttrString", gilState);
+        std::string className = findClassName(resources_ + "/" + moduleName + ".py");
+        if (className.empty()) {
+            cleanPyObject();
+            throw cppfmu::FatalError("Unable to find class extending Fmi2Slave!");
         }
 
-        pClass_ = PyObject_GetAttr(pModule, className);
-        Py_DECREF(className);
+        PyObject* pyClassName = Py_BuildValue("s", className.c_str());
+        if (pyClassName == nullptr) {
+            handle_py_exception("[ctor] Py_BuildValue", gilState);
+        }
+
+        pClass_ = PyObject_GetAttr(pModule, pyClassName);
+        Py_DECREF(pyClassName);
         Py_DECREF(pModule);
         if (pClass_ == nullptr) {
-            handle_py_exception("[initialize] PyObject_GetAttr", gilState);
+            handle_py_exception("[ctor] PyObject_GetAttr", gilState);
         }
 
         initialize(gilState);
