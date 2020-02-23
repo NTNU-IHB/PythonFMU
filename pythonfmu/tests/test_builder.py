@@ -41,14 +41,14 @@ def test_zip_content(tmp_path):
         module_file = "/".join(("resources", "slavemodule.txt"))
         assert module_file in names
 
-        nfiles = 13
+        nfiles = 20
         if FmuBuilder.has_binary():
             assert (
                 "/".join(("binaries", get_platform(), f"PythonSlave.{lib_extension}"))
                 in names
             )
         else:
-            nfiles = 12
+            nfiles -= 1
 
         # Check sources
         src_folder = Path(pythonfmu.__path__[0]) / "pythonfmu-export"
@@ -58,6 +58,13 @@ def test_zip_content(tmp_path):
             src_folder.rglob("CMakeLists.txt"),
         ):
             assert "/".join(("sources", f.relative_to(src_folder).as_posix())) in names
+
+        # Check pythonfmu is embedded
+        pkg_folder = Path(pythonfmu.__path__[0])
+        for f in pkg_folder.rglob("*.py"):
+            relative_f = f.relative_to(pkg_folder).as_posix()
+            if "test" not in relative_f:
+                assert "/".join(("resources", "pythonfmu", relative_f)) in names
 
         assert len(names) >= nfiles  # Library + python script + XML + module name + sources
 

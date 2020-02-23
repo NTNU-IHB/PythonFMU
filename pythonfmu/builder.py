@@ -111,6 +111,11 @@ class FmuBuilder:
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
             shutil.copy2(script_file, temp_dir)
+            # Embed pythonfmu in the FMU so it does not need to be included
+            dep_folder = temp_dir / "pythonfmu"
+            dep_folder.mkdir()
+            for dep in HERE.glob('*.py'):  # Find all python files at the same level as this one
+                shutil.copy2(dep, dep_folder)
             for file_ in project_files:
                 if file_ == script_file.parent:
                     new_folder = temp_dir / file_.name
