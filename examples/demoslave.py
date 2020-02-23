@@ -1,7 +1,5 @@
 from pythonfmu import Fmi2Causality, Fmi2Variability, Fmi2Slave, Real
 
-slave_class = "Resistor"  # REQUIRED - Name of the class extending Fmi2Slave
-
 
 class Resistor(Fmi2Slave):
 
