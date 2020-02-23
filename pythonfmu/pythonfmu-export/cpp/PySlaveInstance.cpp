@@ -26,7 +26,7 @@ inline std::string findClassName(const std::string& fileName)
 {
     std::string line;
     std::ifstream infile(fileName);
-    std::string regexStr(R"(class (.*)\(\s*Fmi2Slave\s*\)\s*:)");
+    std::string regexStr(R"(^class (\w+)\(\s*Fmi2Slave\s*\)\s*:)");
     while (getline(infile, line)) {
         std::smatch m;
         std::regex re(regexStr);
