@@ -40,7 +40,7 @@ def get_lib_extension() -> str:
 def get_class_name(file_name: Path) -> str:
     with open(str(file_name), 'r') as file:
         data = file.read()
-        return re.search('class (.*)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
+        return re.search('class (\w+)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
 
 
 class ModelDescriptionFetcher:
