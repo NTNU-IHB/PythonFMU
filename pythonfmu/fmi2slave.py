@@ -158,7 +158,7 @@ class Fmi2Slave(ABC):
         
         Args:
             name (str): Name of the variable
-            owner: The instance that owns the variable (defaults to self)
+            owner (Any): The instance that owns the variable (defaults to self)
 
         Returns:
             (Any) Value of the variable
