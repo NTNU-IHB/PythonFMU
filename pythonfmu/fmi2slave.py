@@ -277,7 +277,8 @@ class Fmi2Slave(ABC):
     def _set_fmu_state(self, state: Dict[str, Any]):
         for name, value in state.items():
             owner = self.__get_owner(name)
-            self.set_value(name, value, owner)
+            local_name = name.split(".")[-1]
+            self.set_value(local_name, value, owner)
 
     @staticmethod
     def _fmu_state_to_bytes(state: Dict[str, Any]) -> bytes:
