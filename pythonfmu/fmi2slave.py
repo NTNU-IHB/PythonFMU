@@ -152,7 +152,19 @@ class Fmi2Slave(ABC):
         Returns:
             (Any) Value of the variable
         """
-        return getattr(self, name)
+
+        def get_obj_value(obj: Any, name: str) -> Any:
+            try:
+                return getattr(obj, name)
+            except AttributeError as e:
+                if "." in name:
+                    parent, child = name.split(".", maxsplit=1)
+                    parent_obj = getattr(obj, parent)
+                    return get_obj_value(parent_obj, child)
+                else:
+                    raise e
+
+        return get_obj_value(self, name)
 
     def set_value(self, name: str, value: Any):
         """Generic variable setter.
@@ -161,7 +173,19 @@ class Fmi2Slave(ABC):
             name (str): Name of the variable
             value (Any): Value of the variable
         """
-        setattr(self, name, value)
+
+        def set_obj_value(obj: Any, name: str, value: Any):
+            try:
+                setattr(obj, name, value)
+            except AttributeError as e:
+                if "." in name:
+                    parent, child = name.split(".", maxsplit=1)
+                    parent_obj = getattr(obj, parent)
+                    return set_obj_value(parent_obj, child, value)
+                else:
+                    raise e
+
+        return set_obj_value(self, name, value)
 
     def get_integer(self, vrs: List[int]) -> List[int]:
         refs = list()
