@@ -177,7 +177,6 @@ class Fmi2Slave(ABC):
         """
         if owner is None:
             owner = self
-        print(f"{onwer}.{name}")
         setattr(owner, name, value)
 
     def get_integer(self, vrs: List[int]) -> List[int]:
