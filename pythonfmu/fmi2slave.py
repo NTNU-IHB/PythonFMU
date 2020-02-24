@@ -87,20 +87,20 @@ class Fmi2Slave(ABC):
         SubElement(root, "CoSimulation", attrib=options)
 
         variables = SubElement(root, "ModelVariables")
-        for v in self.vars.values():
+        for owner, v in self.vars.values():
             if ScalarVariable.requires_start(v):
                 self.__apply_start_value(v)
             variables.append(v.to_xml())
 
         structure = SubElement(root, "ModelStructure")
         outputs = list(
-            filter(lambda v: v.causality == Fmi2Causality.output, self.vars.values())
+            filter(lambda v: v[1].causality == Fmi2Causality.output, self.vars.values())
         )
 
         if outputs:
             outputs_node = SubElement(structure, "Outputs")
             for i, v in enumerate(self.vars.values()):
-                if v.causality == Fmi2Causality.output:
+                if v[1].causality == Fmi2Causality.output:
                     SubElement(outputs_node, "Unknown", attrib=dict(index=str(i + 1)))
 
         return root
@@ -121,9 +121,19 @@ class Fmi2Slave(ABC):
 
         var.start = refs[0]
 
+    def __get_owner(self, name) -> Any:
+        owner = self
+        if "." in name:
+            split = name.split(".")
+            split.pop(-1)
+            for s in split:
+                owner = getattr(owner, s)
+        return owner
+
     def register_variable(self, var: ScalarVariable):
+        owner = self.__get_owner(var.name)
         variable_reference = len(self.vars)
-        self.vars[variable_reference] = var
+        self.vars[variable_reference] = (owner, var)
         # Set the unique value reference
         var.value_reference = variable_reference
 
@@ -143,32 +153,39 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
-    def get_value(self, name: str) -> Any:
+    def get_value(self, name: str, owner: Any = None) -> Any:
         """Generic variable getter.
         
         Args:
             name (str): Name of the variable
+            owner: The instance that owns the variable (defaults to self)
 
         Returns:
             (Any) Value of the variable
         """
-        return getattr(self, name)
+        if owner is None:
+            owner = self
+        return getattr(owner, name)
 
-    def set_value(self, name: str, value: Any):
+    def set_value(self, name: str, value: Any, owner: Any = None):
         """Generic variable setter.
         
         Args:
             name (str): Name of the variable
             value (Any): Value of the variable
+            owner (Any): The instance that owns the variable (defaults to self)
         """
-        setattr(self, name, value)
+        if owner is None:
+            owner = self
+        print(f"{onwer}.{name}")
+        setattr(owner, name, value)
 
     def get_integer(self, vrs: List[int]) -> List[int]:
         refs = list()
         for vr in vrs:
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, Integer):
-                refs.append(int(self.get_value(var.name)))
+                refs.append(int(self.get_value(var.name, owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
@@ -178,9 +195,9 @@ class Fmi2Slave(ABC):
     def get_real(self, vrs: List[int]) -> List[float]:
         refs = list()
         for vr in vrs:
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, Real):
-                refs.append(float(self.get_value(var.name)))
+                refs.append(float(self.get_value(var.local_name, owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Real!"
@@ -190,9 +207,9 @@ class Fmi2Slave(ABC):
     def get_boolean(self, vrs: List[int]) -> List[bool]:
         refs = list()
         for vr in vrs:
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, Boolean):
-                refs.append(bool(self.get_value(var.name)))
+                refs.append(bool(self.get_value(var.local_name, owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Boolean!"
@@ -202,9 +219,9 @@ class Fmi2Slave(ABC):
     def get_string(self, vrs: List[int]) -> List[str]:
         refs = list()
         for vr in vrs:
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, String):
-                refs.append(str(self.get_value(var.name)))
+                refs.append(str(self.get_value(var.local_name, owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type String!"
@@ -213,9 +230,9 @@ class Fmi2Slave(ABC):
 
     def set_integer(self, vrs: List[int], values: List[int]):
         for vr, value in zip(vrs, values):
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, Integer):
-                self.set_value(var.name, value)
+                self.set_value(var.local_name, value, owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
@@ -223,9 +240,9 @@ class Fmi2Slave(ABC):
 
     def set_real(self, vrs: List[int], values: List[float]):
         for vr, value in zip(vrs, values):
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, Real):
-                self.set_value(var.name, value)
+                self.set_value(var.local_name, value, owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Real!"
@@ -233,9 +250,9 @@ class Fmi2Slave(ABC):
 
     def set_boolean(self, vrs: List[int], values: List[bool]):
         for vr, value in zip(vrs, values):
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, Boolean):
-                self.set_value(var.name, value)
+                self.set_value(var.local_name, value, owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Boolean!"
@@ -243,9 +260,9 @@ class Fmi2Slave(ABC):
 
     def set_string(self, vrs: List[int], values: List[str]):
         for vr, value in zip(vrs, values):
-            var = self.vars[vr]
+            (owner, var) = self.vars[vr]
             if isinstance(var, String):
-                self.set_value(var.name, value)
+                self.set_value(var.local_name, value, owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type String!"
@@ -253,13 +270,14 @@ class Fmi2Slave(ABC):
 
     def _get_fmu_state(self) -> Dict[str, Any]:
         state = dict()
-        for var in self.vars.values():
-            state[var.name] = self.get_value(var.name)
+        for (owner, var) in self.vars.values():
+            state[var.name] = self.get_value(var.local_name, owner)
         return state
 
     def _set_fmu_state(self, state: Dict[str, Any]):
         for name, value in state.items():
-            self.set_value(name, value)
+            owner = self.__get_owner(name)
+            self.set_value(name, value, owner)
 
     @staticmethod
     def _fmu_state_to_bytes(state: Dict[str, Any]) -> bytes:

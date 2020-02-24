@@ -16,6 +16,7 @@ class ScalarVariable(ABC):
         initial: Optional[Fmi2Initial] = None,
         variability: Optional[Fmi2Variability] = None,
     ):
+        self.local_name = name.split(".")[-1]
         self.__attrs = {
             "name": name,
             "valueReference": None,
