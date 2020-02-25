@@ -168,7 +168,9 @@ def test_integration_get(tmp_path):
         "stringVariable": "Hello World!",
         "realIn": 2. / 3.,
         "booleanParameter": False,
-        "stringParameter": "dog"
+        "stringParameter": "dog",
+        "container.someReal": 99.0,
+        "container.subContainer.someInteger": -15
     }
 
     variables = model.get_model_variables()
