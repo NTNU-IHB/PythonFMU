@@ -153,31 +153,25 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
-    def get_value(self, var: Any) -> Any:
+    def get_value(self, var: ScalarVariable) -> Any:
         """Generic variable getter.
         
         Args:
-            var (ScalarVariable | str): A variable or name of the variable
+            var (ScalarVariable): The variable
 
         Returns:
             (Any) Value of the variable
         """
-        if isinstance(var, ScalarVariable):
-            return getattr(var.owner, var.local_name)
-        else:
-            return getattr(self, var)
+        return getattr(var.owner, var.local_name)
 
-    def set_value(self, var: Any, value: Any):
+    def set_value(self, var: ScalarVariable, value: Any):
         """Generic variable setter.
         
         Args:
-            var (ScalarVariable | str): A variable or name of the variable
+            var (ScalarVariable): The variable
             value (Any): Value of the variable
         """
-        if isinstance(var, ScalarVariable):
-            setattr(var.owner, var.local_name, value)
-        else:
-            setattr(self, var, value)
+        setattr(var.owner, var.local_name, value)
 
     def get_integer(self, vrs: List[int]) -> List[int]:
         refs = list()
@@ -279,7 +273,7 @@ class Fmi2Slave(ABC):
                 filter(lambda v: v.name == name, self.vars.values())
             )
             if not var_list:
-                self.set_value(name, value)
+                setattr(self, name, value)
             else:
                 self.set_value(var_list[0], value)
 
