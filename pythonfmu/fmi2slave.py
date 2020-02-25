@@ -184,7 +184,7 @@ class Fmi2Slave(ABC):
         for vr in vrs:
             (owner, var) = self.vars[vr]
             if isinstance(var, Integer):
-                refs.append(int(self.get_value(var.name, owner)))
+                refs.append(int(self.get_value(var.local_name, owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
