@@ -18,9 +18,8 @@ class ScalarVariable(ABC):
         getter: Any = None,
         setter: Any = None
     ):
-        self.owner = None
-        self.getter = None
-        self.setter = None
+        self.getter = getter
+        self.setter = setter
         self.local_name = name.split(".")[-1]
         self.__attrs = {
             "name": name,
