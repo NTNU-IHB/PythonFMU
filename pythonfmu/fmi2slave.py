@@ -153,12 +153,11 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
-    def get_value(self, var) -> Any:
+    def get_value(self, var: Any) -> Any:
         """Generic variable getter.
         
         Args:
             var (ScalarVariable | str): A variable or name of the variable
-            owner (Any): The instance that owns the variable (defaults to self)
 
         Returns:
             (Any) Value of the variable
@@ -174,7 +173,6 @@ class Fmi2Slave(ABC):
         Args:
             var (ScalarVariable | str): A variable or name of the variable
             value (Any): Value of the variable
-            owner (Any): The instance that owns the variable (defaults to self)
         """
         if isinstance(var, ScalarVariable):
             setattr(var.owner, var.local_name, value)
