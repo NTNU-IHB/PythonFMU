@@ -121,25 +121,22 @@ class Fmi2Slave(ABC):
 
         var.start = refs[0]
 
-    def __get_owner(self, name) -> Any:
-        owner = self
-        if "." in name:
-            split = name.split(".")
-            split.pop(-1)
-            for s in split:
-                owner = getattr(owner, s)
-        return owner
-
     def register_variable(self, var: ScalarVariable):
-        var.owner = self.__get_owner(var.name)
         variable_reference = len(self.vars)
         self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
-        if var.getter is None:
-            var.getter = lambda: getattr(var.owner, var.local_name)
-        if var.setter is None and ScalarVariable.setter_required(var):
-            var.setter = lambda v: setattr(var.owner, var.local_name, v)
+        if var.getter is None or var.setter is None and ScalarVariable.setter_required(var):
+            owner = self
+            if "." in var.name:
+                split = var.name.split(".")
+                split.pop(-1)
+                for s in split:
+                    owner = getattr(owner, s)
+            if var.getter is None:
+                var.getter = lambda: getattr(owner, var.local_name)
+            if var.setter is None and ScalarVariable.setter_required(var):
+                var.setter = lambda v: setattr(owner, var.local_name, v)
 
     def setup_experiment(self, start_time: float):
         pass
