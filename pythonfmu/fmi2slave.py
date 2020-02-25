@@ -87,20 +87,20 @@ class Fmi2Slave(ABC):
         SubElement(root, "CoSimulation", attrib=options)
 
         variables = SubElement(root, "ModelVariables")
-        for owner, v in self.vars.values():
+        for v in self.vars.values():
             if ScalarVariable.requires_start(v):
                 self.__apply_start_value(v)
             variables.append(v.to_xml())
 
         structure = SubElement(root, "ModelStructure")
         outputs = list(
-            filter(lambda v: v[1].causality == Fmi2Causality.output, self.vars.values())
+            filter(lambda v: v.causality == Fmi2Causality.output, self.vars.values())
         )
 
         if outputs:
             outputs_node = SubElement(structure, "Outputs")
             for i, v in enumerate(self.vars.values()):
-                if v[1].causality == Fmi2Causality.output:
+                if v.causality == Fmi2Causality.output:
                     SubElement(outputs_node, "Unknown", attrib=dict(index=str(i + 1)))
 
         return root
@@ -131,9 +131,9 @@ class Fmi2Slave(ABC):
         return owner
 
     def register_variable(self, var: ScalarVariable):
-        owner = self.__get_owner(var.name)
+        var.owner = self.__get_owner(var.name)
         variable_reference = len(self.vars)
-        self.vars[variable_reference] = (owner, var)
+        self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
 
@@ -182,9 +182,9 @@ class Fmi2Slave(ABC):
     def get_integer(self, vrs: List[int]) -> List[int]:
         refs = list()
         for vr in vrs:
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, Integer):
-                refs.append(int(self.get_value(var.local_name, owner)))
+                refs.append(int(self.get_value(var.local_name, var.owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
@@ -194,9 +194,9 @@ class Fmi2Slave(ABC):
     def get_real(self, vrs: List[int]) -> List[float]:
         refs = list()
         for vr in vrs:
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, Real):
-                refs.append(float(self.get_value(var.local_name, owner)))
+                refs.append(float(self.get_value(var.local_name, var.owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Real!"
@@ -206,9 +206,9 @@ class Fmi2Slave(ABC):
     def get_boolean(self, vrs: List[int]) -> List[bool]:
         refs = list()
         for vr in vrs:
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, Boolean):
-                refs.append(bool(self.get_value(var.local_name, owner)))
+                refs.append(bool(self.get_value(var.local_name, var.owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Boolean!"
@@ -218,9 +218,9 @@ class Fmi2Slave(ABC):
     def get_string(self, vrs: List[int]) -> List[str]:
         refs = list()
         for vr in vrs:
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, String):
-                refs.append(str(self.get_value(var.local_name, owner)))
+                refs.append(str(self.get_value(var.local_name, var.owner)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type String!"
@@ -229,9 +229,9 @@ class Fmi2Slave(ABC):
 
     def set_integer(self, vrs: List[int], values: List[int]):
         for vr, value in zip(vrs, values):
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, Integer):
-                self.set_value(var.local_name, value, owner)
+                self.set_value(var.local_name, value, var.owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
@@ -239,9 +239,9 @@ class Fmi2Slave(ABC):
 
     def set_real(self, vrs: List[int], values: List[float]):
         for vr, value in zip(vrs, values):
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, Real):
-                self.set_value(var.local_name, value, owner)
+                self.set_value(var.local_name, value, var.owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Real!"
@@ -249,9 +249,9 @@ class Fmi2Slave(ABC):
 
     def set_boolean(self, vrs: List[int], values: List[bool]):
         for vr, value in zip(vrs, values):
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, Boolean):
-                self.set_value(var.local_name, value, owner)
+                self.set_value(var.local_name, value, var.owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Boolean!"
@@ -259,9 +259,9 @@ class Fmi2Slave(ABC):
 
     def set_string(self, vrs: List[int], values: List[str]):
         for vr, value in zip(vrs, values):
-            (owner, var) = self.vars[vr]
+            var = self.vars[vr]
             if isinstance(var, String):
-                self.set_value(var.local_name, value, owner)
+                self.set_value(var.local_name, value, var.owner)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type String!"
@@ -269,8 +269,8 @@ class Fmi2Slave(ABC):
 
     def _get_fmu_state(self) -> Dict[str, Any]:
         state = dict()
-        for (owner, var) in self.vars.values():
-            state[var.name] = self.get_value(var.local_name, owner)
+        for var in self.vars.values():
+            state[var.name] = self.get_value(var.local_name, var.owner)
         return state
 
     def _set_fmu_state(self, state: Dict[str, Any]):
