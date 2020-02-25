@@ -15,8 +15,12 @@ class ScalarVariable(ABC):
         description: Optional[str] = None,
         initial: Optional[Fmi2Initial] = None,
         variability: Optional[Fmi2Variability] = None,
+        getter: Any = None,
+        setter: Any = None
     ):
         self.owner = None
+        self.getter = None
+        self.setter = None
         self.local_name = name.split(".")[-1]
         self.__attrs = {
             "name": name,
@@ -59,13 +63,21 @@ class ScalarVariable(ABC):
         return self.__attrs["variability"]
 
     @staticmethod
-    def requires_start(v) -> bool:
+    def requires_start(v: 'ScalarVariable') -> bool:
         return (
             v.initial == Fmi2Initial.exact
             or v.initial == Fmi2Initial.approx
             or v.causality == Fmi2Causality.input
             or v.causality == Fmi2Causality.parameter
             or v.variability == Fmi2Variability.constant
+        )
+
+    @staticmethod
+    def setter_required(v: 'ScalarVariable') -> bool:
+        return (
+            v.causality != Fmi2Causality.output
+            or v.causality != Fmi2Causality.calculatedParameter
+            or v.variability != Fmi2Variability.constant
         )
 
     def to_xml(self) -> Element:
