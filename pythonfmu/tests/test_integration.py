@@ -6,8 +6,7 @@ import pytest
 from pythonfmu.builder import FmuBuilder
 
 pytestmark = pytest.mark.skipif(
-    not FmuBuilder.has_binary(), 
-    reason="No binary available for the current platform."
+    not FmuBuilder.has_binary(), reason="No binary available for the current platform."
 )
 pyfmi = pytest.importorskip(
     "pyfmi", reason="pyfmi is required for testing the produced FMU"
@@ -115,7 +114,9 @@ def test_integration_get_serialize_state(tmp_path):
         modelIdentifier=model_description.coSimulation.modelIdentifier,
         instanceName='instance1')
 
-    realOut = filter(lambda var: var.name == "realOut", model_description.modelVariables)
+    realOut = filter(
+        lambda var: var.name == "realOut", model_description.modelVariables
+    )
     vrs = list(map(lambda var: var.valueReference, realOut))
     t = 0.0
     dt = 0.1
@@ -166,22 +167,24 @@ def test_integration_get(tmp_path):
         "realOut": 3.0,
         "booleanVariable": True,
         "stringVariable": "Hello World!",
-        "realIn": 2. / 3.,
+        "realIn": 2.0 / 3.0,
         "booleanParameter": False,
-        "stringParameter": "dog"
+        "stringParameter": "dog",
+        "container.someReal": 99.0,
+        "container.subContainer.someInteger": -15
     }
 
     variables = model.get_model_variables()
     for key, value in to_test.items():
         var = variables[key]
         if var.type == pyfmi.fmi.FMI2_INTEGER:
-            model_value = model.get_integer([var.value_reference, ])[0]
+            model_value = model.get_integer([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_REAL:
-            model_value = model.get_real([var.value_reference, ])[0]
+            model_value = model.get_real([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
-            model_value = model.get_boolean([var.value_reference, ])[0]
+            model_value = model.get_boolean([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_STRING:
-            model_value = model.get_string([var.value_reference, ])[0]
+            model_value = model.get_string([var.value_reference])[0]
         else:
             pytest.xfail("Unsupported type")
 
@@ -200,26 +203,28 @@ def test_integration_set(tmp_path):
 
     to_test = {
         "intParam": 20,
-        "realIn": 1. / 3.,
+        "realIn": 1.0 / 3.0,
         "booleanParameter": True,
-        "stringParameter": "cat"
+        "stringParameter": "cat",
+        "container.someReal": 42.0,
+        "container.subContainer.someInteger": 421
     }
 
     variables = model.get_model_variables()
     for key, value in to_test.items():
         var = variables[key]
         if var.type == pyfmi.fmi.FMI2_INTEGER:
-            model.set_integer([var.value_reference, ], [value, ])
-            model_value = model.get_integer([var.value_reference, ])[0]
+            model.set_integer([var.value_reference], [value, ])
+            model_value = model.get_integer([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_REAL:
-            model.set_real([var.value_reference, ], [value, ])
-            model_value = model.get_real([var.value_reference, ])[0]
+            model.set_real([var.value_reference], [value, ])
+            model_value = model.get_real([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
-            model.set_boolean([var.value_reference, ], [value, ])
-            model_value = model.get_boolean([var.value_reference, ])[0]
+            model.set_boolean([var.value_reference], [value, ])
+            model_value = model.get_boolean([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_STRING:
-            model.set_string([var.value_reference, ], [value, ])
-            model_value = model.get_string([var.value_reference, ])[0]
+            model.set_string([var.value_reference], [value, ])
+            model_value = model.get_string([var.value_reference])[0]
         else:
             pytest.xfail("Unsupported type")
 
