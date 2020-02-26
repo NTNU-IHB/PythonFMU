@@ -249,14 +249,12 @@ class Fmi2Slave(ABC):
         return state
 
     def _set_fmu_state(self, state: Dict[str, Any]):
+        vars_by_name = dict([(v.name, v) for v in self.vars.values()])
         for name, value in state.items():
-            var_list = list(
-                filter(lambda v: v.name == name, self.vars.values())
-            )
-            if not var_list:
+            if name not in vars_by_name:
                 setattr(self, name, value)
             else:
-                var_list[0].setter(value)
+                vars_by_name[name].setter(value)
 
     @staticmethod
     def _fmu_state_to_bytes(state: Dict[str, Any]) -> bytes:
