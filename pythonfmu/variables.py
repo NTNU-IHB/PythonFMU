@@ -8,6 +8,21 @@ from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 
 
 class ScalarVariable(ABC):
+    """Abstract FMI scalar variable definition.
+    
+    Args:
+        name (str): Variable name
+        causality (:obj:`Fmi2Causality`, optional): Variable causality
+        description (str, optional): Variable description
+        initial (:obj:`Fmi2Initial`, optional): Variable initial status
+        variability (:obj:`Fmi2Variability`, optional): Variable variability
+        owner (:obj:`object`, optional): Object owning the variable as attribute
+        reference (str, optional): Name of the attribute referencing the variable in owner
+
+    Attributes:
+        owner (:obj:`object` or None): Object owning the variable as attribute
+        reference (str or None): Name of the attribute referencing the variable in owner
+    """
     def __init__(
         self,
         name: str,
@@ -15,12 +30,11 @@ class ScalarVariable(ABC):
         description: Optional[str] = None,
         initial: Optional[Fmi2Initial] = None,
         variability: Optional[Fmi2Variability] = None,
-        getter: Any = None,
-        setter: Any = None
+        owner: Optional[object] = None,
+        reference: Optional[str] = None,
     ):
-        self.getter = getter
-        self.setter = setter
-        self.local_name = name.split(".")[-1]
+        self.owner = owner
+        self.reference = reference
         self.__attrs = {
             "name": name,
             "valueReference": None,
@@ -33,22 +47,27 @@ class ScalarVariable(ABC):
 
     @property
     def causality(self) -> Optional[Fmi2Causality]:
+        """:obj:`Fmi2Causality` or None: Variable causality - None if not set"""
         return self.__attrs["causality"]
 
     @property
     def description(self) -> Optional[str]:
+        """str or None: Variable description - None if not set"""
         return self.__attrs["description"]
 
     @property
     def initial(self) -> Optional[Fmi2Initial]:
+        """:obj:`Fmi2Initial` or None: Variable initial status - None if not set"""
         return self.__attrs["initial"]
 
     @property
     def name(self) -> str:
+        """str: Variable name"""
         return self.__attrs["name"]
 
     @property
     def value_reference(self) -> int:
+        """int: Variable reference index"""
         return self.__attrs["valueReference"]
 
     @value_reference.setter
@@ -59,10 +78,16 @@ class ScalarVariable(ABC):
 
     @property
     def variability(self) -> Optional[Fmi2Variability]:
+        """:obj:`Fmi2Variability` or None: Variable variability - None if not set"""
         return self.__attrs["variability"]
 
     @staticmethod
     def requires_start(v: 'ScalarVariable') -> bool:
+        """Test if a variable requires a start attribute
+        
+        Returns:
+            True if successful, False otherwise
+        """
         return (
             v.initial == Fmi2Initial.exact
             or v.initial == Fmi2Initial.approx
@@ -71,15 +96,12 @@ class ScalarVariable(ABC):
             or v.variability == Fmi2Variability.constant
         )
 
-    @staticmethod
-    def setter_required(v: 'ScalarVariable') -> bool:
-        return (
-            v.causality != Fmi2Causality.output
-            or v.causality != Fmi2Causality.calculatedParameter
-            or v.variability != Fmi2Variability.constant
-        )
-
     def to_xml(self) -> Element:
+        """Convert the variable to XML node.
+        
+        Returns
+            xml.etree.ElementTree.Element: XML node
+        """
         attrib = dict()
         for key, value in self.__attrs.items():
             if value is not None:

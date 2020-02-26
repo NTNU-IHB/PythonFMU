@@ -121,22 +121,38 @@ class Fmi2Slave(ABC):
 
         var.start = refs[0]
 
+    def _set_variable_ownership(self, var: ScalarVariable):
+        """Set the attributes owner and reference of the scalar variable.
+        
+        Args:
+            :obj:`ScalarVariable`: Variable to be set
+
+        Raises
+            AttributeError: if an error occurs getting object attribute when looking for the variable owner.
+            ValueError: if no owner can be found to match the variable name.
+        """
+        owner = var.owner or self
+        reference = var.reference or var.name
+
+        while not hasattr(owner, reference):
+            if "." in reference:
+                owner_name, reference = reference.split(".", maxsplit=1)
+                owner = getattr(owner, owner_name)
+            else:
+                raise ValueError(
+                    f"Unable to find the reference and the owner object of variable {var.name}."
+                )
+
+        var.owner = owner
+        var.reference = reference
+
     def register_variable(self, var: ScalarVariable):
         variable_reference = len(self.vars)
         self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
-        if var.getter is None or var.setter is None and ScalarVariable.setter_required(var):
-            owner = self
-            if "." in var.name:
-                split = var.name.split(".")
-                split.pop(-1)
-                for s in split:
-                    owner = getattr(owner, s)
-            if var.getter is None:
-                var.getter = lambda: getattr(owner, var.local_name)
-            if var.setter is None and ScalarVariable.setter_required(var):
-                var.setter = lambda v: setattr(owner, var.local_name, v)
+        if var.owner is None or var.reference is None:
+            self._set_variable_ownership(var)
 
     def setup_experiment(self, start_time: float):
         pass
@@ -154,12 +170,31 @@ class Fmi2Slave(ABC):
     def terminate(self):
         pass
 
+    def get_value(self, var: ScalarVariable) -> Any:
+        """Generic value variable getter.
+        
+        Args:
+            var (:obj:`ScalarVariable`): Variable
+        Returns:
+            (Any) Value of the variable
+        """
+        return getattr(var.owner, var.reference)
+
+    def set_value(self, var: ScalarVariable, value: Any):
+        """Generic value variable setter.
+        
+        Args:
+            var (:obj:`ScalarVariable`): Variable
+            value (Any): Value of the variable
+        """
+        setattr(var.owner, var.reference, value)
+
     def get_integer(self, vrs: List[int]) -> List[int]:
         refs = list()
         for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, Integer):
-                refs.append(int(var.getter()))
+                refs.append(int(self.get_value(var)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
@@ -171,7 +206,7 @@ class Fmi2Slave(ABC):
         for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, Real):
-                refs.append(float(var.getter()))
+                refs.append(float(self.get_value(var)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Real!"
@@ -183,7 +218,7 @@ class Fmi2Slave(ABC):
         for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, Boolean):
-                refs.append(bool(var.getter()))
+                refs.append(bool(self.get_value(var)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Boolean!"
@@ -195,7 +230,7 @@ class Fmi2Slave(ABC):
         for vr in vrs:
             var = self.vars[vr]
             if isinstance(var, String):
-                refs.append(str(var.getter()))
+                refs.append(str(self.get_value(var)))
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type String!"
@@ -206,7 +241,7 @@ class Fmi2Slave(ABC):
         for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, Integer):
-                var.setter(value)
+                self.set_value(var, value)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Integer!"
@@ -216,7 +251,7 @@ class Fmi2Slave(ABC):
         for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, Real):
-                var.setter(value)
+                self.set_value(var, value)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Real!"
@@ -226,7 +261,7 @@ class Fmi2Slave(ABC):
         for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, Boolean):
-                var.setter(value)
+                self.set_value(var, value)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type Boolean!"
@@ -236,7 +271,7 @@ class Fmi2Slave(ABC):
         for vr, value in zip(vrs, values):
             var = self.vars[vr]
             if isinstance(var, String):
-                var.setter(value)
+                self.set_value(var, value)
             else:
                 raise TypeError(
                     f"Variable with valueReference={vr} is not of type String!"
@@ -245,18 +280,16 @@ class Fmi2Slave(ABC):
     def _get_fmu_state(self) -> Dict[str, Any]:
         state = dict()
         for var in self.vars.values():
-            state[var.name] = var.getter()
+            state[var.name] = self.get_value(var)
         return state
 
     def _set_fmu_state(self, state: Dict[str, Any]):
+        vars_by_name = dict([(v.name, v) for v in self.vars.values()])
         for name, value in state.items():
-            var_list = list(
-                filter(lambda v: v.name == name, self.vars.values())
-            )
-            if not var_list:
+            if name not in vars_by_name:
                 setattr(self, name, value)
             else:
-                var_list[0].setter(value)
+                self.set_value(vars_by_name[name], value)
 
     @staticmethod
     def _fmu_state_to_bytes(state: Dict[str, Any]) -> bytes:
