@@ -13,7 +13,7 @@ extern "C" {
         if(!PyArg_ParseTuple(args, ":log"))
             return NULL;
         printf("before logger call");
-        embedded_logger->logger(NULL, instance_name, fmi2OK, "ok", "test log message");
+        embedded_logger->logger(NULL, "instanceName", fmi2OK, "ok", "test log message");
         
         Py_RETURN_NONE;
     }
