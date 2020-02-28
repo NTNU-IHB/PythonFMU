@@ -4,6 +4,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 #include "cppfmu/cppfmu_cs.hpp"
+#include "pythonfmu/callbacks.cpp"
 
 #include <exception>
 #include <limits>
@@ -71,6 +72,8 @@ fmi2Component fmi2Instantiate(
         if (fmuType != fmi2CoSimulation) {
             throw std::logic_error("Unsupported FMU instance type requested (only co-simulation is supported)");
         }
+        embedded_logger = functions;
+
         auto component = cppfmu::AllocateUnique<Component>(cppfmu::Memory{*functions},
             instanceName,
             *functions,

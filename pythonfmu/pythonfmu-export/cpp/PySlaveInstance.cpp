@@ -480,7 +480,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIBoolean visible,
     cppfmu::FMIBoolean,
     cppfmu::Memory memory,
-    const cppfmu::Logger&)
+    const cppfmu::Logger& logger)
 {
 
     auto resources = std::string(fmuResourceLocation);
