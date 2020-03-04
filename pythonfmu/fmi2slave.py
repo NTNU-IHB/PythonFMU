@@ -43,17 +43,21 @@ class Fmi2Slave(ABC):
         self.resources = kwargs.get("resources", None)
         self.logger = kwargs.get("logger", None)
         self.visible = kwargs.get("visible", False)
+        self.__lib = None
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
 
+    def __load_lib(self):
+        if self.__lib is None:
+            self.__lib = cdll[f"{self.modelName}.{get_lib_extension()}"]
+        return self.__lib
+
     def log_info(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
-        lib = cdll[f"{self.modelName}.{get_lib_extension()}"]
-        lib.log_info(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
+        self.__load_lib().log_info(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
 
     def log_debug(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
-        lib = cdll[f"{self.modelName}.dll"]
-        lib.log_debug(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
+        self.__load_lib().log_debug(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
