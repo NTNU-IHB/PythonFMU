@@ -23,7 +23,7 @@ def test_integration_demo(tmp_path):
 
     fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
-    model = pyfmi.load_fmu(str(fmu), log_level=1)
+    model = pyfmi.load_fmu(str(fmu))
     res = model.simulate(final_time=0.5)
 
     assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
