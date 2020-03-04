@@ -6,9 +6,11 @@ from collections import OrderedDict, namedtuple
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
+from ctypes import cdll, c_char_p, c_void_p, c_int
 
+from .osutil import get_lib_extension
 from ._version import __version__ as VERSION
-from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
+from .enums import Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple("ModelOptions", ["name", "value", "cli"])
@@ -39,10 +41,19 @@ class Fmi2Slave(ABC):
         self.vars = OrderedDict()
         self.instance_name = kwargs["instance_name"]
         self.resources = kwargs.get("resources", None)
+        self.logger = kwargs.get("logger", None)
         self.visible = kwargs.get("visible", False)
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
+
+    def log_info(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
+        lib = cdll[f"{self.modelName}.{get_lib_extension()}"]
+        lib.log_info(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
+
+    def log_debug(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
+        lib = cdll[f"{self.modelName}.dll"]
+        lib.log_debug(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.

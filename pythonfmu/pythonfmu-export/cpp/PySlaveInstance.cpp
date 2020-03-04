@@ -44,9 +44,10 @@ inline void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
     PyGILState_Release(gil_state);
 }
 
-PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const bool visible)
+PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, const bool visible)
     : instanceName_(std::move(instanceName))
     , resources_(std::move(resources))
+    , logger_(logger)
     , visible_(visible)
 
 {
@@ -100,9 +101,10 @@ void PySlaveInstance::initialize(PyGILState_STATE gilState)
     Py_XDECREF(pInstance_);
 
     PyObject* args = PyTuple_New(0);
-    PyObject* kwargs = Py_BuildValue("{sssssi}",
+    PyObject* kwargs = Py_BuildValue("{ss,ss,sL,si}",
         "instance_name", instanceName_.c_str(),
         "resources", resources_.c_str(),
+        "logger", &logger_,
         "visible", visible_);
     pInstance_ = PyObject_Call(pClass_, args, kwargs);
     Py_DECREF(args);
@@ -480,7 +482,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIBoolean visible,
     cppfmu::FMIBoolean,
     cppfmu::Memory memory,
-    const cppfmu::Logger&)
+    const cppfmu::Logger& logger)
 {
 
     auto resources = std::string(fmuResourceLocation);
@@ -499,5 +501,5 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     }
 
     return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
-        memory, instanceName, resources, visible);
+        memory, instanceName, resources, logger, visible);
 }

@@ -15,7 +15,7 @@ class PySlaveInstance : public cppfmu::SlaveInstance
 {
 
 public:
-    PySlaveInstance(std::string instanceName, std::string resources, bool visible);
+    PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, bool visible);
 
     void initialize(PyGILState_STATE gilState);
 
@@ -53,6 +53,7 @@ private:
     const bool visible_;
     const std::string instanceName_;
     const std::string resources_;
+    const cppfmu::Logger& logger_;
 
     mutable std::vector<PyObject*> strBuffer;
 
