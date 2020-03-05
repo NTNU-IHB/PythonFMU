@@ -6,7 +6,7 @@ from collections import OrderedDict, namedtuple
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
-from ctypes import cdll, c_char_p, c_void_p, c_int
+from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
 from .osutil import get_lib_extension
 from ._version import __version__ as VERSION
@@ -47,19 +47,6 @@ class Fmi2Slave(ABC):
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
-
-    def __load_lib(self):
-        if self.__lib is None:
-            self.__lib = cdll[f"{self.modelName}.{get_lib_extension()}"]
-        return self.__lib
-
-    def log_info(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
-        if self.logger is not None:
-            self.__load_lib().log_info(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
-
-    def log_debug(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
-        if self.logger is not None:
-            self.__load_lib().log_debug(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
@@ -280,3 +267,15 @@ class Fmi2Slave(ABC):
     @staticmethod
     def _fmu_state_from_bytes(state: bytes) -> Dict[str, Any]:
         return json.loads(state.decode("utf-8"))
+
+    def log(self, msg: str, status: Fmi2Status = Fmi2Status.ok, category: str = "", debug: bool = False):
+        if self.logger is not None:
+            if self.__lib is None:
+                self.__lib = cdll[f"{self.modelName}.{get_lib_extension()}"]
+            self.__lib.pylog(
+                c_void_p(self.logger),
+                c_int(int(status)),
+                c_char_p(category.encode("utf-8")),
+                c_char_p(msg.encode("utf-8")),
+                c_bool(debug)
+            )
