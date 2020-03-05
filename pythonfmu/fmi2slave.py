@@ -54,10 +54,12 @@ class Fmi2Slave(ABC):
         return self.__lib
 
     def log_info(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
-        self.__load_lib().log_info(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
+        if self.logger is not None:
+            self.__load_lib().log_info(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
 
     def log_debug(self, msg: str, status: Fmi2Status = Fmi2Status.ok):
-        self.__load_lib().log_debug(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
+        if self.logger is not None:
+            self.__load_lib().log_debug(c_void_p(self.logger), c_int(int(status)), c_char_p(msg.encode("utf-8")))
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
