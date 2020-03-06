@@ -45,7 +45,7 @@ def get_class_name(file_name: Path) -> str:
 
 class ModelDescriptionFetcher:
     @staticmethod
-    def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
+    def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element, Tuple[str]]:
         """Extract the FMU model description as XML.
         
         Args:
@@ -73,7 +73,7 @@ class ModelDescriptionFetcher:
                 f"The provided class '{class_name}' does not inherit from {Fmi2Slave.__qualname__}"
             )
         # Produce the xml
-        return instance.modelName, instance.to_xml()
+        return instance.modelName, instance.to_xml(), instance.requirements
 
 
 class FmuBuilder:
@@ -137,7 +137,7 @@ class FmuBuilder:
                     else:
                         shutil.copy2(file_, temp_dir)
 
-            model_identifier, xml = ModelDescriptionFetcher.get_model_description(
+            model_identifier, xml, requirements = ModelDescriptionFetcher.get_model_description(
                 temp_dir.absolute() / script_file.name, module_name
             )
 
@@ -190,6 +190,11 @@ class FmuBuilder:
                         / f"{model_identifier}{relative_f.suffix}"
                     )
                     zip_fmu.write(f, arcname=arcname)
+
+                extra = Path("extra")
+
+                if requirements is not None:
+                    zip_fmu.writestr(str(extra.joinpath("requirements.txt")), "\n".join(requirements))
 
                 # Add the documentation folder
                 if documentation_folder is not None:

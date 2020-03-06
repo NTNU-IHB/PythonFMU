@@ -40,6 +40,7 @@ class Fmi2Slave(ABC):
         self.instance_name = kwargs["instance_name"]
         self.resources = kwargs.get("resources", None)
         self.visible = kwargs.get("visible", False)
+        self.requirements = None
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
