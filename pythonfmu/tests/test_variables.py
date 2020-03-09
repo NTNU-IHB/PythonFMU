@@ -7,6 +7,8 @@ from pythonfmu import Fmi2Slave
 from pythonfmu.enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from pythonfmu.variables import Boolean, Integer, Real, ScalarVariable, String
 
+from .utils import FMI2PY, PY2FMI
+
 SCALAR_VARIABLE_ATTRIBUTES = ["name", "valueReference", "description", "causality", "variability", "initial"]
 
 def test_ScalarVariable_reference_set_once_only():
@@ -33,6 +35,64 @@ def test_ScalarVariable_constructor(causality, initial, variability, name, descr
     assert var.description == description
     assert var.initial == initial
     assert var.variability == variability
+
+
+@pytest.mark.parametrize("fmi_type,value", [
+    (Boolean, False), 
+    (Integer, 22), 
+    (Real, 2./3.), 
+    (String, "hello_world"),
+])
+def test_ScalarVariable_getter(fmi_type, value):
+    
+    class Slave(Fmi2Slave):
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.var = [value]
+            self.register_variable(PY2FMI[type(value)]("var", getter=lambda: self.var[0]))
+
+        def do_step(self, t, dt):
+            return True
+    
+    py_type = FMI2PY[fmi_type]
+    fmi_type_name = fmi_type.__qualname__.lower()
+
+    slave = Slave(instance_name="slaveInstance")
+    assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
+
+
+@pytest.mark.parametrize("fmi_type,value", [
+    (Boolean, False), 
+    (Integer, 22), 
+    (Real, 2./3.), 
+    (String, "hello_world"),
+])
+def test_ScalarVariable_setter(fmi_type, value):
+
+    class Slave(Fmi2Slave):
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.var = [None]
+            self.register_variable(
+                PY2FMI[type(value)](
+                    "var", 
+                    getter=lambda: self.var[0], 
+                    setter=lambda v: self.var.__setitem__(0, v)
+                )
+            )
+
+        def do_step(self, t, dt):
+            return True
+    
+    slave = Slave(instance_name="slaveInstance")
+    py_type = FMI2PY[fmi_type]
+    fmi_type_name = fmi_type.__qualname__.lower()
+
+    set_method = getattr(slave, f"set_{fmi_type_name}")
+    set_method([0, ], [value, ])
+    assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
 
 
 @pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])

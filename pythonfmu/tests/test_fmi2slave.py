@@ -3,15 +3,9 @@ import pytest
 from pythonfmu import Fmi2Slave, Boolean, Integer, Real, String
 from pythonfmu import __version__ as VERSION
 
-# TODO test xml
+from .utils import FMI2PY, PY2FMI
 
-FMI2PY = dict((
-    (Boolean, bool),
-    (Integer, int),
-    (Real, float),
-    (String, str)
-))
-PY2FMI = dict([(v, k) for k, v in FMI2PY.items()])
+# TODO test xml
 
 
 @pytest.mark.parametrize("model", ["theModelName", None])
