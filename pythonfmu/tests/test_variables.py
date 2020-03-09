@@ -49,7 +49,7 @@ def test_ScalarVariable_getter(fmi_type, value):
 
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.var = [value, ]
+            self.var = [value]
             self.register_variable(PY2FMI[type(value)]("var", getter=lambda: self.var[0]))
 
         def do_step(self, t, dt):
@@ -74,7 +74,7 @@ def test_ScalarVariable_setter(fmi_type, value):
 
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.var = [None, ]
+            self.var = [None]
             self.register_variable(
                 PY2FMI[type(value)](
                     "var", 
