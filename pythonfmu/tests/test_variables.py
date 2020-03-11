@@ -19,9 +19,9 @@ def test_ScalarVariable_reference_set_once_only():
         v.value_reference = 33
 
 
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 @pytest.mark.parametrize("name, description", [
     ("var", None),
     ("var", "description of var"),
@@ -38,13 +38,13 @@ def test_ScalarVariable_constructor(causality, initial, variability, name, descr
 
 
 @pytest.mark.parametrize("fmi_type,value", [
-    (Boolean, False), 
-    (Integer, 22), 
-    (Real, 2./3.), 
+    (Boolean, False),
+    (Integer, 22),
+    (Real, 2./3.),
     (String, "hello_world"),
 ])
 def test_ScalarVariable_getter(fmi_type, value):
-    
+
     class Slave(Fmi2Slave):
 
         def __init__(self, **kwargs):
@@ -54,7 +54,7 @@ def test_ScalarVariable_getter(fmi_type, value):
 
         def do_step(self, t, dt):
             return True
-    
+
     py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 
@@ -63,9 +63,9 @@ def test_ScalarVariable_getter(fmi_type, value):
 
 
 @pytest.mark.parametrize("fmi_type,value", [
-    (Boolean, False), 
-    (Integer, 22), 
-    (Real, 2./3.), 
+    (Boolean, False),
+    (Integer, 22),
+    (Real, 2./3.),
     (String, "hello_world"),
 ])
 def test_ScalarVariable_setter(fmi_type, value):
@@ -77,15 +77,15 @@ def test_ScalarVariable_setter(fmi_type, value):
             self.var = [None]
             self.register_variable(
                 PY2FMI[type(value)](
-                    "var", 
-                    getter=lambda: self.var[0], 
+                    "var",
+                    getter=lambda: self.var[0],
                     setter=lambda v: self.var.__setitem__(0, v)
                 )
             )
 
         def do_step(self, t, dt):
             return True
-    
+
     slave = Slave(instance_name="slaveInstance")
     py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
@@ -124,9 +124,9 @@ def test_ScalarVariable_to_xml(causality, initial, variability, name, descriptio
     (Integer, 23),
     (Real, 15.),
     (String, "hello")])
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 def test_ScalarVariable_start(var_type, value, causality, initial, variability):
     var_obj = var_type("var", causality=causality, description="a variable", initial=initial, variability=variability)
 

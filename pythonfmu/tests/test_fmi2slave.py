@@ -61,10 +61,10 @@ def test_Fmi2Slave_getters(fmi_type, value):
 
     slave = Slave(instance_name="slaveInstance")
     if type(value) is py_type:
-        assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
+        assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value]
     else:
         with pytest.raises(TypeError):
-            getattr(slave, f"get_{fmi_type_name}")([0, ])
+            getattr(slave, f"get_{fmi_type_name}")([0])
 
 
 @pytest.mark.parametrize("fmi_type", FMI2PY)
@@ -92,9 +92,9 @@ def test_Fmi2Slave_setters(fmi_type, value):
 
     if type(value) is py_type:
         set_method = getattr(slave, f"set_{fmi_type_name}")
-        set_method([0, ], [value, ])
-        assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
+        set_method([0], [value])
+        assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value, ]
     else:
         set_method = getattr(slave, f"set_{fmi_type_name}")
         with pytest.raises(TypeError):
-            set_method([0, ], [value, ])
+            set_method([0], [value])
