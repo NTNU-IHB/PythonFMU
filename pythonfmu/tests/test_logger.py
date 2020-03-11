@@ -60,7 +60,7 @@ class {name}(Fmi2Slave):
     )
 
     logger.assert_called_once_with(
-        logger.call_args.args[0],
+        logger.call_args[0][0],  # Don't test the first argument
         bytes(name, encoding="utf-8"),
         int(status),
         bytes(category, encoding="utf-8"),
