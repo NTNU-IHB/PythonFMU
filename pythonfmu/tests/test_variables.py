@@ -37,9 +37,6 @@ def test_ScalarVariable_constructor(causality, initial, variability, name, descr
     assert var.variability == variability
 
 
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 @pytest.mark.parametrize("fmi_type,value", [
     (Boolean, False),
     (Integer, 22),
