@@ -3,6 +3,7 @@
 
 extern "C" {
 
+/* Log a message from Python to the FMU logger */
 void pylog(void* logPtr, int status, const char* category, const char* msg, bool debug)
 {
     auto logger = ((cppfmu::Logger*) logPtr);

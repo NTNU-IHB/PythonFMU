@@ -3,12 +3,13 @@ import json
 import datetime
 from abc import ABC, abstractmethod
 from collections import OrderedDict, namedtuple
+from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
-from .osutil import get_lib_extension
+from .osutil import get_lib_extension, get_platform
 from ._version import __version__ as VERSION
 from .enums import Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
@@ -269,9 +270,18 @@ class Fmi2Slave(ABC):
         return json.loads(state.decode("utf-8"))
 
     def log(self, msg: str, status: Fmi2Status = Fmi2Status.ok, category: str = "", debug: bool = False):
-        if self.logger is not None:
+        """Log a message to the FMU logger.
+        
+        Args:
+            msg (str) : Log message
+            status (Fmi2Status) : Optional, message status (default ok)
+            category (str) : Optional, message category (default "")
+            debug (bool) : Optional, is this a debug message (default False)
+        """
+        if self.logger is not None and self.resources is not None:
             if self.__lib is None:
-                self.__lib = cdll[f"{self.modelName}.{get_lib_extension()}"]
+                library_path = Path(self.resources).parent / "binaries" / get_platform() / (self.modelName + "." + get_lib_extension())
+                self.__lib = cdll.LoadLibrary(library_path)
             self.__lib.pylog(
                 c_void_p(self.logger),
                 c_int(int(status)),
