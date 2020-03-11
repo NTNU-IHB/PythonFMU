@@ -17,9 +17,9 @@ def test_ScalarVariable_reference_set_once_only():
         v.value_reference = 33
 
 
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 @pytest.mark.parametrize("name, description", [
     ("var", None),
     ("var", "description of var"),
@@ -35,9 +35,9 @@ def test_ScalarVariable_constructor(causality, initial, variability, name, descr
     assert var.variability == variability
 
 
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 @pytest.mark.parametrize("name, description", [
     ("var", None),
     ("var", "description of var"),
@@ -64,9 +64,9 @@ def test_ScalarVariable_to_xml(causality, initial, variability, name, descriptio
     (Integer, 23),
     (Real, 15.),
     (String, "hello")])
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 def test_ScalarVariable_start(var_type, value, causality, initial, variability):
     var_obj = var_type("var", causality=causality, description="a variable", initial=initial, variability=variability)
 

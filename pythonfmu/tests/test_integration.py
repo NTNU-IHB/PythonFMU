@@ -214,16 +214,16 @@ def test_integration_set(tmp_path):
     for key, value in to_test.items():
         var = variables[key]
         if var.type == pyfmi.fmi.FMI2_INTEGER:
-            model.set_integer([var.value_reference], [value, ])
+            model.set_integer([var.value_reference], [value])
             model_value = model.get_integer([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_REAL:
-            model.set_real([var.value_reference], [value, ])
+            model.set_real([var.value_reference], [value])
             model_value = model.get_real([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_BOOLEAN:
-            model.set_boolean([var.value_reference], [value, ])
+            model.set_boolean([var.value_reference], [value])
             model_value = model.get_boolean([var.value_reference])[0]
         elif var.type == pyfmi.fmi.FMI2_STRING:
-            model.set_string([var.value_reference], [value, ])
+            model.set_string([var.value_reference], [value])
             model_value = model.get_string([var.value_reference])[0]
         else:
             pytest.xfail("Unsupported type")
