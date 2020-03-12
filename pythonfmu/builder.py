@@ -3,7 +3,6 @@ import argparse
 import importlib
 import itertools
 import logging
-import platform
 import re
 import shutil
 import sys
@@ -13,7 +12,7 @@ from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
-
+from .osutil import get_lib_extension, get_platform
 from ._version import __version__
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
 
@@ -23,24 +22,10 @@ HERE = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-def get_platform() -> str:
-    """Get FMU binary platform folder name."""
-    system = platform.system()
-    is_64bits = sys.maxsize > 2 ** 32
-    platforms = {"Windows": "win", "Linux": "linux", "Darwin": "darwin"}
-    return platforms.get(system, "unknown") + "64" if is_64bits else "32"
-
-
-def get_lib_extension() -> str:
-    """Get FMU library platform extension."""
-    platforms = {"Darwin": "dylib", "Linux": "so", "Windows": "dll"}
-    return platforms.get(platform.system(), "")
-
-
 def get_class_name(file_name: Path) -> str:
     with open(str(file_name), 'r') as file:
         data = file.read()
-        return re.search('class (\w+)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
+        return re.search(r'class (\w+)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
 
 
 class ModelDescriptionFetcher:

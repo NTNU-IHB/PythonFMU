@@ -1,5 +1,5 @@
 """FMI enumerations"""
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class Fmi2Causality(Enum):
@@ -22,3 +22,12 @@ class Fmi2Variability(Enum):
     tunable = 2
     discrete = 3
     continuous = 4
+
+
+class Fmi2Status(IntEnum):
+    ok = 0
+    warning = 1
+    discard = 2
+    error = 3
+    fatal = 4
+
