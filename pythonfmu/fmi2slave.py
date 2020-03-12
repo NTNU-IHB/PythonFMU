@@ -281,7 +281,7 @@ class Fmi2Slave(ABC):
         if self.logger is not None and self.resources is not None:
             if self.__lib is None:
                 library_path = Path(self.resources).parent / "binaries" / get_platform() / (self.modelName + "." + get_lib_extension())
-                self.__lib = cdll.LoadLibrary(library_path)
+                self.__lib = cdll.LoadLibrary(str(library_path))
             self.__lib.pylog(
                 c_void_p(self.logger),
                 c_int(int(status)),

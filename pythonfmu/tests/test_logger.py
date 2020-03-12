@@ -1,5 +1,6 @@
+import itertools
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import call, MagicMock
 
 from pythonfmu.builder import FmuBuilder
 from pythonfmu.enums import Fmi2Status
@@ -10,9 +11,7 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("debug", [True, False])
-@pytest.mark.parametrize("status", Fmi2Status)
-def test_logger(tmp_path, debug, status):
+def test_logger(tmp_path):
     fmpy = pytest.importorskip(
         "fmpy", reason="fmpy is not available for testing the produced FMU"
     )
@@ -20,6 +19,19 @@ def test_logger(tmp_path, debug, status):
     name = "PythonSlaveWithLogger"
     category = "category"
     message = "log message"
+
+    log_calls = [
+        (
+            f"{status.name.upper()} - {debug} - {message}", 
+            status, 
+            category, 
+            debug
+        ) for debug, status in itertools.product([True, False], Fmi2Status)
+    ]
+
+    fmu_calls = "\n".join([
+        '        self.log("{}", Fmi2Status.{}, "{}", {})'.format(c[0], c[1].name, c[2], c[3]) for c in log_calls
+    ])
 
     slave_code = f"""from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Status, Fmi2Causality, Integer, Real, Boolean, String
 
@@ -36,7 +48,7 @@ class {name}(Fmi2Slave):
 
 
     def do_step(self, current_time, step_size):
-        self.log("{message}", {status}, "{category}", {debug})
+{fmu_calls}
         return True
 """
 
@@ -59,10 +71,14 @@ class {name}(Fmi2Slave):
         debug_logging=True
     )
 
-    logger.assert_called_once_with(
-        logger.call_args[0][0],  # Don't test the first argument
-        bytes(name, encoding="utf-8"),
-        0,  # TODO this is a hack.
-        bytes(category, encoding="utf-8"),
-        bytes(message, encoding="utf-8")
-    )
+    expected_calls = [
+        call(
+            logger.call_args[0][0],  # Don't test the first argument
+            bytes(name, encoding="utf-8"),
+            int(c[1]),
+            bytes(c[2], encoding="utf-8"),
+            bytes(c[0], encoding="utf-8")
+        ) for c in log_calls
+    ]
+
+    logger.assert_has_calls(expected_calls)
