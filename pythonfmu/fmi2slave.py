@@ -45,6 +45,7 @@ class Fmi2Slave(ABC):
         self.logger = kwargs.get("logger", None)
         self.visible = kwargs.get("visible", False)
         self.__lib = None
+        self.__lib_error = False
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
@@ -279,13 +280,18 @@ class Fmi2Slave(ABC):
             debug (bool) : Optional, is this a debug message (default False)
         """
         if self.logger is not None and self.resources is not None:
-            if self.__lib is None:
+            if self.__lib is None and not self.__lib_error:
                 library_path = Path(self.resources).parent / "binaries" / get_platform() / (self.modelName + "." + get_lib_extension())
-                self.__lib = cdll.LoadLibrary(str(library_path))
-            self.__lib.pylog(
-                c_void_p(self.logger),
-                c_int(int(status)),
-                c_char_p(category.encode("utf-8")),
-                c_char_p(msg.encode("utf-8")),
-                c_bool(debug)
-            )
+                try:
+                    self.__lib = cdll.LoadLibrary(str(library_path))
+                except:
+                    self.__lib_error = True
+                    print(f"Warning. Unable to setup logging for FMU instance: {self.instance_name}")
+            if not self.__lib_error:
+                self.__lib.pylog(
+                    c_void_p(self.logger),
+                    c_int(int(status)),
+                    c_char_p(category.encode("utf-8")),
+                    c_char_p(msg.encode("utf-8")),
+                    c_bool(debug)
+                )
