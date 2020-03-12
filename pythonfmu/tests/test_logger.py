@@ -81,7 +81,6 @@ class {name}(Fmi2Slave):
             bytes(c[0], encoding="utf-8")
         ) for c in filter(lambda c: debug_logging or not c[3], log_calls)
     ]
-    assert len(expected_calls) == len(Fmi2Status) * (1 + int(debug_logging))
-
+    
+    assert logger.call_count == len(Fmi2Status) * (1 + int(debug_logging))
     logger.assert_has_calls(expected_calls)
-
