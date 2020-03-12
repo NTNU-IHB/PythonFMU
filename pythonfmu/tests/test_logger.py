@@ -11,12 +11,13 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.mark.integration
-def test_logger(tmp_path):
+@pytest.mark.parametrize("debug_logging", [True, False])
+def test_logger(tmp_path, debug_logging):
     fmpy = pytest.importorskip(
         "fmpy", reason="fmpy is not available for testing the produced FMU"
     )
 
-    name = "PythonSlaveWithLogger"
+    name = "PythonSlaveWithDebugLogger" if debug_logging else "PythonSlaveWithLogger"
     category = "category"
     message = "log message"
 
@@ -52,7 +53,7 @@ class {name}(Fmi2Slave):
         return True
 """
 
-    script_file = tmp_path / "orig" / "slavewithlogger.py"
+    script_file = tmp_path / "orig" / f"{name.lower()}.py"
     script_file.parent.mkdir(parents=True, exist_ok=True)
     script_file.write_text(slave_code)
 
@@ -68,7 +69,7 @@ class {name}(Fmi2Slave):
         stop_time=1e-3,
         output_interval=1e-3,
         logger=logger,
-        debug_logging=True
+        debug_logging=debug_logging
     )
 
     expected_calls = [
@@ -78,7 +79,9 @@ class {name}(Fmi2Slave):
             int(c[1]),
             bytes(c[2], encoding="utf-8"),
             bytes(c[0], encoding="utf-8")
-        ) for c in log_calls
+        ) for c in filter(lambda c: debug_logging or not c[3], log_calls)
     ]
+    assert len(expected_calls) == len(Fmi2Status) * (1 + int(debug_logging))
 
     logger.assert_has_calls(expected_calls)
+
