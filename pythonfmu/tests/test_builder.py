@@ -27,9 +27,7 @@ lib_extension = ({"Darwin": "dylib", "Linux": "so", "Windows": "dll"}).get(
 def test_zip_content(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path)
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
     assert zipfile.is_zipfile(fmu)
 
@@ -77,33 +75,34 @@ def test_project_files(tmp_path, pfiles):
     script_file = Path(__file__).parent / DEMO
     pfiles = map(Path, pfiles)
 
-    with tempfile.TemporaryDirectory() as project_dir:
-        project_dir = Path(project_dir)
+    def build():
+        with tempfile.TemporaryDirectory() as project_dir:
+            project_dir = Path(project_dir)
 
-        project_files = set()
-        for f in pfiles:
-            full_name = project_dir / f
-            if full_name.suffix:
-                full_name.parent.mkdir(parents=True, exist_ok=True)
-                full_name.write_text("dummy content")
-            else:
-                full_name.mkdir(parents=True, exist_ok=True)
+            project_files = set()
+            for f in pfiles:
+                full_name = project_dir / f
+                if full_name.suffix:
+                    full_name.parent.mkdir(parents=True, exist_ok=True)
+                    full_name.write_text("dummy content")
+                else:
+                    full_name.mkdir(parents=True, exist_ok=True)
 
-            # Add subfolder and not file if common parent exits
-            to_remove = None
-            for p in project_files:
-                if p.parent == full_name.parent or p == full_name.parent:
-                    to_remove = p
-                    break
-            if to_remove is None:
-                project_files.add(full_name)
-            else:
-                project_files.remove(to_remove)
-                project_files.add(full_name.parent)
+                # Add subfolder and not file if common parent exits
+                to_remove = None
+                for p in project_files:
+                    if p.parent == full_name.parent or p == full_name.parent:
+                        to_remove = p
+                        break
+                if to_remove is None:
+                    project_files.add(full_name)
+                else:
+                    project_files.remove(to_remove)
+                    project_files.add(full_name.parent)
 
-        FmuBuilder.build_FMU(script_file, dest=tmp_path, project_files=project_files)
+            return FmuBuilder.build_FMU(script_file, dest=tmp_path, project_files=project_files)
 
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = build()
     with zipfile.ZipFile(fmu) as files:
         names = files.namelist()
 
@@ -124,25 +123,26 @@ def test_project_files_containing_script(tmp_path, pfiles):
     orig_script_file = Path(__file__).parent / DEMO
     pfiles = map(Path, pfiles)
 
-    with tempfile.TemporaryDirectory() as project_dir:
-        project_dir = Path(project_dir)
-        script_file = project_dir / DEMO
-        with open(orig_script_file) as script_f:
-            script_file.write_text(script_f.read())
+    def build():
+        with tempfile.TemporaryDirectory() as project_dir:
+            project_dir = Path(project_dir)
+            script_file = project_dir / DEMO
+            with open(orig_script_file) as script_f:
+                script_file.write_text(script_f.read())
 
-        for f in pfiles:
-            full_name = project_dir / f
-            if full_name.suffix:
-                full_name.parent.mkdir(parents=True, exist_ok=True)
-                full_name.write_text("dummy content")
-            else:
-                full_name.mkdir(parents=True, exist_ok=True)
+            for f in pfiles:
+                full_name = project_dir / f
+                if full_name.suffix:
+                    full_name.parent.mkdir(parents=True, exist_ok=True)
+                    full_name.write_text("dummy content")
+                else:
+                    full_name.mkdir(parents=True, exist_ok=True)
 
-        FmuBuilder.build_FMU(
-            script_file, dest=tmp_path, project_files=[script_file.parent]
-        )
+            return FmuBuilder.build_FMU(
+                script_file, dest=tmp_path, project_files=[script_file.parent]
+            )
 
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = build()
     with zipfile.ZipFile(fmu) as files:
         names = files.namelist()
 
@@ -161,18 +161,17 @@ def test_project_files_containing_script(tmp_path, pfiles):
 def test_documentation(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    with tempfile.TemporaryDirectory() as documentation_dir:
-        doc_dir = Path(documentation_dir)
-        license_file = doc_dir / "licenses" / "license.txt"
-        license_file.parent.mkdir()
-        license_file.write_text("Dummy license")
-        index_file = doc_dir / "index.html"
-        index_file.write_text("dummy index")
+    def build():
+        with tempfile.TemporaryDirectory() as documentation_dir:
+            doc_dir = Path(documentation_dir)
+            license_file = doc_dir / "licenses" / "license.txt"
+            license_file.parent.mkdir()
+            license_file.write_text("Dummy license")
+            index_file = doc_dir / "index.html"
+            index_file.write_text("dummy index")
+            return FmuBuilder.build_FMU(script_file, dest=tmp_path, documentation_folder=doc_dir)
 
-        FmuBuilder.build_FMU(script_file, dest=tmp_path, documentation_folder=doc_dir)
-
-    fmu = tmp_path / "PythonSlave.fmu"
-
+    fmu = build()
     with zipfile.ZipFile(fmu) as files:
         names = files.namelist()
 
