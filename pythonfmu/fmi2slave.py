@@ -23,7 +23,7 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
     ModelOptions("canGetAndSetFMUstate", False, "handle-state"),
     ModelOptions("canSerializeFMUstate", False, "serialize-state"),
-    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management"),
+    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management")
 ]
 
 
@@ -37,6 +37,15 @@ class Fmi2Slave(ABC):
     copyright: ClassVar[Optional[str]] = None
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
+
+    # Dictionary of (category, description) entries
+    log_categories: Dict[str, str] = {
+        "logStatusWarning": "Log messages with fmi2Warning status.",
+        "logStatusDiscard": "Log messages with fmi2Discard status.",
+        "logStatusError": "Log messages with fmi2Error status.",
+        "logStatusFatal": "Log messages with fmi2Fatal status.",
+        "logAll": "Log all messages."
+    }
 
     def __init__(self, **kwargs):
         self.vars = OrderedDict()
@@ -69,7 +78,7 @@ class Fmi2Slave(ABC):
             guid=f"{self.guid!s}",
             generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
-            variableNamingConvention="structured",
+            variableNamingConvention="structured"
         )
         if self.description is not None:
             attrib["description"] = self.description
@@ -91,6 +100,16 @@ class Fmi2Slave(ABC):
         options["modelIdentifier"] = self.modelName
 
         SubElement(root, "CoSimulation", attrib=options)
+
+        if len(self.log_categories) > 0:
+            categories = SubElement(root, "LogCategories")
+            for category, description in self.log_categories.items():
+                categories.append(
+                    Element(
+                        "Category",
+                        attrib={"name": category, "description": description},
+                    )
+                )
 
         variables = SubElement(root, "ModelVariables")
         for v in self.vars.values():
@@ -132,7 +151,11 @@ class Fmi2Slave(ABC):
         self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
-        if var.getter is None or var.setter is None and ScalarVariable.setter_required(var):
+        if (
+            var.getter is None
+            or var.setter is None
+            and ScalarVariable.setter_required(var)
+        ):
             owner = self
             if "." in var.name:
                 split = var.name.split(".")
@@ -270,24 +293,42 @@ class Fmi2Slave(ABC):
     def _fmu_state_from_bytes(state: bytes) -> Dict[str, Any]:
         return json.loads(state.decode("utf-8"))
 
-    def log(self, msg: str, status: Fmi2Status = Fmi2Status.ok, category: str = "", debug: bool = False):
+    def log(
+        self,
+        msg: str,
+        status: Fmi2Status = Fmi2Status.ok,
+        category: Optional[str] = None,
+        debug: bool = False
+    ):
         """Log a message to the FMU logger.
         
         Args:
             msg (str) : Log message
             status (Fmi2Status) : Optional, message status (default ok)
-            category (str) : Optional, message category (default "")
+            category (str or None) : Optional, message category (default derived from status)
             debug (bool) : Optional, is this a debug message (default False)
         """
         if self.logger is not None and self.resources is not None:
             if self.__lib is None and not self.__lib_error:
-                library_path = Path(self.resources).parent / "binaries" / get_platform() / (self.modelName + "." + get_lib_extension())
+                library_path = (
+                    Path(self.resources).parent
+                    / "binaries"
+                    / get_platform()
+                    / (self.modelName + "." + get_lib_extension())
+                )
                 try:
                     self.__lib = cdll.LoadLibrary(str(library_path))
                 except:
                     self.__lib_error = True
-                    print(f"Warning. Unable to setup logging for FMU instance: {self.instance_name}")
+                    print(
+                        f"Warning. Unable to setup logging for FMU instance: {self.instance_name}"
+                    )
             if not self.__lib_error:
+                if category is None:
+                    category = f"logStatus{status.name.capitalize()}"
+                    if category not in self.log_categories:
+                        category = "logAll"
+
                 self.__lib.pylog(
                     c_void_p(self.logger),
                     c_int(int(status)),
@@ -295,3 +336,4 @@ class Fmi2Slave(ABC):
                     c_char_p(msg.encode("utf-8")),
                     c_bool(debug)
                 )
+
