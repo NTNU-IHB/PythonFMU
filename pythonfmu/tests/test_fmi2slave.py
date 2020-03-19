@@ -98,3 +98,49 @@ def test_Fmi2Slave_setters(fmi_type, value):
         set_method = getattr(slave, f"set_{fmi_type_name}")
         with pytest.raises(TypeError):
             set_method([0], [value])
+
+
+def test_Fmi2Slave_log_categories():
+    class Slave(Fmi2Slave):
+        def do_step(self, t, dt):
+            return True
+    
+    slave = Slave(instance_name="instance")
+    xml = slave.to_xml()
+
+    categories = xml.find("LogCategories")
+    assert len(categories) == len(Slave.log_categories)
+    for category, description in Slave.log_categories.items():
+        assert categories.find(f"Category[@name='{category}'][@description='{description}']") is not None
+
+@pytest.mark.parametrize("new_categories", [
+    dict(),
+    {
+        "logStatusWarning": "Log messages with fmi2Warning status.",
+        "logStatusError": "Log messages with fmi2Error status.",
+        "logStatusFatal": "Log messages with fmi2Fatal status.",
+        "logAll": "Log all messages."
+    },
+    {
+        "logCustom1": "My first custom log category",
+        "logCustom2": "My second custom log category"
+    }
+])
+def test_Fmi2Slave_customized_log_categories(new_categories):
+    class Slave(Fmi2Slave):
+        log_categories = new_categories
+
+        def do_step(self, t, dt):
+            return True
+    
+    slave = Slave(instance_name="instance")
+    xml = slave.to_xml()
+
+    categories = xml.find("LogCategories")
+
+    if len(new_categories) > 0:
+        assert len(categories) == len(Slave.log_categories)
+        for category, description in Slave.log_categories.items():
+            assert categories.find(f"Category[@name='{category}'][@description='{description}']") is not None
+    else:
+        assert categories is None

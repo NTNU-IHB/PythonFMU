@@ -23,7 +23,7 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
     ModelOptions("canGetAndSetFMUstate", False, "handle-state"),
     ModelOptions("canSerializeFMUstate", False, "serialize-state"),
-    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management"),
+    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management")
 ]
 
 
@@ -44,7 +44,7 @@ class Fmi2Slave(ABC):
         "logStatusDiscard": "Log messages with fmi2Discard status.",
         "logStatusError": "Log messages with fmi2Error status.",
         "logStatusFatal": "Log messages with fmi2Fatal status.",
-        "logAll": "Log all messages.",
+        "logAll": "Log all messages."
     }
 
     def __init__(self, **kwargs):
@@ -78,7 +78,7 @@ class Fmi2Slave(ABC):
             guid=f"{self.guid!s}",
             generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
-            variableNamingConvention="structured",
+            variableNamingConvention="structured"
         )
         if self.description is not None:
             attrib["description"] = self.description
@@ -298,14 +298,14 @@ class Fmi2Slave(ABC):
         msg: str,
         status: Fmi2Status = Fmi2Status.ok,
         category: Optional[str] = None,
-        debug: bool = False,
+        debug: bool = False
     ):
         """Log a message to the FMU logger.
         
         Args:
             msg (str) : Log message
             status (Fmi2Status) : Optional, message status (default ok)
-            category (str, optional) : Optional, message category (default derived from status)
+            category (str or None) : Optional, message category (default derived from status)
             debug (bool) : Optional, is this a debug message (default False)
         """
         if self.logger is not None and self.resources is not None:
@@ -325,15 +325,15 @@ class Fmi2Slave(ABC):
                     )
             if not self.__lib_error:
                 if category is None:
-                    category = self.log_categories.get(
-                        f"logStatus{status.name.capitalize()}", ""
-                    )
+                    category = f"logStatus{status.name.capitalize()}"
+                    if category not in self.log_categories:
+                        category = "logAll"
 
                 self.__lib.pylog(
                     c_void_p(self.logger),
                     c_int(int(status)),
                     c_char_p(category.encode("utf-8")),
                     c_char_p(msg.encode("utf-8")),
-                    c_bool(debug),
+                    c_bool(debug)
                 )
 
