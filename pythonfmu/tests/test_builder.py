@@ -27,9 +27,7 @@ lib_extension = ({"Darwin": "dylib", "Linux": "so", "Windows": "dll"}).get(
 def test_zip_content(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path)
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
     assert zipfile.is_zipfile(fmu)
 

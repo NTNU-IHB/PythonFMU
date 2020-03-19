@@ -19,9 +19,7 @@ DEMO = "pythonslave.py"
 def test_integration_demo(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
     res = model.simulate(final_time=0.5)
@@ -33,9 +31,7 @@ def test_integration_demo(tmp_path):
 def test_integration_reset(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
 
     vr = 5  # realOut
@@ -55,13 +51,11 @@ def test_integration_reset(tmp_path):
 def test_integration_get_state(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(
+    fmu = FmuBuilder.build_FMU(
         script_file,
         dest=tmp_path,
         needsExecutionTool="false",
         canGetAndSetFMUstate="true")
-
-    fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
 
     model = pyfmi.load_fmu(str(fmu))
@@ -96,13 +90,11 @@ def test_integration_get_serialize_state(tmp_path):
 
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(
+    fmu = FmuBuilder.build_FMU(
         script_file,
         dest=tmp_path,
         canGetAndSetFMUstate="true",
         canSerializeFMUstate="true")
-
-    fmu = tmp_path / "PythonSlave.fmu"
     assert fmu.exists()
 
     model_description = fmpy.read_model_description(fmu)
@@ -155,9 +147,7 @@ def test_integration_get_serialize_state(tmp_path):
 def test_integration_get(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
 
@@ -195,9 +185,7 @@ def test_integration_get(tmp_path):
 def test_integration_set(tmp_path):
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
 
@@ -239,9 +227,7 @@ def test_simple_integration_fmpy(tmp_path):
 
     script_file = Path(__file__).parent / DEMO
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path)
-
-    fmu = tmp_path / "PythonSlave.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
     res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
 
@@ -284,14 +270,12 @@ def get_time_constant():
     local_file = script_file.parent / "localmodule.py"
     local_file.write_text(local_module)
 
-    FmuBuilder.build_FMU(
+    fmu = FmuBuilder.build_FMU(
         script_file,
         dest=tmp_path,
         project_files=[local_file],
         needsExecutionTool="false",
     )
-
-    fmu = tmp_path / "PythonSlaveWithDep.fmu"
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
     res = model.simulate(final_time=0.5)
@@ -329,9 +313,7 @@ class PythonSlaveWithException(Fmi2Slave):
     script_file.parent.mkdir(parents=True, exist_ok=True)
     script_file.write_text(slave_code)
 
-    FmuBuilder.build_FMU(script_file, dest=tmp_path)
-
-    fmu = tmp_path / "PythonSlaveWithException.fmu"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
 
     with pytest.raises(Exception):

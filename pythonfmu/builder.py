@@ -62,7 +62,6 @@ class ModelDescriptionFetcher:
 
 
 class FmuBuilder:
-    FMI2SLAVE_FILENAME = HERE / "fmi2slave.py"
 
     @staticmethod
     def build_FMU(
@@ -71,7 +70,7 @@ class FmuBuilder:
         project_files: Iterable[FilePath] = set(),
         documentation_folder: Optional[FilePath] = None,
         **options,
-    ):
+    ) -> Path:
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
@@ -189,6 +188,8 @@ class FmuBuilder:
                 zip_fmu.writestr(
                     "modelDescription.xml", xml_str.toprettyxml(encoding="UTF-8")
                 )
+
+            return dest_file
 
     @staticmethod
     def has_binary() -> bool:
