@@ -57,8 +57,7 @@ class {name}(Fmi2Slave):
     script_file.parent.mkdir(parents=True, exist_ok=True)
     script_file.write_text(slave_code)
 
-    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
-
+    FmuBuilder.build_FMU(script_file, dest=tmp_path)
     fmu = tmp_path / f"{name}.fmu"
     assert fmu.exists()
 
@@ -128,8 +127,7 @@ class {name}(Fmi2Slave):
     script_file.parent.mkdir(parents=True, exist_ok=True)
     script_file.write_text(slave_code)
 
-    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
-
+    FmuBuilder.build_FMU(script_file, dest=tmp_path)
     fmu = tmp_path / f"{name}.fmu"
     assert fmu.exists()
 
