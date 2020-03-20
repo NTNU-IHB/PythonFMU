@@ -74,8 +74,11 @@ class FmuBuilder:
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
-        if not script_file.suffix.endswith(".py"):
-            raise ValueError(f"File {script_file!s} must have extension '.py'!")
+        if not script_file.suffix.endswith(".py") and not script_file.suffix.endswith(".csv"):
+            raise ValueError(f"File {script_file!s} must have extension '.py' or '.csv'!")
+
+        if script_file.suffix.endswith(".csv"):
+            project_files = {script_file}
 
         dest = Path(dest)
         if not dest.exists():
@@ -89,7 +92,6 @@ class FmuBuilder:
                     f"The documentation folder does not exists {documentation_folder!s}"
                 )
 
-        script_parent = script_file.resolve().parent.absolute()
         module_name = script_file.stem
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
@@ -202,7 +204,7 @@ class FmuBuilder:
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="pythonfmu-builder", description="Build a FMU from a Python script."
+        prog="pythonfmu-builder", description="Build an FMU from a Python script or CSV file."
     )
 
     parser.add_argument(
@@ -216,7 +218,7 @@ def main():
         "-f",
         "--file",
         dest="script_file",
-        help="Path to the Python script.",
+        help="Path to the Python script or CSV file.",
         required=True,
     )
 
