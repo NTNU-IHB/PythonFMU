@@ -15,6 +15,7 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
 from ._version import __version__
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
+from .csvslave import create_csv_slave
 
 FilePath = Union[str, Path]
 HERE = Path(__file__).parent
@@ -28,37 +29,35 @@ def get_class_name(file_name: Path) -> str:
         return re.search(r'class (\w+)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
 
 
-class ModelDescriptionFetcher:
-    @staticmethod
-    def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
-        """Extract the FMU model description as XML.
-        
-        Args:
-            filepath (pathlib.Path) : script file path
-            module_name (str) : python module to load
-        
-        Returns:
-            Tuple[str, xml.etree.TreeElement.Element] : FMU model name, model description
-        """
-        # Add current folder to handle local dependencies
-        sys.path.insert(0, str(filepath.parent))
-        try:
-            # Import the user interface
-            spec = importlib.util.spec_from_file_location(module_name, filepath)
-            fmu_interface = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(fmu_interface)
-            # Instantiate the interface
-            class_name = get_class_name(filepath)
-            instance = getattr(fmu_interface, class_name)(instance_name="dummyInstance")
-        finally:
-            sys.path.remove(str(filepath.parent))  # remove inserted temporary path
+def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
+    """Extract the FMU model description as XML.
 
-        if not isinstance(instance, Fmi2Slave):
-            raise TypeError(
-                f"The provided class '{class_name}' does not inherit from {Fmi2Slave.__qualname__}"
-            )
-        # Produce the xml
-        return instance.modelName, instance.to_xml()
+    Args:
+        filepath (pathlib.Path) : script file path
+        module_name (str) : python module to load
+
+    Returns:
+        Tuple[str, xml.etree.TreeElement.Element] : FMU model name, model description
+    """
+    # Add current folder to handle local dependencies
+    sys.path.insert(0, str(filepath.parent))
+    try:
+        # Import the user interface
+        spec = importlib.util.spec_from_file_location(module_name, filepath)
+        fmu_interface = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fmu_interface)
+        # Instantiate the interface
+        class_name = get_class_name(filepath)
+        instance = getattr(fmu_interface, class_name)(instance_name="dummyInstance", resources=str(filepath.parent))
+    finally:
+        sys.path.remove(str(filepath.parent))  # remove inserted temporary path
+
+    if not isinstance(instance, Fmi2Slave):
+        raise TypeError(
+            f"The provided class '{class_name}' does not inherit from {Fmi2Slave.__qualname__}"
+        )
+    # Produce the xml
+    return instance.modelName, instance.to_xml()
 
 
 class FmuBuilder:
@@ -96,7 +95,14 @@ class FmuBuilder:
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
-            shutil.copy2(script_file, temp_dir)
+            if script_file.suffix.endswith(".csv"):
+                py_file = temp_dir / (script_file.stem + ".py")
+                with open(py_file, "+w") as f:
+                    f.write(create_csv_slave(script_file))
+                script_file = py_file
+            else:
+                shutil.copy2(script_file, temp_dir)
+
             # Embed pythonfmu in the FMU so it does not need to be included
             dep_folder = temp_dir / "pythonfmu"
             dep_folder.mkdir()
@@ -123,7 +129,7 @@ class FmuBuilder:
                     else:
                         shutil.copy2(file_, temp_dir)
 
-            model_identifier, xml = ModelDescriptionFetcher.get_model_description(
+            model_identifier, xml = get_model_description(
                 temp_dir.absolute() / script_file.name, module_name
             )
 

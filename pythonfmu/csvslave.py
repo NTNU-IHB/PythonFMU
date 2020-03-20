@@ -1,19 +1,21 @@
 from pathlib import Path
+from typing import Union
+FilePath = Union[str, Path]
 
-
-def create(filename):
-    path = Path(filename)
-    classname = path.stem
+def create_csv_slave(csvfile: FilePath):
+    classname = csvfile.stem
+    filename = csvfile.name
     return f"""
-    from .fmi2slave import Fmi2Slave, Fmi2Causality, Fmi2Variability, Real
+from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Fmi2Variability, Real
 import csv
 
+EPS = 1e-6
 
 def lerp(v0: float, v1: float, t: float) -> float:
     return (1 - t) * v0 + t * v1
 
 
-def map(x, in_min, in_max, out_min, out_max):
+def normalize(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
@@ -25,42 +27,43 @@ class {classname}(Fmi2Slave):
         self.current_index = 0
         self.next_index = None
         self.current_time = 0.0
-        values = dict()
+        data = dict()
 
         def read_csv():
-            csvpath = self.resources + '/' + {path.name}
-            with open(csvpath) as csvfile:
-                return csv.reader(csvfile, delimiter=',')
+            with open(self.resources + '/' + "{filename}") as f:
+                return list(csv.reader(f, delimiter=','))
 
-        rows = read_csv().split('\n')
-        headers = rows[0].strip().split(',')
+        rows = read_csv()
+        headers = list(map(lambda h: h.strip(), rows[0]))
         self.times = []
 
         for i in range(1, len(headers)):
             header = headers[i]
-            values[headers[i]] = []
+            data[header] = []
 
-            def getter():
-                current_value = values[header][self.current_index]
-                next_value = values[header][self.next_index]
+            def get_value(header):
+                current_value = data[header][self.current_index]
+                if self.next_index is None:
+                    return current_value
+                next_value = data[header][self.next_index]
 
                 current_value_t = self.times[self.current_index]
                 next_value_t = self.times[self.next_index]
-                t = map(self.current_time, current_value_t, next_value_t, 0, 1)
 
+                t = normalize(self.current_time, current_value_t, next_value_t, 0, 1)
                 return lerp(current_value, next_value, t)
 
             self.register_variable(
                 Real(header,
                      causality=Fmi2Causality.output,
                      variability=Fmi2Variability.constant,
-                     getter=getter()))
+                     getter=lambda header=header: get_value(header)))
 
         for i in range(1, len(rows)):
-            values = rows[i].strip().split(',')
+            values = list(map(lambda x: float(x), rows[i]))
             self.times.append(values[0])
             for j in range(1, len(values)):
-                values[headers[j]].append(values[j])
+                data[headers[j]].append(values[j])
 
         self.register_variable(Real("end_time",
                                     causality=Fmi2Causality.output,
@@ -69,13 +72,16 @@ class {classname}(Fmi2Slave):
 
     def find_indices(self, t, dt):
         current_t = self.times[self.current_index]
-        while current_t <= t:
+        while current_t < t:
             self.current_index += 1
             current_t = self.times[self.current_index]
-
+        if dt == 0:
+            return
         self.next_index = self.current_index +1
         next_t = self.times[self.next_index]
-        while next_t <= t + dt:
+        while next_t < (t + dt):
+            if abs(next_t - (t + dt)) <= EPS:
+                return 
             self.next_index += 1
             next_t = self.times[self.next_index]
 
@@ -84,7 +90,7 @@ class {classname}(Fmi2Slave):
         self.find_indices(start_time, 0)
 
     def do_step(self, current_time: float, step_size: float) -> bool:
-        self.current_time = current_time
+        self.current_time = current_time + step_size
         self.find_indices(current_time, step_size)
         return True
     """
