@@ -252,7 +252,7 @@ def main():
         "project_files",
         metavar="Project files",
         nargs="*",
-        help="Additional project files required by the Python script.",
+        help="Additional project files required by the Python script. Ignored when using CSV input.",
         default=set(),
     )
 
