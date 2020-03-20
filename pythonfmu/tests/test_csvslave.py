@@ -1,8 +1,6 @@
 import pytest
-import unittest
 from pathlib import Path
 
-import pythonfmu
 from pythonfmu.builder import FmuBuilder
 
 DEMO = "csvdemo.csv"
