@@ -22,8 +22,8 @@ ENVIRONMENT_FILES = {
 
 def deploy(
     fmu_file: Union[str, Path],
-    environment_filename: Union[str, Path, None],
-    package_manager: Union[str, PackageManager, None]
+    environment_filename: Union[str, Path, None] = None,
+    package_manager: Union[str, PackageManager, None] = None
 ) -> None:
     """Install Python dependency packages from requirement file shipped within the FMU.
     
@@ -65,7 +65,7 @@ def deploy(
                 else:
                     manager = PackageManager.pip
 
-        with files.open(str(environment), mode='r') as env_file:
+        with files.open(str(environment), mode="r") as env_file:
             env_content = env_file.read()
 
     with TemporaryDirectory() as tmp:
@@ -96,10 +96,9 @@ def main():
     parser = argparse.ArgumentParser(
         prog="pythonfmu-deploy", 
         description="""Deploy a Python FMU.
-        
+
         The command will look in the `resources` folder for one of the following files:
-        - `requirements.txt`: Install dependencies using pip package manager
-        - `environment.yaml`: Update the current environment using the conda package manager
+        `requirements.txt` or `environment.yml`.
 
         If you specify a environment file but no package manager, `conda` will be selected
         for `.yaml` and `.yml` otherwise `pip` will be used.
@@ -119,17 +118,25 @@ def main():
     parser.add_argument(
         "-f",
         "--file",
-        dest="fmu_file",
+        dest="fmu",
         help="Path to the Python FMU.",
-        required=True,
+        required=True
     )
 
     parser.add_argument(
         "-e",
         "--env",
-        dest="env_file",
+        dest="environment",
         help="Requirements or environment file.",
         default=None
     )
 
-    parser.add_argument('pkg_manager', choices=['pip', 'conda'], default=None)
+    parser.add_argument(
+        choices=["pip", "conda"],
+        dest="package_manager",
+        nargs='?',
+        help="Python packages manager"
+    )
+
+    args = parser.parse_args()
+    deploy(args.fmu, args.environment, args.package_manager)
