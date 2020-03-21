@@ -3,14 +3,12 @@ from pathlib import Path
 
 from pythonfmu.builder import FmuBuilder
 
+EPS = 1e-7
 DEMO = "csvdemo.csv"
 
 def test_csvslave(tmp_path):
     fmpy = pytest.importorskip(
         "fmpy", reason="fmpy is not available for testing the produced FMU"
-    )
-    numpy = pytest.importorskip(
-        "numpy", reason="numpy is not available for testing the produced FMU"
     )
 
     csv_file = Path(__file__).parent / DEMO
@@ -42,8 +40,7 @@ def test_csvslave(tmp_path):
     model.exitInitializationMode()
 
     for i in range(1, 6):
-        numpy.allclose(model.getReal(vrs), [1 * i, pow(2, i)])
+        values = model.getReal(vrs)
+        assert values[0] == pytest.approx(i, rel=EPS)
+        assert values[1] == pytest.approx(pow(2, i), rel=EPS)
         step_model()
-
-
-
