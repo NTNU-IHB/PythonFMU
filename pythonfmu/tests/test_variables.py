@@ -59,7 +59,7 @@ def test_ScalarVariable_getter(fmi_type, value):
     fmi_type_name = fmi_type.__qualname__.lower()
 
     slave = Slave(instance_name="slaveInstance")
-    assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
+    assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value]
 
 
 @pytest.mark.parametrize("fmi_type,value", [
@@ -92,12 +92,12 @@ def test_ScalarVariable_setter(fmi_type, value):
 
     set_method = getattr(slave, f"set_{fmi_type_name}")
     set_method([0, ], [value, ])
-    assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value, ]
+    assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value]
 
 
-@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None, ])
-@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None, ])
-@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None, ])
+@pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
+@pytest.mark.parametrize("initial", list(Fmi2Initial) + [None])
+@pytest.mark.parametrize("variability", list(Fmi2Variability) + [None])
 @pytest.mark.parametrize("name, description", [
     ("var", None),
     ("var", "description of var"),
