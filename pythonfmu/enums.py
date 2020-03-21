@@ -31,3 +31,8 @@ class Fmi2Status(IntEnum):
     error = 3
     fatal = 4
 
+
+class PackageManager(Enum):
+    """Enumeration of Python packages manager."""
+    pip = "pip"
+    conda = "conda"
