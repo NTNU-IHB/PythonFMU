@@ -93,7 +93,7 @@ def test_Fmi2Slave_setters(fmi_type, value):
     if type(value) is py_type:
         set_method = getattr(slave, f"set_{fmi_type_name}")
         set_method([0], [value])
-        assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value, ]
+        assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value]
     else:
         set_method = getattr(slave, f"set_{fmi_type_name}")
         with pytest.raises(TypeError):
