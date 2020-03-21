@@ -92,7 +92,7 @@ def test_ScalarVariable_setter(fmi_type, value):
 
     set_method = getattr(slave, f"set_{fmi_type_name}")
     set_method([0, ], [value, ])
-    assert getattr(slave, f"get_{fmi_type_name}")([0, ]) == [value]
+    assert getattr(slave, f"get_{fmi_type_name}")([0]) == [value]
 
 
 @pytest.mark.parametrize("causality", list(Fmi2Causality) + [None])
