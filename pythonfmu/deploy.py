@@ -46,7 +46,7 @@ def deploy(
         if environment_filename is None:
             for spec in ENVIRONMENT_FILES:
                 test = Path("resources") / spec
-                if str(test) in names:
+                if test.as_posix() in names:
                     environment = test
                     manager = manager or ENVIRONMENT_FILES[spec]
                     break
@@ -54,7 +54,7 @@ def deploy(
                 raise ValueError("Unable to find requirement file in the FMU resources folder.")
         else:
             environment = Path("resources") / environment_filename
-            if str(environment) not in names:
+            if environment.as_posix() not in names:
                 raise ValueError(f"Unable to find requirement file {environment_filename!s} in the FMU resources folder.")
 
             if manager is None:
@@ -65,7 +65,7 @@ def deploy(
                 else:
                     manager = PackageManager.pip
 
-        with files.open(str(environment), mode="r") as env_file:
+        with files.open(environment.as_posix(), mode="r") as env_file:
             env_content = env_file.read()
 
     with TemporaryDirectory() as tmp:
