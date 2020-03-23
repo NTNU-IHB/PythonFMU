@@ -1,21 +1,20 @@
 """Python FMU builder"""
+import re
+import sys
 import argparse
 import importlib
 import itertools
 import logging
-import re
 import shutil
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Iterable, Optional, Tuple, Union
+from typing import Tuple, Iterable, Optional, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
 from ._version import __version__
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
-from .csvslave import create_csv_slave
 
 FilePath = Union[str, Path]
 HERE = Path(__file__).parent
@@ -73,11 +72,8 @@ class FmuBuilder:
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
-        if not script_file.suffix.endswith(".py") and not script_file.suffix.endswith(".csv"):
-            raise ValueError(f"File {script_file!s} must have extension '.py' or '.csv'!")
-
-        if script_file.suffix.endswith(".csv"):
-            project_files = {script_file}
+        if not script_file.suffix.endswith(".py"):
+            raise ValueError(f"File {script_file!s} must have extension '.py'!")
 
         dest = Path(dest)
         if not dest.exists():
@@ -95,13 +91,7 @@ class FmuBuilder:
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
-            if script_file.suffix.endswith(".csv"):
-                py_file = temp_dir / (script_file.stem + ".py")
-                with open(py_file, "+w") as f:
-                    f.write(create_csv_slave(script_file))
-                script_file = py_file
-            else:
-                shutil.copy2(script_file, temp_dir)
+            shutil.copy2(script_file, temp_dir)
 
             # Embed pythonfmu in the FMU so it does not need to be included
             dep_folder = temp_dir / "pythonfmu"
@@ -210,7 +200,7 @@ class FmuBuilder:
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="pythonfmu-builder", description="Build an FMU from a Python script or CSV file."
+        prog="pythonfmu-builder", description="Build an FMU from a Python script."
     )
 
     parser.add_argument(
@@ -224,7 +214,7 @@ def main():
         "-f",
         "--file",
         dest="script_file",
-        help="Path to the Python script or CSV file.",
+        help="Path to the Python script.",
         required=True,
     )
 
@@ -252,7 +242,7 @@ def main():
         "project_files",
         metavar="Project files",
         nargs="*",
-        help="Additional project files required by the Python script. Ignored when using CSV input.",
+        help="Additional project files required by the Python script.",
         default=set(),
     )
 
