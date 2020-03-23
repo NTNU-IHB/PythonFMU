@@ -109,7 +109,6 @@ class CsvFmuBuilder:
     def build_FMU(
         csv_file: FilePath,
         dest: FilePath = ".",
-        documentation_folder: Optional[FilePath] = None,
         **options,
     ) -> Path:
 
@@ -118,6 +117,7 @@ class CsvFmuBuilder:
         if not csv_file.suffix.endswith(".csv"):
             raise ValueError(f"File {csv_file!s} must have extension '.csv'!")
 
+        options["dest"] = dest
         options["project_files"] = {csv_file}
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
