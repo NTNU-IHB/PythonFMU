@@ -1,7 +1,7 @@
 import pytest
 from pathlib import Path
 
-from pythonfmu.builder import FmuBuilder
+from pythonfmu.csvbuilder import CsvFmuBuilder
 
 EPS = 1e-7
 DEMO = "csvdemo.csv"
@@ -13,7 +13,7 @@ def test_csvslave(tmp_path):
 
     csv_file = Path(__file__).parent / DEMO
 
-    fmu = FmuBuilder.build_FMU(csv_file, dest=tmp_path)
+    fmu = CsvFmuBuilder.build_FMU(csv_file, dest=tmp_path)
     assert fmu.exists()
 
     model_description = fmpy.read_model_description(fmu)
