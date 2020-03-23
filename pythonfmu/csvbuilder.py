@@ -1,4 +1,3 @@
-"""Python FMU builder"""
 import argparse
 import tempfile
 from pathlib import Path
@@ -28,16 +27,13 @@ class CsvFmuBuilder:
 
         options["project_files"] = {csv_file}
 
-        def build() -> Path:
-            with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
-                temp_dir = Path(tempd)
-                script_file = temp_dir / (csv_file.stem + ".py")
-                with open(script_file, "+w") as f:
-                    f.write(create_csv_slave(csv_file))
-                options["script_file"] = script_file
-                return FmuBuilder.build_FMU(**options)
-
-        return build()
+        with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
+            temp_dir = Path(tempd)
+            script_file = temp_dir / (csv_file.stem + ".py")
+            with open(script_file, "+w") as f:
+                f.write(create_csv_slave(csv_file))
+            options["script_file"] = script_file
+            return FmuBuilder.build_FMU(**options)
 
 
 def main():
