@@ -21,6 +21,11 @@ class CsvFmuBuilder:
         **options,
     ) -> Path:
 
+        if not csv_file.exists():
+            raise ValueError(f"No such file {csv_file!s}")
+        if not csv_file.suffix.endswith(".csv"):
+            raise ValueError(f"File {csv_file!s} must have extension '.csv'!")
+
         options["project_files"] = {csv_file}
 
         def build() -> Path:
