@@ -1,15 +1,15 @@
 """Python FMU builder"""
-import re
-import sys
 import argparse
 import importlib
 import itertools
 import logging
+import re
 import shutil
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Tuple, Iterable, Optional, Union
+from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
