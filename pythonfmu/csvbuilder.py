@@ -149,7 +149,6 @@ class {classname}(Fmi2Slave):
     def do_step(self, current_time: float, step_size: float) -> bool:
         self.current_time = current_time + step_size
         self.find_indices(self.current_time, step_size)
-        print("step")
         return True
     """
 
