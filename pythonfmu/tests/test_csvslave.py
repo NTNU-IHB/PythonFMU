@@ -6,6 +6,7 @@ from pythonfmu.csvbuilder import CsvFmuBuilder
 EPS = 1e-7
 DEMO = "csvdemo.csv"
 
+
 def test_csvslave(tmp_path):
     fmpy = pytest.importorskip(
         "fmpy", reason="fmpy is not available for testing the produced FMU"
@@ -25,7 +26,6 @@ def test_csvslave(tmp_path):
         modelIdentifier=model_description.coSimulation.modelIdentifier,
         instanceName='instance1')
 
-    vrs = [0, 1]
     t = 0.0
     dt = 0.1
 
@@ -39,8 +39,9 @@ def test_csvslave(tmp_path):
     model.enterInitializationMode()
     model.exitInitializationMode()
 
-    for i in range(1, 6):
-        values = model.getReal(vrs)
-        assert values[0] == pytest.approx(i, rel=EPS)
-        assert values[1] == pytest.approx(pow(2, i), rel=EPS)
+    for i in range(1, 5):
+        assert model.getInteger([0])[0] == i
+        assert model.getReal([1])[0] == pytest.approx(pow(2, i), rel=EPS)
+        assert model.getBoolean([2])[0] == i % 2
+        assert model.getString([3])[0].decode("utf-8") == str(i)
         step_model()

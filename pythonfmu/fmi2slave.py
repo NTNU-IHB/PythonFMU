@@ -11,7 +11,7 @@ from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
 from .osutil import get_lib_extension, get_platform
 from ._version import __version__ as VERSION
-from .enums import Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
+from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple("ModelOptions", ["name", "value", "cli"])
