@@ -15,6 +15,7 @@ def create_csv_slave(csv_file: FilePath):
     return f"""
 import re
 import csv
+from math import isclose
 from pythonfmu.fmi2slave import Fmi2Type, Fmi2Slave, Fmi2Causality, Fmi2Variability, Integer, Real, Boolean, String
 
 EPS = 1e-6
@@ -79,9 +80,11 @@ class {classname}(Fmi2Slave):
             with open(self.resources + '/' + "{filename}") as f:
                 return list(csv.reader(f, skipinitialspace=True, delimiter=',', quotechar='"'))
 
-        rows = read_csv()
-        header_row = rows[0]
+        read = read_csv()
+        header_row = read[0]
         headers = list(map(lambda h: Header(h.strip()), header_row[1:len(header_row)]))
+        rows = read[1:len(read)]
+        self.num_rows = len(rows)
         self.times = []
 
         for header in headers:
@@ -105,7 +108,7 @@ class {classname}(Fmi2Slave):
                      variability=Fmi2Variability.constant,
                      getter=lambda header=header: get_value(header)))
 
-        for i in range(1, len(rows)):
+        for i in range(0, self.num_rows):
             row = rows[i]
             self.times.append(float(row[0]))
 
@@ -126,21 +129,13 @@ class {classname}(Fmi2Slave):
                                     getter=lambda: self.times[-1]))
 
     def find_indices(self, t, dt):
-        current_t = self.times[self.current_index]
-        while current_t < t:
-            if abs(current_t - (t)) <= EPS:
-                return 
-            self.current_index += 1
-            current_t = self.times[self.current_index]
-        if dt == 0:
-            return
-        self.next_index = self.current_index +1
+        self.next_index = self.current_index + 1
         next_t = self.times[self.next_index]
-        while next_t < (t + dt):
-            # if abs(next_t - (t + dt)) <= EPS:
-            #     return 
+        while t+dt >= next_t and not isclose(t+dt, next_t, abs_tol=1e-6):
             self.next_index += 1
             next_t = self.times[self.next_index]
+        self.current_index = self.next_index - 1
+        current_t = self.times[self.current_index]
 
     def setup_experiment(self, start_time: float):
         self.current_time = start_time
