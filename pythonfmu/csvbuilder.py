@@ -26,6 +26,7 @@ def lerp(v0: float, v1: float, t: float) -> float:
 
 def normalize(x, in_min, in_max, out_min, out_max):
     x = max(min(x, in_max), in_min)
+    # print(f"x={{x}}, in_min={{in_min}}, in_max={{in_max}}, out_min={{out_min}}, out_max={{out_max}}, ")
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
@@ -54,7 +55,7 @@ TYPE2OBJ = {{
 class Header:
 
     def __init__(self, s):
-        m = re.search(r"\[(.*?)\]", s)
+        m = re.search(r"\\[(.*?)\\]", s)
         if (m):
             g = m.groups()[0]
             self.name = s.replace("[" + g + "]", "")
@@ -74,6 +75,7 @@ class {classname}(Fmi2Slave):
         self.current_index = 0
         self.next_index = None
         self.current_time = 0.0
+        self.interpolate = True
         data = dict()
 
         def read_csv():
@@ -94,8 +96,12 @@ class {classname}(Fmi2Slave):
                 current_value = data[header.name][self.current_index]
                 if self.next_index is None or header.type is not Fmi2Type.real:
                     return current_value
-                next_value = data[header.name][self.next_index]
 
+                next_value = data[header.name][self.next_index]
+                
+                if current_value == next_value:
+                    return current_value
+                
                 current_value_t = self.times[self.current_index]
                 next_value_t = self.times[self.next_index]
 
@@ -123,25 +129,47 @@ class {classname}(Fmi2Slave):
                 elif header.type == Fmi2Type.string:
                     data[header.name].append(row[j])
 
+        self.register_variable(Integer("num_rows",
+                                    causality=Fmi2Causality.output,
+                                    variability=Fmi2Variability.constant))
         self.register_variable(Real("end_time",
                                     causality=Fmi2Causality.output,
                                     variability=Fmi2Variability.constant,
                                     getter=lambda: self.times[-1]))
+        self.register_variable(Boolean("interpolate",
+                                    causality=Fmi2Causality.parameter,
+                                    variability=Fmi2Variability.tunable))
 
-    def find_indices(self, t, dt):
-        self.next_index = self.current_index + 1
-        next_t = self.times[self.next_index]
-        while t+dt >= next_t and not isclose(t+dt, next_t, abs_tol=1e-6):
-            self.next_index += 1
-            next_t = self.times[self.next_index]
-        self.current_index = self.next_index - 1
+    def find_indices(self, t, dt) -> bool:
+
         current_t = self.times[self.current_index]
+        while current_t < t:
+            if self.current_index == self.num_rows-1:
+                break
+            self.current_index += 1
+            current_t = self.times[self.current_index]
+        if current_t > t and not isclose(current_t, t, rel_tol=1e-6):
+            self.current_index -= 1
+            current_t = self.times[self.current_index]
+
+        if self.interpolate and self.current_index <= self.num_rows-2:
+            self.next_index = self.current_index+1
+            next_t = self.times[self.next_index]
+            while t+dt >= next_t and not isclose(t+dt, next_t, abs_tol=1e-6):
+                if self.next_index + 1 < self.num_rows:
+                    self.next_index += 1
+                    next_t = self.times[self.next_index]
+                
+            #print(f"t={{t}}, current_t={{current_t}}, next_t={{next_t}}")
 
     def setup_experiment(self, start_time: float):
         self.current_time = start_time
         self.find_indices(start_time, 0)
 
     def do_step(self, current_time: float, step_size: float) -> bool:
+        #print(f"num_rows={{self.num_rows}}, current_index={{self.current_index}}, next_index={{self.next_index}}")
+        if (self.current_index == self.num_rows):
+            return False
         self.current_time = current_time + step_size
         self.find_indices(self.current_time, step_size)
         return True
