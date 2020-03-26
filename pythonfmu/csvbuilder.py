@@ -58,7 +58,7 @@ class Header:
         m = re.search(r"\\[(.*?)\\]", s)
         if (m):
             g = m.groups()[0]
-            self.name = s.replace("[" + g + "]", "")
+            self.name = s.replace("[" + g + "]", "").rstrip()
             self.type = get_fmi2_type(g)
         else:
             self.name = s
@@ -85,6 +85,7 @@ class {classname}(Fmi2Slave):
         read = read_csv()
         header_row = read[0]
         headers = list(map(lambda h: Header(h.strip()), header_row[1:len(header_row)]))
+        print(headers)
         rows = read[1:len(read)]
         self.num_rows = len(rows)
         self.times = []
