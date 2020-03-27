@@ -37,7 +37,7 @@ def get_fmi2_type(s: str) -> Fmi2Type:
   elif Fmi2Type.string.name in s_lower:
     return Fmi2Type.string
   elif Fmi2Type.enumeration.name in s_lower:
-    raise TypeError("Unsupported type: {{Fmi2Type.enumeration.name}}")
+    raise NotImplementedError("Unsupported type: {{Fmi2Type.enumeration.name}}")
   else:
     raise TypeError("Could not process type from input string: {{s}}")
 
