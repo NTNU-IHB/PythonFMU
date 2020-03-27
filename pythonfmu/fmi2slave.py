@@ -151,11 +151,7 @@ class Fmi2Slave(ABC):
         self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
-        if (
-            var.getter is None
-            or var.setter is None
-            and ScalarVariable.setter_required(var)
-        ):
+        if var.getter is None or (var.setter is None and var.variability != Fmi2Variability.constant):
             owner = self
             if nested and "." in var.name:
                 split = var.name.split(".")
