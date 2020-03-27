@@ -31,7 +31,7 @@ def get_fmi2_type(s: str) -> Fmi2Type:
     for type in Fmi2Type:
         if type.name in s_lower:
             if type == Fmi2Type.enumeration:
-                raise TypeError(f"Unsupported type: {{Fmi2Type.enumeration.name}}")
+                raise NotImplementedError(f"Unsupported type: {{Fmi2Type.enumeration.name}}")
             else:
                 return type
     raise TypeError(f"Could not process type from input string: {{s}}")
