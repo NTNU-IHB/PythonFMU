@@ -15,20 +15,16 @@ def create_csv_slave(csv_file: FilePath):
     return f"""
 import re
 import csv
-from math import isclose
+from math import isclose  # requires >= python 3.5
 from pythonfmu.fmi2slave import Fmi2Type, Fmi2Slave, Fmi2Causality, Fmi2Variability, Integer, Real, Boolean, String
-
-EPS = 1e-6
 
 def lerp(v0: float, v1: float, t: float) -> float:
     return (1 - t) * v0 + t * v1
-
 
 def normalize(x, in_min, in_max, out_min, out_max):
     x = max(min(x, in_max), in_min)
     # print(f"x={{x}}, in_min={{in_min}}, in_max={{in_max}}, out_min={{out_min}}, out_max={{out_max}}, ")
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-
 
 def get_fmi2_type(s: str) -> Fmi2Type:
   s_lower = s.lower()
@@ -41,9 +37,9 @@ def get_fmi2_type(s: str) -> Fmi2Type:
   elif Fmi2Type.string.name in s_lower:
     return Fmi2Type.string
   elif Fmi2Type.enumeration.name in s_lower:
-    raise Exception("Unsupported type: " + Fmi2Type.enumeration.name)
+    raise TypeError("Unsupported type: {{Fmi2Type.enumeration.name}}")
   else:
-    raise Exception("Could not process type from input string: " + s)
+    raise TypeError("Could not process type from input string: {{s}}")
 
 TYPE2OBJ = {{
     Fmi2Type.integer: Integer,
@@ -66,6 +62,7 @@ class Header:
 
     def __repr__(self):
         return "Header(name=" + self.name + ", type=" + self.type.name + ")"
+
 
 class {classname}(Fmi2Slave):
 
@@ -140,8 +137,7 @@ class {classname}(Fmi2Slave):
                                     causality=Fmi2Causality.parameter,
                                     variability=Fmi2Variability.tunable))
 
-    def find_indices(self, t, dt) -> bool:
-
+    def find_indices(self, t, dt):
         current_t = self.times[self.current_index]
         while current_t < t:
             if self.current_index == self.num_rows-1:
@@ -159,15 +155,12 @@ class {classname}(Fmi2Slave):
                 if self.next_index + 1 < self.num_rows:
                     self.next_index += 1
                     next_t = self.times[self.next_index]
-                
-            #print(f"t={{t}}, current_t={{current_t}}, next_t={{next_t}}")
 
     def setup_experiment(self, start_time: float):
         self.current_time = start_time
         self.find_indices(start_time, 0)
 
     def do_step(self, current_time: float, step_size: float) -> bool:
-        #print(f"num_rows={{self.num_rows}}, current_index={{self.current_index}}, next_index={{self.next_index}}")
         if (self.current_index == self.num_rows):
             return False
         self.current_time = current_time + step_size
