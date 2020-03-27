@@ -1,4 +1,4 @@
-t, int [1 INTEGER], real[REAL], bool[BOOLEAN], string [STRING]
+t, submodel.int [1 INTEGER], real[REAL], bool[BOOLEAN], string [STRING]
 0.0, 1, 2.0, true, "1"
 0.1, 2, 4.0, false, "2"
 0.2, 3, 8.0, true, "3"
