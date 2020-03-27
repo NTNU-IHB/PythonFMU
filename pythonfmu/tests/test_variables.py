@@ -236,3 +236,12 @@ def test_String_to_xml(name, start):
     assert len(children) == 1
     if start is not None:
         assert children[0].attrib['start'] == str(start)
+
+@pytest.mark.parametrize("causality, variability, result", [
+    (Fmi2Causality.output, None, False),
+    (Fmi2Causality.input, None, True),
+    (Fmi2Causality.parameter, None, True),
+    (Fmi2Causality.parameter, Fmi2Variability.constant, False)
+])
+def test_setter_required(causality, variability, result):
+    assert ScalarVariable.setter_required(Real("", causality=causality, variability=variability)) == result
