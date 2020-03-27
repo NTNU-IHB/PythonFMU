@@ -52,13 +52,14 @@ class Header:
 
     def __init__(self, s):
         matches = re.findall(r"\\[(.*?)\\]", s)
-        if (matches is not None):
+        if len(matches) > 0:
             match = matches[-1]
             self.name = s.replace("[" + match + "]", "").rstrip()
             self.type = get_fmi2_type(match)
         else:
             self.name = s
             self.type = Fmi2Type.real
+        
 
     def __repr__(self):
         return "Header(name=" + self.name + ", type=" + self.type.name + ")"

@@ -49,10 +49,11 @@ def test_csvslave(tmp_path):
     init_model()
 
     for i in range(1, 6):
-        assert model.getInteger([0])[0] == i
-        assert model.getReal([1])[0] == pytest.approx(pow(2, i), rel=EPS)
-        assert model.getBoolean([2])[0] == i % 2
-        assert model.getString([3])[0].decode("utf-8") == str(i)
+        assert model.getReal([0])[0] == pytest.approx(-1, rel=EPS)
+        assert model.getInteger([1])[0] == i
+        assert model.getReal([2])[0] == pytest.approx(pow(2, i), rel=EPS)
+        assert model.getBoolean([3])[0] == i % 2
+        assert model.getString([4])[0].decode("utf-8") == str(i)
         step_model()
 
     model.reset()
@@ -72,10 +73,11 @@ def test_csvslave(tmp_path):
     excpected_strings = list(map(lambda i: str(i), excpected_ints))
 
     for i in range(0, 11):
-        actual_ints.append(model.getInteger([0])[0])
-        actual_reals.append(model.getReal([1])[0])
-        actual_bools.append(model.getBoolean([2])[0])
-        actual_strings.append(model.getString([3])[0].decode("utf-8"))
+
+        actual_ints.append(model.getInteger([1])[0])
+        actual_reals.append(model.getReal([2])[0])
+        actual_bools.append(model.getBoolean([3])[0])
+        actual_strings.append(model.getString([4])[0].decode("utf-8"))
         step_model()
 
     assert actual_ints == excpected_ints
@@ -94,10 +96,10 @@ def test_csvslave(tmp_path):
     actual_strings.clear()
     excpected_reals = [2.0, 2.0, 4.0, 4.0, 8.0, 8.0, 16.0, 16.0, 32.0, 32.0, 64.0]
     for i in range(0, 11):
-        actual_ints.append(model.getInteger([0])[0])
-        actual_reals.append(model.getReal([1])[0])
-        actual_bools.append(model.getBoolean([2])[0])
-        actual_strings.append(model.getString([3])[0].decode("utf-8"))
+        actual_ints.append(model.getInteger([1])[0])
+        actual_reals.append(model.getReal([2])[0])
+        actual_bools.append(model.getBoolean([3])[0])
+        actual_strings.append(model.getString([4])[0].decode("utf-8"))
         step_model()
 
     assert actual_ints == excpected_ints
