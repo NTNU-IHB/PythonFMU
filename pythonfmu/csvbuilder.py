@@ -85,7 +85,6 @@ class {classname}(Fmi2Slave):
         read = read_csv()
         header_row = read[0]
         headers = list(map(lambda h: Header(h.strip()), header_row[1:len(header_row)]))
-        print(headers)
         rows = read[1:len(read)]
         self.num_rows = len(rows)
         self.times = []
