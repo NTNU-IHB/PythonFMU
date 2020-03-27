@@ -56,7 +56,7 @@ class Header:
         
 
     def __repr__(self):
-        return return f"Header(name={{self.name}}, type={{self.type.name}})"
+        return f"Header(name={{self.name}}, type={{self.type.name}})"
 
 
 class {classname}(Fmi2Slave):
