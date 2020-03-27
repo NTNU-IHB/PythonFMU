@@ -147,6 +147,12 @@ class Fmi2Slave(ABC):
         var.start = refs[0]
 
     def register_variable(self, var: ScalarVariable, nested: bool = True):
+        """Register a variable as FMU interface.
+        
+        Args:
+            var (ScalarVariable): The variable to be registered
+            nested (bool): Optional, does the "." in the variable name reflect an object hierarchy to access it? Default True
+        """
         variable_reference = len(self.vars)
         self.vars[variable_reference] = var
         # Set the unique value reference
@@ -333,4 +339,3 @@ class Fmi2Slave(ABC):
                     c_char_p(msg.encode("utf-8")),
                     c_bool(debug)
                 )
-
