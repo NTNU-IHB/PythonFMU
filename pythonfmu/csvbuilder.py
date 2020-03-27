@@ -21,7 +21,7 @@ from pythonfmu.fmi2slave import Fmi2Type, Fmi2Slave, Fmi2Causality, Fmi2Variabil
 def lerp(v0: float, v1: float, t: float) -> float:
     return (1 - t) * v0 + t * v1
 
-def normalize(x, in_min, in_max, out_min, out_max):
+def normalize(x: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
     x = max(min(x, in_max), in_min)
     # print(f"x={{x}}, in_min={{in_min}}, in_max={{in_max}}, out_min={{out_min}}, out_max={{out_max}}, ")
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
