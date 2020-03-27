@@ -111,6 +111,12 @@ class ScalarVariable(ABC):
                 attrib[key] = str(value.name if isinstance(value, Enum) else value)
         return Element("ScalarVariable", attrib)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}" \
+               f"(name={self.name}, " \
+               f"causality={self.causality}, " \
+               f"variability={self.variability})"
+
 
 class Real(ScalarVariable):
     def __init__(self, name: str, start: Optional[Any] = None, **kwargs):
