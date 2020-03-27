@@ -37,9 +37,9 @@ def get_fmi2_type(s: str) -> Fmi2Type:
   elif Fmi2Type.string.name in s_lower:
     return Fmi2Type.string
   elif Fmi2Type.enumeration.name in s_lower:
-    raise NotImplementedError("Unsupported type: {{Fmi2Type.enumeration.name}}")
+    raise NotImplementedError(f"Unsupported type: {{Fmi2Type.enumeration.name}}")
   else:
-    raise TypeError("Could not process type from input string: {{s}}")
+    raise TypeError(f"Could not process type from input string: {{s}}")
 
 TYPE2OBJ = {{
     Fmi2Type.integer: Integer,
@@ -51,11 +51,11 @@ TYPE2OBJ = {{
 class Header:
 
     def __init__(self, s):
-        m = re.search(r"\\[(.*?)\\]", s)
-        if (m):
-            g = m.groups()[0]
-            self.name = s.replace("[" + g + "]", "").rstrip()
-            self.type = get_fmi2_type(g)
+        matches = re.findall(r"\\[(.*?)\\]", s)
+        if (matches is not None):
+            match = matches[-1]
+            self.name = s.replace("[" + match + "]", "").rstrip()
+            self.type = get_fmi2_type(match)
         else:
             self.name = s
             self.type = Fmi2Type.real
