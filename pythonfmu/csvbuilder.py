@@ -27,18 +27,13 @@ def normalize(x: float, in_min: float, in_max: float, out_min: float, out_max: f
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 def get_fmi2_type(s: str) -> Fmi2Type:
-  s_lower = s.lower()
-  if Fmi2Type.integer.name in s_lower:
-    return Fmi2Type.integer
-  elif Fmi2Type.real.name in s_lower:
-    return Fmi2Type.real
-  elif Fmi2Type.boolean.name in s_lower:
-    return Fmi2Type.boolean
-  elif Fmi2Type.string.name in s_lower:
-    return Fmi2Type.string
-  elif Fmi2Type.enumeration.name in s_lower:
-    raise NotImplementedError(f"Unsupported type: {{Fmi2Type.enumeration.name}}")
-  else:
+    s_lower = s.lower()
+    for type in Fmi2Type:
+        if type.name in s_lower:
+            if type == Fmi2Type.enumeration:
+                raise TypeError(f"Unsupported type: {{Fmi2Type.enumeration.name}}")
+            else:
+                return type
     raise TypeError(f"Could not process type from input string: {{s}}")
 
 TYPE2OBJ = {{
