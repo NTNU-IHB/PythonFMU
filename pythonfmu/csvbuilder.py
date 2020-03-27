@@ -177,7 +177,7 @@ class CsvFmuBuilder:
         dest: FilePath = ".",
         **options,
     ) -> Path:
-
+        csv_file = Path(csv_file)
         if not csv_file.exists():
             raise ValueError(f"No such file {csv_file!s}")
         if not csv_file.suffix.endswith(".csv"):
