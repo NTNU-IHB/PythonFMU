@@ -159,7 +159,7 @@ class Fmi2Slave(ABC):
                 owner = getattr(owner, s)
         if var.getter is None:
             var.getter = lambda: getattr(owner, var.local_name)
-        if var.setter is None and var.variability != Fmi2Variability.constant:
+        if var.setter is None and hasattr(owner, var.local_name) and var.variability != Fmi2Variability.constant:
             var.setter = lambda v: setattr(owner, var.local_name, v)
 
     def setup_experiment(self, start_time: float):
