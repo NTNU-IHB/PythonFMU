@@ -151,17 +151,16 @@ class Fmi2Slave(ABC):
         self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
-        if var.getter is None or (var.setter is None and var.variability != Fmi2Variability.constant):
-            owner = self
-            if nested and "." in var.name:
-                split = var.name.split(".")
-                split.pop(-1)
-                for s in split:
-                    owner = getattr(owner, s)
-            if var.getter is None:
-                var.getter = lambda: getattr(owner, var.local_name)
-            if var.setter is None:
-                var.setter = lambda v: setattr(owner, var.local_name, v)
+        owner = self
+        if nested and "." in var.name:
+            split = var.name.split(".")
+            split.pop(-1)
+            for s in split:
+                owner = getattr(owner, s)
+        if var.getter is None:
+            var.getter = lambda: getattr(owner, var.local_name)
+        if var.setter is None and var.variability != Fmi2Variability.constant:
+            var.setter = lambda v: setattr(owner, var.local_name, v)
 
     def setup_experiment(self, start_time: float):
         pass
