@@ -110,7 +110,7 @@ class {classname}(Fmi2Slave):
                 TYPE2OBJ[header.type](header.name,
                      causality=Fmi2Causality.output,
                      variability=Fmi2Variability.constant,
-                     getter=lambda header=header: get_value(header)))
+                     getter=lambda header=header: get_value(header)), nested=False)
 
         for i in range(0, self.num_rows):
             row = rows[i]
