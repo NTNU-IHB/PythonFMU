@@ -95,8 +95,8 @@ class ScalarVariable(ABC):
     def setter_required(v: 'ScalarVariable') -> bool:
         return (
             v.causality != Fmi2Causality.output
-            or v.causality != Fmi2Causality.calculatedParameter
-            or v.variability != Fmi2Variability.constant
+            and v.causality != Fmi2Causality.calculatedParameter
+            and v.variability != Fmi2Variability.constant
         )
 
     def to_xml(self) -> Element:
