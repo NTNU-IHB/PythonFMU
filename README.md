@@ -1,6 +1,6 @@
 # PythonFMU
 
-> A lightweight framework that enables the packaging of Python 3 code or CSV file as co-simulation FMUs (following FMI version 2.0).
+> A lightweight framework that enables the packaging of Python 3 code or CSV files as co-simulation FMUs (following FMI version 2.0).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
@@ -53,27 +53,23 @@ optional arguments:
 
 ### How do I build an FMU from python code with third-party dependencies?
 
-Often, Python scripts depends on non-builtin libraries like `numpy`, `scipy`,... . _PythonFMU_ does not package a full environment within the FMU. However you can package a `requirements.txt` or `environment.yml` file within your FMU. And using `pythonfmu deploy`, your end user will be able to update is local Python environment. The steps to achieve that:
+Often, Python scripts depends on non-builtin libraries like `numpy`, `scipy`,... . _PythonFMU_ does not package a full environment within the FMU. However you can package a `requirements.txt` or `environment.yml` file within your FMU following these steps:
 
-1. For the FMU builder user:
+1. Install _pythonfmu_ package: `pip install pythonfmu`
+2. Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example).
+3. Create a `requirements.txt` file (to use _pip_ manager) and/or a `environment.yml` file (to use _conda_ manager) that defines your dependencies.
+4. Run `pythonfmu build -f myscript.py requirements.txt` to create the fmu including the dependencies file.
 
-   1. Install _pythonfmu_ package: `pip install pythonfmu`
-   2. Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example).
-   3. Create a `requirements.txt` file (to use _pip_ manager) and/or a `environment.yml` file (to use _conda_ manager) that defines your dependencies.
-   4. Run `pythonfmu build -f myscript.py requirements.txt` to create the fmu including the dependencies file.
+And using `pythonfmu deploy`, your end user will be able to update is local Python environment. The steps to achieve that:
 
-2. For the FMU end user:
-
-   1. Install _pythonfmu_ package: `pip install pythonfmu`
-   2. Be sure to be in the Python environment to be updated. Then execute `pythonfmu deploy -f my.fmu`
+1. Install _pythonfmu_ package: `pip install pythonfmu`
+2. Be sure to be in the Python environment to be updated. Then execute `pythonfmu deploy -f my.fmu`
 
 ```
 usage: pythonfmu deploy [-h] -f FMU [-e ENVIRONMENT] [{pip,conda}]
 
 Deploy a Python FMU. The command will look in the `resources` folder for one of the following files:
-`requirements.txt` or `environment.yml`. If you specify a environment file but no package manager, `conda` will be
-selected for `.yaml` and `.yml` otherwise `pip` will be used. The tool assume the Python environment in which the FMU
-should be executed is the current one.
+`requirements.txt` or `environment.yml`. If you specify a environment file but no package manager, `conda` will be selected for `.yaml` and `.yml` otherwise `pip` will be used. The tool assume the Python environment in which the FMU should be executed is the current one.
 
 positional arguments:
   {pip,conda}           Python packages manager
