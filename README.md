@@ -1,6 +1,6 @@
 # PythonFMU
 
-> A lightweight framework that enables the packaging of Python3.x code as co-simulation FMUs.
+> A lightweight framework that enables the packaging of Python 3 code or CSV files as co-simulation FMUs (following FMI version 2.0).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/NTNU-IHB/PythonFMU/issues)
@@ -11,23 +11,24 @@
 
 [![Gitter](https://badges.gitter.im/NTNU-IHB/FMI4j.svg)](https://gitter.im/NTNU-IHB/PythonFMU?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-
 ### How do I build an FMU from python code?
 
-1) Install `pythonfmu` package:
+1. Install `pythonfmu` package:
+
 ```bash
 pip install pythonfmu
 ```
-2) Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example). 
-3) Run `pythonfmu-builder` to create the fmu.
+
+2. Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example).
+3. Run `pythonfmu build` to create the fmu.
 
 ```
-usage: pythonfmu-builder [-h] -f SCRIPT_FILE [-d DEST] [--doc DOCUMENTATION_FOLDER]
-                         [--no-external-tool] [--no-variable-step] [--interpolate-inputs] [--only-one-per-process]
-                         [--handle-state] [--serialize-state] [--use-memory-management]
-                         [Project files [Project files ...]]
+usage: pythonfmu build [-h] -f SCRIPT_FILE [-d DEST] [--doc DOCUMENTATION_FOLDER] [--no-external-tool]
+                       [--no-variable-step] [--interpolate-inputs] [--only-one-per-process] [--handle-state]
+                       [--serialize-state] [--use-memory-management]
+                       [Project files [Project files ...]]
 
-Build a FMU from a Python script.
+Build an FMU from a Python script.
 
 positional arguments:
   Project files         Additional project files required by the Python script.
@@ -39,7 +40,6 @@ optional arguments:
   -d DEST, --dest DEST  Where to save the FMU.
   --doc DOCUMENTATION_FOLDER
                         Documentation folder to include in the FMU.
-                        
   --no-external-tool    If given, needsExecutionTool=false
   --no-variable-step    If given, canHandleVariableCommunicationStepSize=false
   --interpolate-inputs  If given, canInterpolateInputs=true
@@ -51,9 +51,41 @@ optional arguments:
                         If given, canNotUseMemoryManagementFunctions=false
 ```
 
-##### Example: 
+### How do I build an FMU from python code with third-party dependencies?
 
-###### Write the script
+Often, Python scripts depends on non-builtin libraries like `numpy`, `scipy`, etc.
+_PythonFMU_ does not package a full environment within the FMU.
+However you can package a `requirements.txt` or `environment.yml` file within your FMU following these steps:
+
+1. Install _pythonfmu_ package: `pip install pythonfmu`
+2. Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example).
+3. Create a `requirements.txt` file (to use _pip_ manager) and/or a `environment.yml` file (to use _conda_ manager) that defines your dependencies.
+4. Run `pythonfmu build -f myscript.py requirements.txt` to create the fmu including the dependencies file.
+
+And using `pythonfmu deploy`, end users will be able to update their local Python environment. The steps to achieve that:
+
+1. Install _pythonfmu_ package: `pip install pythonfmu`
+2. Be sure to be in the Python environment to be updated. Then execute `pythonfmu deploy -f my.fmu`
+
+```
+usage: pythonfmu deploy [-h] -f FMU [-e ENVIRONMENT] [{pip,conda}]
+
+Deploy a Python FMU. The command will look in the `resources` folder for one of the following files:
+`requirements.txt` or `environment.yml`. If you specify a environment file but no package manager, `conda` will be selected for `.yaml` and `.yml` otherwise `pip` will be used. The tool assume the Python environment in which the FMU should be executed is the current one.
+
+positional arguments:
+  {pip,conda}           Python packages manager
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FMU, --file FMU    Path to the Python FMU.
+  -e ENVIRONMENT, --env ENVIRONMENT
+                        Requirements or environment file.
+```
+
+### Example:
+
+#### Write the script
 
 ```python
 
@@ -82,14 +114,14 @@ class PythonSlave(Fmi2Slave):
 
 ```
 
-###### Create the FMU 
+#### Create the FMU
 
 ```
-pythonfmu-builder -f pythonslave.py myproject
+pythonfmu build -f pythonslave.py myproject
 ```
 
 In this example a python class named `PythonSlave` that extends `Fmi2Slave` is declared in a file named `pythonslave.py`,
-where `myproject` is an optional folder containing additional project files required by the python script. 
+where `myproject` is an optional folder containing additional project files required by the python script.
 Project folders such as this will be recursively copied into the FMU. Multiple project files/folders may be added.
 
 ### Test it online
@@ -98,20 +130,19 @@ Project folders such as this will be recursively copied into the FMU. Multiple p
 
 ### Note
 
-PythonFMU does not bundle Python, which makes it a tool coupling solution. 
-This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries). 
+PythonFMU does not bundle Python, which makes it a tool coupling solution.
+This means that you can not expect the generated FMU to work on a different system (The system would need a compatible Python version and libraries).
 But to ease its usage the wrapper uses the limited Python API, making the pre-built binaries for Linux and Windows 64-bits
 compatible with any Python 3 environment. If you need to compile the wrapper for a specific configuration,
-you will need CMake and a C++ compiler. The commands for building the wrapper on Linux and on Windows can be seen in 
+you will need CMake and a C++ compiler. The commands for building the wrapper on Linux and on Windows can be seen in
 the [GitHub workflow](./.github/workflows/main.yml).
 
 PythonFMU does not automatically resolve 3rd party dependencies. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
-***
+---
 
 Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)!  
-Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue! 
-
+Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue!
 
 ### Credits
 
