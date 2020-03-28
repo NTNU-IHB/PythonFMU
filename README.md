@@ -53,14 +53,16 @@ optional arguments:
 
 ### How do I build an FMU from python code with third-party dependencies?
 
-Often, Python scripts depends on non-builtin libraries like `numpy`, `scipy`,... . _PythonFMU_ does not package a full environment within the FMU. However you can package a `requirements.txt` or `environment.yml` file within your FMU following these steps:
+Often, Python scripts depends on non-builtin libraries like `numpy`, `scipy`, etc.
+_PythonFMU_ does not package a full environment within the FMU.
+However you can package a `requirements.txt` or `environment.yml` file within your FMU following these steps:
 
 1. Install _pythonfmu_ package: `pip install pythonfmu`
 2. Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example).
 3. Create a `requirements.txt` file (to use _pip_ manager) and/or a `environment.yml` file (to use _conda_ manager) that defines your dependencies.
 4. Run `pythonfmu build -f myscript.py requirements.txt` to create the fmu including the dependencies file.
 
-And using `pythonfmu deploy`, your end user will be able to update is local Python environment. The steps to achieve that:
+And using `pythonfmu deploy`, end users will be able to update their local Python environment. The steps to achieve that:
 
 1. Install _pythonfmu_ package: `pip install pythonfmu`
 2. Be sure to be in the Python environment to be updated. Then execute `pythonfmu deploy -f my.fmu`
