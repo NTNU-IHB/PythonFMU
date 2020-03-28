@@ -40,10 +40,10 @@ scipy
     with patch("subprocess.run") as run:
         if isinstance(expected, type) and issubclass(expected, Exception):
             with pytest.raises(expected):
-                deploy(fmu, environment_filename=test_requirements, package_manager=test_manager)
+                deploy(fmu, environment=test_requirements, package_manager=test_manager)
             run.assert_not_called()
         else:
-            deploy(fmu, environment_filename=test_requirements, package_manager=test_manager)
+            deploy(fmu, environment=test_requirements, package_manager=test_manager)
 
             run.assert_called_once()
             assert (test_manager or expected) in " ".join(run.call_args[0][0])
