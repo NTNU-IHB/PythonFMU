@@ -11,7 +11,7 @@ from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
 from .osutil import get_lib_extension, get_platform
 from ._version import __version__ as VERSION
-from .enums import Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
+from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple("ModelOptions", ["name", "value", "cli"])
@@ -146,26 +146,27 @@ class Fmi2Slave(ABC):
 
         var.start = refs[0]
 
-    def register_variable(self, var: ScalarVariable):
+    def register_variable(self, var: ScalarVariable, nested: bool = True):
+        """Register a variable as FMU interface.
+        
+        Args:
+            var (ScalarVariable): The variable to be registered
+            nested (bool): Optional, does the "." in the variable name reflect an object hierarchy to access it? Default True
+        """
         variable_reference = len(self.vars)
         self.vars[variable_reference] = var
         # Set the unique value reference
         var.value_reference = variable_reference
-        if (
-            var.getter is None
-            or var.setter is None
-            and ScalarVariable.setter_required(var)
-        ):
-            owner = self
-            if "." in var.name:
-                split = var.name.split(".")
-                split.pop(-1)
-                for s in split:
-                    owner = getattr(owner, s)
-            if var.getter is None:
-                var.getter = lambda: getattr(owner, var.local_name)
-            if var.setter is None and ScalarVariable.setter_required(var):
-                var.setter = lambda v: setattr(owner, var.local_name, v)
+        owner = self
+        if nested and "." in var.name:
+            split = var.name.split(".")
+            split.pop(-1)
+            for s in split:
+                owner = getattr(owner, s)
+        if var.getter is None:
+            var.getter = lambda: getattr(owner, var.local_name)
+        if var.setter is None and hasattr(owner, var.local_name) and var.variability != Fmi2Variability.constant:
+            var.setter = lambda v: setattr(owner, var.local_name, v)
 
     def setup_experiment(self, start_time: float):
         pass
@@ -283,7 +284,9 @@ class Fmi2Slave(ABC):
             if name not in vars_by_name:
                 setattr(self, name, value)
             else:
-                vars_by_name[name].setter(value)
+                v = vars_by_name[name]
+                if v.setter is not None:
+                    v.setter(value)
 
     @staticmethod
     def _fmu_state_to_bytes(state: Dict[str, Any]) -> bytes:
@@ -336,4 +339,3 @@ class Fmi2Slave(ABC):
                     c_char_p(msg.encode("utf-8")),
                     c_bool(debug)
                 )
-

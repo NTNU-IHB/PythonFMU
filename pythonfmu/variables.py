@@ -91,14 +91,6 @@ class ScalarVariable(ABC):
             or v.variability == Fmi2Variability.constant
         )
 
-    @staticmethod
-    def setter_required(v: 'ScalarVariable') -> bool:
-        return (
-            v.causality != Fmi2Causality.output
-            or v.causality != Fmi2Causality.calculatedParameter
-            or v.variability != Fmi2Variability.constant
-        )
-
     def to_xml(self) -> Element:
         """Convert the variable to XML node.
 
@@ -110,6 +102,12 @@ class ScalarVariable(ABC):
             if value is not None:
                 attrib[key] = str(value.name if isinstance(value, Enum) else value)
         return Element("ScalarVariable", attrib)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}" \
+               f"(name={self.name}, " \
+               f"causality={self.causality}, " \
+               f"variability={self.variability})"
 
 
 class Real(ScalarVariable):

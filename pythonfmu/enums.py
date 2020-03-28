@@ -2,6 +2,14 @@
 from enum import Enum, IntEnum
 
 
+class Fmi2Type(Enum):
+    integer = 0
+    real = 1
+    boolean = 2
+    string = 3
+    enumeration = 4
+
+
 class Fmi2Causality(Enum):
     parameter = 0
     calculatedParameter = 1

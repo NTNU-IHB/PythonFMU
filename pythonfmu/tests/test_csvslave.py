@@ -6,6 +6,7 @@ from pythonfmu.csvbuilder import CsvFmuBuilder
 EPS = 1e-7
 DEMO = "csvdemo.csv"
 
+
 def test_csvslave(tmp_path):
     fmpy = pytest.importorskip(
         "fmpy", reason="fmpy is not available for testing the produced FMU"
@@ -25,22 +26,84 @@ def test_csvslave(tmp_path):
         modelIdentifier=model_description.coSimulation.modelIdentifier,
         instanceName='instance1')
 
-    vrs = [0, 1]
+    interpolate_var = list(filter(
+        lambda var: var.name == "interpolate", model_description.modelVariables
+    ))[0]
+
     t = 0.0
     dt = 0.1
+
+    def init_model(interpolate=True):
+        model.instantiate()
+        if not interpolate:
+            model.setBoolean([interpolate_var.valueReference], [False])
+        model.setupExperiment()
+        model.enterInitializationMode()
+        model.exitInitializationMode()
 
     def step_model():
         nonlocal t
         model.doStep(t, dt)
         t += dt
 
-    model.instantiate()
-    model.setupExperiment()
-    model.enterInitializationMode()
-    model.exitInitializationMode()
+    init_model()
 
     for i in range(1, 6):
-        values = model.getReal(vrs)
-        assert values[0] == pytest.approx(i, rel=EPS)
-        assert values[1] == pytest.approx(pow(2, i), rel=EPS)
+        assert model.getReal([0])[0] == pytest.approx(-1, rel=EPS)
+        assert model.getInteger([1])[0] == i
+        assert model.getReal([2])[0] == pytest.approx(pow(2, i), rel=EPS)
+        assert model.getBoolean([3])[0] == i % 2
+        assert model.getString([4])[0].decode("utf-8") == str(i)
         step_model()
+
+    model.reset()
+    init_model()
+
+    t = 0.0
+    dt = 0.05
+
+    actual_ints = []
+    actual_reals = []
+    actual_bools = []
+    actual_strings = []
+
+    excpected_ints = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6]
+    excpected_reals = [2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0, 32.0, 48.0, 64.0]
+    excpected_bools = [True, True, False, False, True, True, False, False, True, True, False]
+    excpected_strings = list(map(lambda i: str(i), excpected_ints))
+
+    for i in range(0, 11):
+
+        actual_ints.append(model.getInteger([1])[0])
+        actual_reals.append(model.getReal([2])[0])
+        actual_bools.append(model.getBoolean([3])[0])
+        actual_strings.append(model.getString([4])[0].decode("utf-8"))
+        step_model()
+
+    assert actual_ints == excpected_ints
+    for i in range(0, len(actual_reals)):
+        assert actual_reals[i] == pytest.approx(excpected_reals[i], rel=EPS)
+    assert actual_bools == excpected_bools
+    assert actual_strings == excpected_strings
+
+    model.reset()
+    init_model(False)
+
+    t = 0.0
+    actual_ints.clear()
+    actual_reals.clear()
+    actual_bools.clear()
+    actual_strings.clear()
+    excpected_reals = [2.0, 2.0, 4.0, 4.0, 8.0, 8.0, 16.0, 16.0, 32.0, 32.0, 64.0]
+    for i in range(0, 11):
+        actual_ints.append(model.getInteger([1])[0])
+        actual_reals.append(model.getReal([2])[0])
+        actual_bools.append(model.getBoolean([3])[0])
+        actual_strings.append(model.getString([4])[0].decode("utf-8"))
+        step_model()
+
+    assert actual_ints == excpected_ints
+    for i in range(0, len(actual_reals)):
+        assert actual_reals[i] == pytest.approx(excpected_reals[i], rel=EPS)
+    assert actual_bools == excpected_bools
+    assert actual_strings == excpected_strings
