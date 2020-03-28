@@ -13,7 +13,6 @@ from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
-from ._version import __version__
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
 
 FilePath = Union[str, Path]
@@ -198,24 +197,13 @@ class FmuBuilder:
         return src_binaries.exists() and len(list(src_binaries.glob(f"*.{lib_ext}"))) >= 1
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog="pythonfmu-builder", description="Build an FMU from a Python script."
-    )
-
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=__version__
-    )
-
+def create_command_parser(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-f",
         "--file",
         dest="script_file",
         help="Path to the Python script.",
-        required=True,
+        required=True
     )
 
     parser.add_argument(
@@ -226,7 +214,7 @@ def main():
         "--doc",
         dest="documentation_folder",
         help="Documentation folder to include in the FMU.",
-        default=None,
+        default=None
     )
 
     for option in FMI2_MODEL_OPTIONS:
@@ -243,8 +231,7 @@ def main():
         metavar="Project files",
         nargs="*",
         help="Additional project files required by the Python script.",
-        default=set(),
+        default=set()
     )
 
-    options = vars(parser.parse_args())
-    FmuBuilder.build_FMU(**options)
+    parser.set_defaults(execute=FmuBuilder.build_FMU)

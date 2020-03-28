@@ -8,7 +8,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Union
 
-from ._version import __version__
 from .enums import PackageManager
 
 
@@ -21,57 +20,57 @@ ENVIRONMENT_FILES = {
 
 
 def deploy(
-    fmu_file: Union[str, Path],
-    environment_filename: Union[str, Path, None] = None,
+    fmu: Union[str, Path],
+    environment: Union[str, Path, None] = None,
     package_manager: Union[str, PackageManager, None] = None
 ) -> None:
     """Install Python dependency packages from requirement file shipped within the FMU.
     
     Args:
-        fmu_file (str or pathlib.Path) : FMU file path
-        environment_filename (str or pathlib.Path) : optional, requirements file within the `resources` folder of the FMU
+        fmu (str or pathlib.Path) : FMU file path
+        environment (str or pathlib.Path) : optional, requirements file within the `resources` folder of the FMU
         package_manager (str) : optional, Python package manager
     """
-    fmu_file = Path(fmu_file)
+    fmu = Path(fmu)
     manager = None
     if package_manager is not None:
         manager = PackageManager(package_manager)
 
     env_content = None
-    environment = None
-    with zipfile.ZipFile(fmu_file) as files:
+    environment_file = None
+    with zipfile.ZipFile(fmu) as files:
         names = files.namelist()
 
-        environment = None
-        if environment_filename is None:
+        environment_file = None
+        if environment is None:
             for spec in ENVIRONMENT_FILES:
                 test = Path("resources") / spec
                 if test.as_posix() in names:
-                    environment = test
+                    environment_file = test
                     manager = manager or ENVIRONMENT_FILES[spec]
                     break
-            if environment is None:
+            if environment_file is None:
                 raise ValueError("Unable to find requirement file in the FMU resources folder.")
         else:
-            environment = Path("resources") / environment_filename
-            if environment.as_posix() not in names:
-                raise ValueError(f"Unable to find requirement file {environment_filename!s} in the FMU resources folder.")
+            environment_file = Path("resources") / environment
+            if environment_file.as_posix() not in names:
+                raise ValueError(f"Unable to find requirement file {environment!s} in the FMU resources folder.")
 
             if manager is None:
-                if environment_filename in ENVIRONMENT_FILES:
-                    manager = ENVIRONMENT_FILES[environment_filename]
-                elif environment_filename.endswith(".yaml") or environment_filename.endswith(".yml"):
+                if environment in ENVIRONMENT_FILES:
+                    manager = ENVIRONMENT_FILES[environment]
+                elif environment.endswith(".yaml") or environment.endswith(".yml"):
                     manager = PackageManager.conda
                 else:
                     manager = PackageManager.pip
 
-        with files.open(environment.as_posix(), mode="r") as env_file:
+        with files.open(environment_file.as_posix(), mode="r") as env_file:
             env_content = env_file.read()
 
     with TemporaryDirectory() as tmp:
         tempd = Path(tmp)
 
-        copy_env = tempd / environment.name
+        copy_env = tempd / environment_file.name
         copy_env.write_bytes(env_content)
 
         if manager == PackageManager.pip:
@@ -91,29 +90,7 @@ def deploy(
             )
 
 
-def main():
-
-    parser = argparse.ArgumentParser(
-        prog="pythonfmu-deploy", 
-        description="""Deploy a Python FMU.
-
-        The command will look in the `resources` folder for one of the following files:
-        `requirements.txt` or `environment.yml`.
-
-        If you specify a environment file but no package manager, `conda` will be selected
-        for `.yaml` and `.yml` otherwise `pip` will be used.
-
-        The tool assume the Python environment in which the FMU should be executed
-        is the current one.
-        """
-    )
-
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=__version__
-    )
+def create_command_parser(parser: argparse.ArgumentParser):
 
     parser.add_argument(
         "-f",
@@ -138,5 +115,4 @@ def main():
         help="Python packages manager"
     )
 
-    args = parser.parse_args()
-    deploy(args.fmu, args.environment, args.package_manager)
+    parser.set_defaults(execute=deploy)

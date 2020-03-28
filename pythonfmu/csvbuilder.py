@@ -2,7 +2,6 @@ import argparse
 import tempfile
 from pathlib import Path
 from typing import Union
-from ._version import __version__
 from .fmi2slave import FMI2_MODEL_OPTIONS
 from .builder import FmuBuilder
 
@@ -10,7 +9,7 @@ FilePath = Union[str, Path]
 
 
 def create_csv_slave(csv_file: FilePath):
-    classname = csv_file.stem
+    classname = csv_file.stem.capitalize()
     filename = csv_file.name
     return f"""
 import re
@@ -190,24 +189,14 @@ class CsvFmuBuilder:
             return FmuBuilder.build_FMU(**options)
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog="pythonfmu-csvbuilder", description="Build an FMU from a Python script or CSV file."
-    )
-
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=__version__
-    )
+def create_command_parser(parser: argparse.ArgumentParser):
 
     parser.add_argument(
         "-f",
         "--file",
         dest="script_file",
         help="Path to the CSV file.",
-        required=True,
+        required=True
     )
 
     parser.add_argument(
@@ -218,7 +207,7 @@ def main():
         "--doc",
         dest="documentation_folder",
         help="Documentation folder to include in the FMU.",
-        default=None,
+        default=None
     )
 
     for option in FMI2_MODEL_OPTIONS:
@@ -230,5 +219,4 @@ def main():
             action=action
         )
 
-    options = vars(parser.parse_args())
-    CsvFmuBuilder.build_FMU(**options)
+    parser.set_defaults(execute=CsvFmuBuilder.build_FMU)
