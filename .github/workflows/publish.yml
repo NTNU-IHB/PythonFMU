@@ -42,7 +42,7 @@ jobs:
           path: pythonfmu/resources
 
   deploy:
-    needs: build-wrapper
+    needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
