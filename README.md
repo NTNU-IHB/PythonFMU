@@ -109,8 +109,9 @@ class PythonSlave(Fmi2Slave):
         self.register_variable(Boolean("booleanVariable", causality=Fmi2Causality.local))
         self.register_variable(String("stringVariable", causality=Fmi2Causality.local))
         
+        # Note:
         # it is also possible to explicitly define getters and setters as lambdas in case the variable is not backed by a Python field.
-        # self.register_variable(Real("myReal", causality=Fmi2Causality.output, getter=lambda self.realOut, setter=lambda v: self.realOut = v))
+        # self.register_variable(Real("myReal", causality=Fmi2Causality.output, getter=lambda: self.realOut, setter=lambda v: self.realOut = v))
 
     def do_step(self, current_time, step_size):
         return True
