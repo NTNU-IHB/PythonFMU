@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python 3.x
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
           architecture: 'x64'
@@ -36,7 +36,7 @@ jobs:
           cmake --build . --config Release
           cd ..
       - name: Archive wrapper library
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: lib-wrapper
           path: pythonfmu/resources
@@ -47,11 +47,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: '3.x'
     - name: Download wrappers
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v2
       with:
         name: lib-wrapper
         path: pythonfmu/resources        
