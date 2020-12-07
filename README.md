@@ -148,6 +148,10 @@ PythonFMU does not automatically resolve 3rd party dependencies. If your code in
 Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)!  
 Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy) to the rescue!
 
+### Publications
+
+[Hatledal, Lars Ivar, Frédéric Collonval, and Houxiang Zhang. "Enabling python driven co-simulation models with PythonFMU." Proceedings of the 34th International ECMS-Conference on Modelling and Simulation-ECMS 2020. ECMS European Council for Modelling and Simulation, 2020.](https://doi.org/10.7148/2020-0235)
+
 ### Credits
 
 This works has been possible thanks to the contributions of @markaren from NTNU-IHB and @fcollonval from Safran SA.
