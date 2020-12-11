@@ -49,7 +49,6 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
     , resources_(std::move(resources))
     , logger_(logger)
     , visible_(visible)
-
 {
     py_safe_run([this](PyGILState_STATE gilState) {
         // Append resources path to python sys path
@@ -96,9 +95,36 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
     });
 }
 
+void PySlaveInstance::clearLogBuffer()
+{
+    py_safe_run([this](PyGILState_STATE gilState) {
+
+        PyObject* debugField = Py_BuildValue("s", "debug");
+        PyObject* msgField = Py_BuildValue("s", "msg");
+        PyObject* categoryField = Py_BuildValue("s", "categoryField");
+
+        auto size = PyList_Size(pMessages_);
+        for (auto i = 0; i < size; i++) {
+            PyObject* msg = PyList_GetItem(pMessages_, i);
+            auto debugAttr = PyObject_GetAttr(msg, debugField);
+            auto msgAttr = PyObject_GetAttr(msg, msgField);
+            auto categoryAttr = PyObject_GetAttr(msg, categoryField);
+            if (PyObject_IsTrue(debugAttr)) {
+
+            } else {
+
+            }
+            Py_DECREF(debugField);
+            Py_DECREF(msgField);
+            Py_DECREF(categoryField);
+        }
+    });
+}
+
 void PySlaveInstance::initialize(PyGILState_STATE gilState)
 {
     Py_XDECREF(pInstance_);
+    Py_XDECREF(pMessages_);
 
     PyObject* args = PyTuple_New(0);
     PyObject* kwargs = Py_BuildValue("{ss,ss,sL,si}",
@@ -112,6 +138,7 @@ void PySlaveInstance::initialize(PyGILState_STATE gilState)
     if (pInstance_ == nullptr) {
         handle_py_exception("[initialize] PyObject_Call", gilState);
     }
+    pMessages_ = PyObject_CallMethod(pInstance_, "log_queue", nullptr);
 }
 
 void PySlaveInstance::SetupExperiment(cppfmu::FMIBoolean, cppfmu::FMIReal, cppfmu::FMIReal startTime, cppfmu::FMIBoolean, cppfmu::FMIReal)
