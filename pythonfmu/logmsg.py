@@ -6,3 +6,9 @@ class LogMsg:
         self.category = category
         self.msg = msg
         self.debug = debug
+
+    def __str__(self) -> str:
+        return "LogMsg(status={}, category={}, msg={}, debug={}".format(self.status, self.category, self.msg, self.debug)
+
+
+

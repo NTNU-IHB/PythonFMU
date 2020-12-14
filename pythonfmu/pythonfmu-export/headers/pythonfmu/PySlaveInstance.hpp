@@ -44,14 +44,14 @@ public:
     void SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte bytes[], size_t size) override;
     void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) override;
 
-    void clearLogBuffer();
+    void clearLogBuffer() const;
 
     ~PySlaveInstance() override;
 
 private:
     PyObject* pClass_;
-    PyObject* pInstance_;
-    PyObject* pMessages_;
+    PyObject* pInstance_{};
+    PyObject* pMessages_{};
 
     const bool visible_;
     const std::string instanceName_;
@@ -75,6 +75,7 @@ private:
     inline void cleanPyObject() const
     {
         clearStrBuffer();
+        clearLogBuffer();
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
         Py_XDECREF(pMessages_);

@@ -313,5 +313,9 @@ class Fmi2Slave(ABC):
             category (str or None) : Optional, message category (default derived from status)
             debug (bool) : Optional, is this a debug message (default False)
         """
-
-        self.log_queue.append(LogMsg(status, category, msg, debug))
+        if category is None:
+            category = f"logStatus{status.name.capitalize()}"
+            if category not in self.log_categories:
+                category = "logAll"
+        log_msg = LogMsg(status, category, msg, debug)
+        self.log_queue.append(log_msg)
