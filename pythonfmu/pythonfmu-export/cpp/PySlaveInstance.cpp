@@ -97,7 +97,7 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
 
 void PySlaveInstance::clearLogBuffer() const
 {
-    clearStrBuffer();
+    clearLogStrBuffer();
 
     PyObject* debugField = Py_BuildValue("s", "debug");
     PyObject* msgField = Py_BuildValue("s", "msg");
@@ -117,13 +117,13 @@ void PySlaveInstance::clearLogBuffer() const
 
         PyObject* msgValue = PyUnicode_AsEncodedString(msgAttr, "utf-8", nullptr);
         char* msgStr = PyBytes_AsString(msgValue);
-        strBuffer.emplace_back(msgValue);
+        logStrBuffer.emplace_back(msgValue);
 
         const char* categoryStr = "";
         if (categoryAttr != Py_None) {
             PyObject* categoryValue = PyUnicode_AsEncodedString(categoryAttr, "utf-8", nullptr);
             categoryStr = PyBytes_AsString(categoryValue);
-            strBuffer.emplace_back(categoryValue);
+            logStrBuffer.emplace_back(categoryValue);
         }
 
         if (PyObject_IsTrue(debugAttr)) {

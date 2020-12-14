@@ -59,6 +59,7 @@ private:
     const cppfmu::Logger& logger_;
 
     mutable std::vector<PyObject*> strBuffer;
+    mutable std::vector<PyObject*> logStrBuffer;
 
     void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const;
 
@@ -72,9 +73,20 @@ private:
         }
     }
 
+    inline void clearLogStrBuffer() const
+    {
+        if (!logStrBuffer.empty()) {
+            for (auto obj : logStrBuffer) {
+                Py_DECREF(obj);
+            }
+            logStrBuffer.clear();
+        }
+    }
+
     inline void cleanPyObject() const
     {
         clearLogBuffer();
+        clearLogStrBuffer();
         clearStrBuffer();
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
