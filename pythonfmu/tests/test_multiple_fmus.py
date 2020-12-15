@@ -31,7 +31,7 @@ class Slave1(Fmi2Slave):
         self.register_variable(Real("realOut", causality=Fmi2Causality.output))
 
     def do_step(self, current_time, step_size):
-#        self.log("Do step on Slave1.")  # Error raised with this line when the FMU is deleted - on Windows at least
+        self.log("Do step on Slave1.")
         self.realOut = self.realIn * 5.0 * (1.0 - math.exp(-1.0 * (current_time + step_size) / 0.1))
         return True
 """
@@ -50,7 +50,7 @@ class Slave2(Fmi2Slave):
         self.register_variable(Real("realOut", causality=Fmi2Causality.output))
 
     def do_step(self, current_time, step_size):
-#        self.log("Do step on Slave2.")  # Error raised with this line when the FMU is deleted - on Windows at least
+        self.log("Do step on Slave2.")
         self.realOut = -2.0 * self.realIn
         return True
 """
