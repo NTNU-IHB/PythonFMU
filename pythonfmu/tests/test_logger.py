@@ -161,7 +161,7 @@ class {name}(Fmi2Slave):
         category = f"logStatus{c[1].name.capitalize()}"
         if category not in Fmi2Slave.log_categories:
             category = "logAll"
-        if len(categories) == 0  or category in categories:
+        if len(categories) == 0 or category in categories:
             expected_calls.append(call(
                 logger.call_args[0][0],  # Don't test the first argument
                 b'instance1',
@@ -169,7 +169,7 @@ class {name}(Fmi2Slave):
                 bytes(category, encoding="utf-8"),
                 bytes(c[0], encoding="utf-8")
             ))
-    
+
     n_calls = len(Fmi2Status) if len(categories) == 0 else len(categories)
 
     assert logger.call_count == n_calls * (1 + int(debug_logging))

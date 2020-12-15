@@ -47,7 +47,6 @@ endif ()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers)
 
 set(sources
-        cpp/pylog.cpp
         cpp/cppfmu_cs.cpp
         cpp/fmi_functions.cpp
         cpp/PySlaveInstance.cpp

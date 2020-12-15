@@ -44,11 +44,14 @@ public:
     void SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte bytes[], size_t size) override;
     void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) override;
 
+    void clearLogBuffer() const;
+
     ~PySlaveInstance() override;
 
 private:
     PyObject* pClass_;
-    PyObject* pInstance_;
+    PyObject* pInstance_{};
+    PyObject* pMessages_{};
 
     const bool visible_;
     const std::string instanceName_;
@@ -56,10 +59,12 @@ private:
     const cppfmu::Logger& logger_;
 
     mutable std::vector<PyObject*> strBuffer;
+    mutable std::vector<PyObject*> logStrBuffer;
 
     void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const;
 
-    inline void clearStrBuffer() const {
+    inline void clearStrBuffer() const
+    {
         if (!strBuffer.empty()) {
             for (auto obj : strBuffer) {
                 Py_DECREF(obj);
@@ -68,13 +73,25 @@ private:
         }
     }
 
+    inline void clearLogStrBuffer() const
+    {
+        if (!logStrBuffer.empty()) {
+            for (auto obj : logStrBuffer) {
+                Py_DECREF(obj);
+            }
+            logStrBuffer.clear();
+        }
+    }
+
     inline void cleanPyObject() const
     {
+        clearLogBuffer();
+        clearLogStrBuffer();
         clearStrBuffer();
         Py_XDECREF(pClass_);
         Py_XDECREF(pInstance_);
+        Py_XDECREF(pMessages_);
     }
-
 };
 
 } // namespace pythonfmu

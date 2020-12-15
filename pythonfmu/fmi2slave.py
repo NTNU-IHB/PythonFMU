@@ -9,6 +9,7 @@ from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
 from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
+from .logmsg import LogMsg
 from .osutil import get_lib_extension, get_platform
 from ._version import __version__ as VERSION
 from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
@@ -51,10 +52,8 @@ class Fmi2Slave(ABC):
         self.vars = OrderedDict()
         self.instance_name = kwargs["instance_name"]
         self.resources = kwargs.get("resources", None)
-        self.logger = kwargs.get("logger", None)
         self.visible = kwargs.get("visible", False)
-        self.__lib = None
-        self.__lib_error = False
+        self.log_queue = []
 
         if self.__class__.modelName is None:
             self.__class__.modelName = self.__class__.__name__
@@ -296,6 +295,9 @@ class Fmi2Slave(ABC):
     def _fmu_state_from_bytes(state: bytes) -> Dict[str, Any]:
         return json.loads(state.decode("utf-8"))
 
+    def _get_log_queue(self):
+        return self.log_queue
+
     def log(
         self,
         msg: str,
@@ -311,31 +313,9 @@ class Fmi2Slave(ABC):
             category (str or None) : Optional, message category (default derived from status)
             debug (bool) : Optional, is this a debug message (default False)
         """
-        if self.logger is not None and self.resources is not None:
-            if self.__lib is None and not self.__lib_error:
-                library_path = (
-                    Path(self.resources).parent
-                    / "binaries"
-                    / get_platform()
-                    / (self.modelName + "." + get_lib_extension())
-                )
-                try:
-                    self.__lib = cdll.LoadLibrary(str(library_path))
-                except:
-                    self.__lib_error = True
-                    print(
-                        f"Warning. Unable to setup logging for FMU instance: {self.instance_name}"
-                    )
-            if not self.__lib_error:
-                if category is None:
-                    category = f"logStatus{status.name.capitalize()}"
-                    if category not in self.log_categories:
-                        category = "logAll"
-
-                self.__lib.pylog(
-                    c_void_p(self.logger),
-                    c_int(int(status)),
-                    c_char_p(category.encode("utf-8")),
-                    c_char_p(msg.encode("utf-8")),
-                    c_bool(debug)
-                )
+        if category is None:
+            category = f"logStatus{status.name.capitalize()}"
+            if category not in self.log_categories:
+                category = "logAll"
+        log_msg = LogMsg(status, category, msg, debug)
+        self.log_queue.append(log_msg)
