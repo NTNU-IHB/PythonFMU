@@ -10,6 +10,7 @@ from xml.etree.ElementTree import Element, SubElement
 from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
 from .logmsg import LogMsg
+from .default_experiment import DefaultExperiment
 from .osutil import get_lib_extension, get_platform
 from ._version import __version__ as VERSION
 from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
@@ -38,6 +39,7 @@ class Fmi2Slave(ABC):
     copyright: ClassVar[Optional[str]] = None
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
+    default_experiment: ClassVar[Optional[DefaultExperiment]] = None
 
     # Dictionary of (category, description) entries
     log_categories: Dict[str, str] = {
@@ -126,6 +128,16 @@ class Fmi2Slave(ABC):
             for i, v in enumerate(self.vars.values()):
                 if v.causality == Fmi2Causality.output:
                     SubElement(outputs_node, "Unknown", attrib=dict(index=str(i + 1)))
+
+        if self.default_experiment is not None:
+            attrib = dict()
+            if self.default_experiment.start_time is not None:
+                attrib["startTime"] = self.default_experiment.start_time
+            if self.default_experiment.stop_time is not None:
+                attrib["stopTime"] = self.default_experiment.stop_time
+            if self.default_experiment.tolerance is not None:
+                attrib["tolerance"] = self.default_experiment.tolerance
+            SubElement(root, "DefaultExperiment", attrib)
 
         return root
 
