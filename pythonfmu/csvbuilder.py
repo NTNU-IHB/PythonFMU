@@ -194,7 +194,7 @@ def create_command_parser(parser: argparse.ArgumentParser):
     parser.add_argument(
         "-f",
         "--file",
-        dest="script_file",
+        dest="csv_file",
         help="Path to the CSV file.",
         required=True
     )
