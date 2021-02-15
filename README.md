@@ -47,15 +47,13 @@ optional arguments:
                         If given, canBeInstantiatedOnlyOncePerProcess=true
   --handle-state        If given, canGetAndSetFMUstate=true
   --serialize-state     If given, canSerializeFMUstate=true
-  --use-memory-management
-                        If given, canNotUseMemoryManagementFunctions=false
 ```
 
 ### How do I build an FMU from python code with third-party dependencies?
 
 Often, Python scripts depends on non-builtin libraries like `numpy`, `scipy`, etc.
 _PythonFMU_ does not package a full environment within the FMU.
-However you can package a `requirements.txt` or `environment.yml` file within your FMU following these steps:
+However, you can package a `requirements.txt` or `environment.yml` file within your FMU following these steps:
 
 1. Install _pythonfmu_ package: `pip install pythonfmu`
 2. Create a new class extending the `Fmi2Slave` class declared in the `pythonfmu.fmi2slave` module (see below for an example).
@@ -154,4 +152,6 @@ Need to distribute your FMUs? [FMU-proxy](https://github.com/NTNU-IHB/FMU-proxy)
 
 ### Credits
 
-This works has been possible thanks to the contributions of @markaren from NTNU-IHB and @fcollonval from Safran SA.
+This work has been possible thanks to the contributions of: <br> 
+@markaren from NTNU-IHB <br>
+@fcollonval from Safran SA.
