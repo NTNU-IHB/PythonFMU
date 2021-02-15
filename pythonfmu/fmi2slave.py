@@ -7,10 +7,8 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
-from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
 from .logmsg import LogMsg
-from .osutil import get_lib_extension, get_platform
 from ._version import __version__ as VERSION
 from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
@@ -23,8 +21,7 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("canInterpolateInputs", False, "interpolate-inputs"),
     ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
     ModelOptions("canGetAndSetFMUstate", False, "handle-state"),
-    ModelOptions("canSerializeFMUstate", False, "serialize-state"),
-    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management")
+    ModelOptions("canSerializeFMUstate", False, "serialize-state")
 ]
 
 
@@ -97,6 +94,7 @@ class Fmi2Slave(ABC):
             value = model_options.get(option.name, option.value)
             options[option.name] = str(value).lower()
         options["modelIdentifier"] = self.modelName
+        options["canNotUseMemoryManagementFunctions"] = "true"
 
         SubElement(root, "CoSimulation", attrib=options)
 
