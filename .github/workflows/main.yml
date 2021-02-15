@@ -15,7 +15,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-    timeout-minutes: 10
     
     steps:
       - uses: actions/checkout@v2
@@ -86,6 +85,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python-version: [3.6, 3.7, 3.8]
+    timeout-minutes: 10
     
     steps:
       - uses: actions/checkout@v2
