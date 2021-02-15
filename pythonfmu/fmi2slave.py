@@ -157,7 +157,7 @@ class Fmi2Slave(ABC):
         # Set the unique value reference
         var.value_reference = variable_reference
         owner = self
-        if nested and "." in var.name:
+        if var.getter is None and nested and "." in var.name:
             split = var.name.split(".")
             split.pop(-1)
             for s in split:
