@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-18.04, windows-2019]
     
     steps:
       - uses: actions/checkout@v2
@@ -83,8 +83,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: [3.6, 3.7, 3.8]
+        os: [ubuntu-18.04, windows-2019]
+        python-version: [3.7, 3.8, 3.9]
     
     steps:
       - uses: actions/checkout@v2
@@ -93,39 +93,6 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: python-wheel
-
-#      - name: Cache conda packages for Linux
-#        if: startsWith(runner.os, 'Linux')
-#        uses: actions/cache@v1
-#        with:
-#          path: /usr/share/miniconda/pkgs
-#          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
-#            ${{ runner.os }}-test-cache-conda-pkgs-
-#            ${{ runner.os }}-test-
-
-#      - name: Cache conda packages for Mac OS
-#        if: startsWith(runner.os, 'macOS')
-#        uses: actions/cache@v1
-#        with:
-#          path: /usr/share/miniconda/pkgs
-#          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
-#            ${{ runner.os }}-test-cache-conda-pkgs-
-#            ${{ runner.os }}-test-
-
-#      - name: Cache conda packages for Windows
-#        if: startsWith(runner.os, 'Windows')
-#        uses: actions/cache@v1
-#        with:
-#          path: C:\Miniconda\pkgs
-#          key: ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}-${{ hashFiles('environment.yml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-test-cache-conda-pkgs-${{ matrix.python-version }}
-#            ${{ runner.os }}-test-cache-conda-pkgs-
-#            ${{ runner.os }}-test-
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: conda-incubator/setup-miniconda@v2
