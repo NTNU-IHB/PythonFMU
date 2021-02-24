@@ -7,10 +7,9 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional
 from uuid import uuid1
 from xml.etree.ElementTree import Element, SubElement
-from ctypes import cdll, c_char_p, c_void_p, c_int, c_bool
 
 from .logmsg import LogMsg
-from .osutil import get_lib_extension, get_platform
+from .default_experiment import DefaultExperiment
 from ._version import __version__ as VERSION
 from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .variables import Boolean, Integer, Real, ScalarVariable, String
@@ -23,8 +22,7 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
     ModelOptions("canInterpolateInputs", False, "interpolate-inputs"),
     ModelOptions("canBeInstantiatedOnlyOncePerProcess", False, "only-one-per-process"),
     ModelOptions("canGetAndSetFMUstate", False, "handle-state"),
-    ModelOptions("canSerializeFMUstate", False, "serialize-state"),
-    ModelOptions("canNotUseMemoryManagementFunctions", True, "use-memory-management")
+    ModelOptions("canSerializeFMUstate", False, "serialize-state")
 ]
 
 
@@ -38,6 +36,7 @@ class Fmi2Slave(ABC):
     copyright: ClassVar[Optional[str]] = None
     modelName: ClassVar[Optional[str]] = None
     description: ClassVar[Optional[str]] = None
+    default_experiment: ClassVar[Optional[DefaultExperiment]] = None
 
     # Dictionary of (category, description) entries
     log_categories: Dict[str, str] = {
@@ -97,6 +96,7 @@ class Fmi2Slave(ABC):
             value = model_options.get(option.name, option.value)
             options[option.name] = str(value).lower()
         options["modelIdentifier"] = self.modelName
+        options["canNotUseMemoryManagementFunctions"] = "true"
 
         SubElement(root, "CoSimulation", attrib=options)
 
@@ -126,6 +126,16 @@ class Fmi2Slave(ABC):
             for i, v in enumerate(self.vars.values()):
                 if v.causality == Fmi2Causality.output:
                     SubElement(outputs_node, "Unknown", attrib=dict(index=str(i + 1)))
+
+        if self.default_experiment is not None:
+            attrib = dict()
+            if self.default_experiment.start_time is not None:
+                attrib["startTime"] = self.default_experiment.start_time
+            if self.default_experiment.stop_time is not None:
+                attrib["stopTime"] = self.default_experiment.stop_time
+            if self.default_experiment.tolerance is not None:
+                attrib["tolerance"] = self.default_experiment.tolerance
+            SubElement(root, "DefaultExperiment", attrib)
 
         return root
 
@@ -157,7 +167,7 @@ class Fmi2Slave(ABC):
         # Set the unique value reference
         var.value_reference = variable_reference
         owner = self
-        if nested and "." in var.name:
+        if var.getter is None and nested and "." in var.name:
             split = var.name.split(".")
             split.pop(-1)
             for s in split:
