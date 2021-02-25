@@ -175,6 +175,24 @@ def test_integration_get(tmp_path):
 
 
 @pytest.mark.integration
+def test_integration_read_from_file(tmp_path):
+    script_file = Path(__file__).parent / "slaves/pythonslave_read_file.py"
+    project_file = Path(__file__).parent / "data/hello.txt"
+    fmu = FmuBuilder.build_FMU(script_file, project_files=[project_file], dest=tmp_path, needsExecutionTool="false")
+    assert fmu.exists()
+    model = pyfmi.load_fmu(str(fmu))
+
+    variables = model.get_model_variables()
+    var = variables["file_content"]
+    model_value = model.get_string([var.value_reference])[0]
+
+    with (open(project_file, 'r')) as file:
+        data = file.read()
+
+    assert model_value == data
+
+
+@pytest.mark.integration
 def test_integration_set(tmp_path):
     script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
