@@ -33,7 +33,7 @@ jobs:
           mkdir tmp-build
           cd tmp-build
           cmake $GITHUB_WORKSPACE/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release
+          cmake --build .
           cd ..
       - name: Archive wrapper library
         uses: actions/upload-artifact@v2

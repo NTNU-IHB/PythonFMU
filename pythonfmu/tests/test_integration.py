@@ -12,13 +12,9 @@ pyfmi = pytest.importorskip(
     "pyfmi", reason="pyfmi is required for testing the produced FMU"
 )
 
-DEMO = "pythonslave.py"
-
-
 @pytest.mark.integration
 def test_integration_demo(tmp_path):
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
@@ -29,8 +25,7 @@ def test_integration_demo(tmp_path):
 
 @pytest.mark.integration
 def test_integration_reset(tmp_path):
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
 
@@ -49,8 +44,7 @@ def test_integration_reset(tmp_path):
 
 @pytest.mark.integration
 def test_integration_get_state(tmp_path):
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(
         script_file,
         dest=tmp_path,
@@ -88,8 +82,7 @@ def test_integration_get_serialize_state(tmp_path):
         "fmpy", reason="fmpy is not available for testing the produced FMU"
     )
 
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(
         script_file,
         dest=tmp_path,
@@ -145,8 +138,7 @@ def test_integration_get_serialize_state(tmp_path):
 
 @pytest.mark.integration
 def test_integration_get(tmp_path):
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
@@ -164,6 +156,7 @@ def test_integration_get(tmp_path):
         "container.subContainer.someInteger": -15
     }
 
+    model_value = None
     variables = model.get_model_variables()
     for key, value in to_test.items():
         var = variables[key]
@@ -183,8 +176,7 @@ def test_integration_get(tmp_path):
 
 @pytest.mark.integration
 def test_integration_set(tmp_path):
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
     model = pyfmi.load_fmu(str(fmu))
@@ -198,6 +190,7 @@ def test_integration_set(tmp_path):
         "container.subContainer.someInteger": 421
     }
 
+    model_value = None
     variables = model.get_model_variables()
     for key, value in to_test.items():
         var = variables[key]
@@ -225,8 +218,7 @@ def test_simple_integration_fmpy(tmp_path):
         "fmpy", reason="fmpy is not available for testing the produced FMU"
     )
 
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
     res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
@@ -236,39 +228,9 @@ def test_simple_integration_fmpy(tmp_path):
 
 @pytest.mark.integration
 def test_integration_has_local_dep(tmp_path):
-    slave_code = """import math
-from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Integer, Real, Boolean, String
-from localmodule import get_amplitude, get_time_constant
 
-
-class PythonSlaveWithDep(Fmi2Slave):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.realIn = 22.0
-        self.realOut = 0.0
-        self.register_variable(Real("realIn", causality=Fmi2Causality.input))
-        self.register_variable(Real("realOut", causality=Fmi2Causality.output))
-
-    def do_step(self, current_time, step_size):
-        self.realOut = self.realIn * get_amplitude() * math.exp((current_time + step_size) / get_time_constant())
-        return True
-"""
-
-    local_module = """def get_amplitude():
-    return 5.
-
-def get_time_constant():
-    return 0.1
-"""
-
-    script_file = tmp_path / "orig" / "slavewithdep.py"
-    script_file.parent.mkdir(parents=True, exist_ok=True)
-    script_file.write_text(slave_code)
-
-    local_file = script_file.parent / "localmodule.py"
-    local_file.write_text(local_module)
+    script_file = Path(__file__).parent / "slaves/slavewithdep.py"
+    local_file = Path(__file__).parent / "slaves/localmodule.py"
 
     fmu = FmuBuilder.build_FMU(
         script_file,
@@ -291,28 +253,7 @@ def test_integration_throw_py_error(tmp_path):
         "fmpy", reason="fmpy is not available for testing the produced FMU"
     )
 
-    slave_code = """from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Integer, Real, Boolean, String
-
-
-class PythonSlaveWithException(Fmi2Slave):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.realIn = 22.0
-        self.realOut = 0.0
-        self.register_variable(Real("realIn", causality=Fmi2Causality.input))
-        self.register_variable(Real("realOut", causality=Fmi2Causality.output))
-
-    def do_step(self, current_time, step_size):
-        raise RuntimeError()
-        return True
-"""
-
-    script_file = tmp_path / "orig" / "slavewithexception.py"
-    script_file.parent.mkdir(parents=True, exist_ok=True)
-    script_file.write_text(slave_code)
-
+    script_file = Path(__file__).parent / "slaves/PythonSlaveWithException.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
 

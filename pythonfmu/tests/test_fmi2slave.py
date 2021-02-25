@@ -1,6 +1,6 @@
 import pytest
 
-from pythonfmu import Fmi2Slave, Boolean, Integer, Real, String
+from pythonfmu import Fmi2Slave
 from pythonfmu import __version__ as VERSION
 
 from .utils import FMI2PY, PY2FMI
@@ -27,6 +27,7 @@ def test_Fmi2Slave_constructor(model):
         assert Slave.modelName == model
         assert slave.instance_name == "slaveInstance"
 
+
 def test_Fmi2Slave_generation_tool():
     class Slave(Fmi2Slave):
         def do_step(self, t, dt):
@@ -36,6 +37,7 @@ def test_Fmi2Slave_generation_tool():
     xml = slave.to_xml()
 
     assert xml.attrib['generationTool'] == f"PythonFMU {VERSION}"
+
 
 @pytest.mark.parametrize("fmi_type", FMI2PY)
 @pytest.mark.parametrize("value", [
@@ -112,6 +114,7 @@ def test_Fmi2Slave_log_categories():
     assert len(categories) == len(Slave.log_categories)
     for category, description in Slave.log_categories.items():
         assert categories.find(f"Category[@name='{category}'][@description='{description}']") is not None
+
 
 @pytest.mark.parametrize("new_categories", [
     dict(),
