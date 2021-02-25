@@ -1,6 +1,5 @@
 import itertools
 import platform
-import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -10,7 +9,6 @@ import pytest
 import pythonfmu
 from pythonfmu.builder import FmuBuilder, get_platform
 
-DEMO = "pythonslave.py"
 PROJECT_TEST_CASES = [
     ("dummy.txt",),
     ("dummy.py", "subdir/dummy.txt"),
@@ -25,8 +23,9 @@ lib_extension = ({"Darwin": "dylib", "Linux": "so", "Windows": "dll"}).get(
 
 
 def test_zip_content(tmp_path):
-    script_file = Path(__file__).parent / DEMO
 
+    script_name = "pythonslave.py"
+    script_file = Path(__file__).parent / "slaves" / script_name
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
     assert zipfile.is_zipfile(fmu)
@@ -35,7 +34,7 @@ def test_zip_content(tmp_path):
         names = files.namelist()
 
         assert "modelDescription.xml" in names
-        assert "/".join(("resources", DEMO)) in names
+        assert "/".join(("resources", script_name)) in names
         module_file = "/".join(("resources", "slavemodule.txt"))
         assert module_file in names
 
@@ -72,9 +71,8 @@ def test_zip_content(tmp_path):
 
 @pytest.mark.parametrize("pfiles", PROJECT_TEST_CASES)
 def test_project_files(tmp_path, pfiles):
-    script_file = Path(__file__).parent / DEMO
     pfiles = map(Path, pfiles)
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     def build():
         with tempfile.TemporaryDirectory() as project_dir:
             project_dir = Path(project_dir)
@@ -120,13 +118,13 @@ def test_project_files(tmp_path, pfiles):
 
 @pytest.mark.parametrize("pfiles", PROJECT_TEST_CASES)
 def test_project_files_containing_script(tmp_path, pfiles):
-    orig_script_file = Path(__file__).parent / DEMO
+    orig_script_file = Path(__file__).parent / "slaves/pythonslave.py"
     pfiles = map(Path, pfiles)
 
     def build():
         with tempfile.TemporaryDirectory() as project_dir:
             project_dir = Path(project_dir)
-            script_file = project_dir / DEMO
+            script_file = project_dir / "slave.py"
             with open(orig_script_file) as script_f:
                 script_file.write_text(script_f.read())
 
@@ -159,8 +157,7 @@ def test_project_files_containing_script(tmp_path, pfiles):
 
 
 def test_documentation(tmp_path):
-    script_file = Path(__file__).parent / DEMO
-
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
     def build():
         with tempfile.TemporaryDirectory() as documentation_dir:
             doc_dir = Path(documentation_dir)

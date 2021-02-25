@@ -4,7 +4,6 @@ from pathlib import Path
 from pythonfmu.csvbuilder import CsvFmuBuilder
 
 EPS = 1e-7
-DEMO = "csvdemo.csv"
 
 
 def test_csvslave(tmp_path):
@@ -12,7 +11,7 @@ def test_csvslave(tmp_path):
         "fmpy", reason="fmpy is not available for testing the produced FMU"
     )
 
-    csv_file = Path(__file__).parent / DEMO
+    csv_file = Path(__file__).parent / "data/csvdemo.csv"
 
     fmu = CsvFmuBuilder.build_FMU(csv_file, dest=tmp_path)
     assert fmu.exists()
@@ -67,24 +66,23 @@ def test_csvslave(tmp_path):
     actual_bools = []
     actual_strings = []
 
-    excpected_ints = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6]
-    excpected_reals = [2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0, 32.0, 48.0, 64.0]
-    excpected_bools = [True, True, False, False, True, True, False, False, True, True, False]
-    excpected_strings = list(map(lambda i: str(i), excpected_ints))
+    expected_ints = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6]
+    expected_reals = [2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0, 32.0, 48.0, 64.0]
+    expected_bools = [True, True, False, False, True, True, False, False, True, True, False]
+    expected_strings = list(map(lambda i: str(i), expected_ints))
 
     for i in range(0, 11):
-
         actual_ints.append(model.getInteger([1])[0])
         actual_reals.append(model.getReal([2])[0])
         actual_bools.append(model.getBoolean([3])[0])
         actual_strings.append(model.getString([4])[0].decode("utf-8"))
         step_model()
 
-    assert actual_ints == excpected_ints
+    assert actual_ints == expected_ints
     for i in range(0, len(actual_reals)):
-        assert actual_reals[i] == pytest.approx(excpected_reals[i], rel=EPS)
-    assert actual_bools == excpected_bools
-    assert actual_strings == excpected_strings
+        assert actual_reals[i] == pytest.approx(expected_reals[i], rel=EPS)
+    assert actual_bools == expected_bools
+    assert actual_strings == expected_strings
 
     model.reset()
     init_model(False)
@@ -94,7 +92,7 @@ def test_csvslave(tmp_path):
     actual_reals.clear()
     actual_bools.clear()
     actual_strings.clear()
-    excpected_reals = [2.0, 2.0, 4.0, 4.0, 8.0, 8.0, 16.0, 16.0, 32.0, 32.0, 64.0]
+    expected_reals = [2.0, 2.0, 4.0, 4.0, 8.0, 8.0, 16.0, 16.0, 32.0, 32.0, 64.0]
     for i in range(0, 11):
         actual_ints.append(model.getInteger([1])[0])
         actual_reals.append(model.getReal([2])[0])
@@ -102,8 +100,8 @@ def test_csvslave(tmp_path):
         actual_strings.append(model.getString([4])[0].decode("utf-8"))
         step_model()
 
-    assert actual_ints == excpected_ints
+    assert actual_ints == expected_ints
     for i in range(0, len(actual_reals)):
-        assert actual_reals[i] == pytest.approx(excpected_reals[i], rel=EPS)
-    assert actual_bools == excpected_bools
-    assert actual_strings == excpected_strings
+        assert actual_reals[i] == pytest.approx(expected_reals[i], rel=EPS)
+    assert actual_bools == expected_bools
+    assert actual_strings == expected_strings

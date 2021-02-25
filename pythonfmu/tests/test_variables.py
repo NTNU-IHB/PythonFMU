@@ -7,9 +7,10 @@ from pythonfmu import Fmi2Slave
 from pythonfmu.enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from pythonfmu.variables import Boolean, Integer, Real, ScalarVariable, String
 
-from .utils import FMI2PY, PY2FMI
+from .utils import PY2FMI
 
 SCALAR_VARIABLE_ATTRIBUTES = ["name", "valueReference", "description", "causality", "variability", "initial"]
+
 
 def test_ScalarVariable_reference_set_once_only():
     v = ScalarVariable('variable')
@@ -55,7 +56,6 @@ def test_ScalarVariable_getter(fmi_type, value):
         def do_step(self, t, dt):
             return True
 
-    py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 
     slave = Slave(instance_name="slaveInstance")
@@ -87,7 +87,6 @@ def test_ScalarVariable_setter(fmi_type, value):
             return True
 
     slave = Slave(instance_name="slaveInstance")
-    py_type = FMI2PY[fmi_type]
     fmi_type_name = fmi_type.__qualname__.lower()
 
     set_method = getattr(slave, f"set_{fmi_type_name}")
@@ -161,6 +160,7 @@ def test_Boolean_constructor(name, start):
 
     assert r.start == start
 
+
 @pytest.mark.parametrize("name,start", [
     ("boolean_name", None),
     ("boolean_another_name", True),
@@ -174,6 +174,7 @@ def test_Boolean_to_xml(name, start):
     if start is not None:
         assert children[0].attrib['start'] == str(start).lower()
 
+
 @pytest.mark.parametrize("name,start", [
     ("integer_name", None),
     ("integer_another_name", 42),
@@ -182,6 +183,7 @@ def test_Integer_constructor(name, start):
     r = Integer(name, start)
 
     assert r.start == start
+
 
 @pytest.mark.parametrize("name,start", [
     ("integer_name", None),
@@ -195,6 +197,7 @@ def test_Integer_to_xml(name, start):
     if start is not None:
         assert children[0].attrib['start'] == str(start)
 
+
 @pytest.mark.parametrize("name,start", [
     ("real_name", None),
     ("real_another_name", 22.),
@@ -203,6 +206,7 @@ def test_Real_constructor(name, start):
     r = Real(name, start)
 
     assert r.start == start
+
 
 @pytest.mark.parametrize("name,start", [
     ("real_name", None),
@@ -216,6 +220,7 @@ def test_Real_to_xml(name, start):
     if start is not None:
         assert children[0].attrib['start'] == f"{start:.16g}"
 
+
 @pytest.mark.parametrize("name,start", [
     ("string_name", None),
     ("string_another_name", "dummy"),
@@ -224,6 +229,7 @@ def test_String_constructor(name, start):
     r = String(name, start)
 
     assert r.start == start
+
 
 @pytest.mark.parametrize("name,start", [
     ("string_name", None),
