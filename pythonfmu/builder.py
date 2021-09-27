@@ -66,6 +66,7 @@ class FmuBuilder:
         dest: FilePath = ".",
         project_files: Iterable[FilePath] = set(),
         documentation_folder: Optional[FilePath] = None,
+        binary_files : Optional[FilePath] = None,
         **options,
     ) -> Path:
         script_file = Path(script_file)
@@ -164,11 +165,27 @@ class FmuBuilder:
                     src_binaries.rglob("*.so"),
                     src_binaries.rglob("*.dylib"),
                 ):
-                    relative_f = f.relative_to(src_binaries)
+                    relative_f = f.relative_to(src_binaries)         
                     arcname = (
                         binaries
                         / relative_f.parent
                         / f"{model_identifier}{relative_f.suffix}"
+                    )
+                    zip_fmu.write(f, arcname=arcname)
+
+                if binary_files is not None:
+                    binary_file = Path(binary_files)
+                    if binary_file.is_file():
+                        with open(binary_file,'r') as bf:
+                            bfs = bf.readlines()
+                            bfs = [line.rstrip() for line in bfs]
+                            
+                for f in bfs:
+                    f = Path(f)
+                    arcname = (
+                        binaries
+                        / get_platform()
+                        / f.name
                     )
                     zip_fmu.write(f, arcname=arcname)
 
@@ -214,6 +231,13 @@ def create_command_parser(parser: argparse.ArgumentParser):
         "--doc",
         dest="documentation_folder",
         help="Documentation folder to include in the FMU.",
+        default=None
+    )
+
+    parser.add_argument(
+        "--binary_file",
+        dest="binary_files",
+        help="will copy the files list in the binary file in binary folder enabling better portability",
         default=None
     )
 
