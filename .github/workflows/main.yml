@@ -9,28 +9,66 @@ on:
       - '*'
 
 jobs:
+  build-wrapper:
 
-  build:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-18.04, windows-2019]
-        python-version: [3.7, 3.8, 3.9]
-    timeout-minutes: 20
-
+    
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python
+      - name: Setup Python 3.x
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.x'
           architecture: 'x64'
+
+      - name: Compile wrapper on Windows
+        if: startsWith(runner.os, 'Windows')
+        run: |
+          mkdir tmp-build
+          cd tmp-build
+          cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release -A x64
+          cmake --build . --config Release
+          cd ..
+
+      - name: Compile wrapper on Linux / macOS
+        if: startsWith(runner.os, 'Linux') || startsWith(runner.os, 'macOS')
+        run: |
+          mkdir tmp-build
+          cd tmp-build
+          cmake $GITHUB_WORKSPACE/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+          cd ..
+
+      - name: Archive wrapper library
+        uses: actions/upload-artifact@v2
+        with:
+          name: lib-wrapper
+          path: pythonfmu/resources
+
+  build-python:
+    needs: build-wrapper
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+
+      - name: Download wrappers
+        uses: actions/download-artifact@v1
+        with:
+          name: lib-wrapper
+          path: pythonfmu/resources
     
       - name: Build distribution artifacts
         run: |
-          python --version
           python -m pip install setuptools wheel
           python setup.py sdist bdist_wheel
 
@@ -41,13 +79,16 @@ jobs:
           path: dist
 
   test:
-    needs: build
+    needs: build-python
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-2019]
+        os: [ubuntu-18.04, windows-2019]
         python-version: [3.7, 3.8, 3.9]
+        exclude:
+          - os: ubuntu-18.04
+            python-version: 3.7
     timeout-minutes: 20
 
     steps:
@@ -70,9 +111,7 @@ jobs:
           # Install test dependencies - update environment.yml if they changed
           conda env update --name=test --file=environment.yml
           cd python-wheel
-          ls
-          python --version
-          python -m pip  install --no-index --find-links . pythonfmu
+          python -m pip install pythonfmu*.whl
           python -m pytest --pyargs pythonfmu
           cd ..
         shell: bash -l {0}
