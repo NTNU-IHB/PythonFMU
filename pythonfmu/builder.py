@@ -180,14 +180,14 @@ class FmuBuilder:
                             bfs = bf.readlines()
                             bfs = [line.rstrip() for line in bfs]
                             
-                for f in bfs:
-                    f = Path(f)
-                    arcname = (
-                        binaries
-                        / get_platform()
-                        / f.name
-                    )
-                    zip_fmu.write(f, arcname=arcname)
+                    for f in bfs:
+                        f = Path(f)
+                        arcname = (
+                            binaries
+                            / get_platform()
+                            / f.name
+                        )
+                        zip_fmu.write(f, arcname=arcname)
 
                 # Add the documentation folder
                 if documentation_folder is not None:
