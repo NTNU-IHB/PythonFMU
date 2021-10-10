@@ -28,7 +28,7 @@ class CMakeExtension(Extension):
                 '.'
             ]
             if WINDOWS:
-                cmake_args.append('--config Release')
+                cmake_args_build.append('--config Release')
             subprocess.check_call(cmake_args_build)
             os.chdir("..")
 
