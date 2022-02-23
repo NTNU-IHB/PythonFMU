@@ -40,7 +40,7 @@ jobs:
           path: dist
 
   test:
-    needs: build-python
+    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -69,7 +69,7 @@ jobs:
           # Install test dependencies - update environment.yml if they changed
           conda env update --name=test --file=environment.yml
           cd python-wheel
-          python -m pip  install --no-index --find-links . pythonfmu
+          python -m pip install --no-index --find-links . pythonfmu
           python -m pytest --pyargs pythonfmu
           cd ..
         shell: bash -l {0}
