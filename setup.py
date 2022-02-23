@@ -6,34 +6,38 @@ from setuptools.command.build_ext import build_ext
 cwd = os.getcwd()
 WINDOWS = (os.name == 'nt')
 
-buildFolder = "tmp-build"
+nativeSources = os.path.join(cwd, "pythonfmu", "pythonfmu-export")
+buildFolder = "build-pip"
 
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir=''):
         Extension.__init__(self, name, sources=[])
-        if not os.path.exists(os.path.join(cwd, buildFolder)):
-            os.mkdir(os.path.join(cwd, buildFolder))
-            build_type = 'Release'
-            # configure
-            cmake_args = [
-                'cmake',
-                '../pythonfmu/pythonfmu-export',
-                '-DCMAKE_BUILD_TYPE={}'.format(build_type)
-            ]
-            if WINDOWS:
-                cmake_args.append('-A x64')
-            os.chdir(os.path.join(cwd, buildFolder))
-            subprocess.check_call(cmake_args)
-            cmake_args_build = [
-                'cmake',
-                '--build',
-                '.'
-            ]
-            if WINDOWS:
-                cmake_args_build.append('--config Release')
-            subprocess.check_call(cmake_args_build)
-            os.chdir("..")
+        os.chdir(nativeSources)
+        if not os.path.exists(buildFolder):
+            os.mkdir(buildFolder)
+        build_type = 'Release'
+        # configure
+        cmake_args = [
+            'cmake',
+            '.',
+            '-B',
+            buildFolder,
+            '-DCMAKE_BUILD_TYPE={}'.format(build_type)
+        ]
+        if WINDOWS:
+            cmake_args.extend(['-A', 'x64'])
+
+        subprocess.check_call(cmake_args)
+        cmake_args_build = [
+            'cmake',
+            '--build',
+            buildFolder
+        ]
+        if WINDOWS:
+            cmake_args_build.extend(['--config', 'Release'])
+        subprocess.check_call(cmake_args_build)
+        os.chdir(cwd)
 
 
 class CMakeBuild(build_ext):

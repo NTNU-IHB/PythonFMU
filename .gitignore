@@ -21,6 +21,7 @@ __pycache__
 .pytest_cache
 dist/
 build/
+build-pip/
 
 /**/.ipynb_checkpoints
 
