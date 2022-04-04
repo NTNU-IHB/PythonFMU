@@ -19,22 +19,9 @@ jobs:
         with:
           python-version: '3.x'
           architecture: 'x64'
-      - name: Compile wrapper on Windows
-        if: startsWith(runner.os, 'Windows')
+      - name: Build and install PythonFMU
         run: |
-          mkdir tmp-build
-          cd tmp-build
-          cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release -A x64
-          cmake --build . --config Release
-          cd ..
-      - name: Compile wrapper on Linux / macOS
-        if: startsWith(runner.os, 'Linux') || startsWith(runner.os, 'macOS')
-        run: |
-          mkdir tmp-build
-          cd tmp-build
-          cmake $GITHUB_WORKSPACE/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release
-          cmake --build .
-          cd ..
+          pip install .
       - name: Archive wrapper library
         uses: actions/upload-artifact@v2
         with:
