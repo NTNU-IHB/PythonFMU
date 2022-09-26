@@ -1,7 +1,0 @@
-channels:
-- conda-forge
-dependencies:
-- cmake
-- jupyterlab
-- matplotlib-base
-- pyfmi
