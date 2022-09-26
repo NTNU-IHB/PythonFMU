@@ -1,3 +1,4 @@
+import sys
 import itertools
 import pytest
 from unittest.mock import call, MagicMock
@@ -12,6 +13,9 @@ fmpy = pytest.importorskip(
 pytestmark = pytest.mark.skipif(
     not FmuBuilder.has_binary(), reason="No binary available for the current platform."
 )
+
+if not sys.platform.startswith("win"):
+    pytest.skip("skipping windows-only tests", allow_module_level=True)
 
 
 @pytest.mark.integration

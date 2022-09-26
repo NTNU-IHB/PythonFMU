@@ -109,3 +109,4 @@ jobs:
           pip install pythonfmu*.whl
           pytest --pyargs pythonfmu
           cd ..
+        shell: bash -l {0}
