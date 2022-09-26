@@ -1,7 +1,9 @@
-from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Fmi2Variability, String
+from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Fmi2Variability, String, DefaultExperiment
 
 
 class PythonSlaveReadFile(Fmi2Slave):
+
+    default_experiment = DefaultExperiment(start_time=0)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
