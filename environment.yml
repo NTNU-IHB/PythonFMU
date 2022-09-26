@@ -2,5 +2,4 @@ channels:
 - conda-forge
 dependencies:
 - fmpy
-- pyfmi
 - pytest

@@ -3,13 +3,14 @@ from pathlib import Path
 
 from pythonfmu.csvbuilder import CsvFmuBuilder
 
+fmpy = pytest.importorskip(
+    "fmpy", reason="fmpy is not available for testing the produced FMU"
+)
+
 EPS = 1e-7
 
 
 def test_csvslave(tmp_path):
-    fmpy = pytest.importorskip(
-        "fmpy", reason="fmpy is not available for testing the produced FMU"
-    )
 
     csv_file = Path(__file__).parent / "data/csvdemo.csv"
 
