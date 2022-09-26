@@ -6,16 +6,21 @@ from pythonfmu.builder import FmuBuilder
 pytestmark = pytest.mark.skipif(
     not FmuBuilder.has_binary(), reason="No binary available for the current platform."
 )
-pyfmi = pytest.importorskip(
-    "pyfmi", reason="pyfmi is required for testing the produced FMU"
+
+fmpy = pytest.importorskip(
+    "fmpy", reason="fmpy is not available for testing the produced FMU"
 )
-# fmpy = pytest.importorskip(
-#     "fmpy", reason="fmpy is not available for testing the produced FMU"
-# )
+
+
+def mapped(md):
+    m = {}
+    for v in md.modelVariables:
+        m[v.name] = v
+    return m
 
 
 @pytest.mark.integration
-def test_integration_multiple_fmus_pyfmi(tmp_path):
+def test_integration_multiple_fmus(tmp_path):
     slave1_code = """import math
 from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Causality, Integer, Real, Boolean, String
 
@@ -76,19 +81,59 @@ class Slave2(Fmi2Slave):
     )
     assert fmu2.exists()
 
-    model1 = pyfmi.load_fmu(str(fmu1), log_level=7)
-    model2 = pyfmi.load_fmu(str(fmu2), log_level=7)
+    md1 = fmpy.read_model_description(fmu1)
+    unzip_dir = fmpy.extract(fmu1)
 
-    connections = [(model1, "realOut", model2, "realIn")]
-    sim = pyfmi.Master([model1, model2], connections)
+    model1 = fmpy.fmi2.FMU2Slave(
+        guid=md1.guid,
+        unzipDirectory=unzip_dir,
+        modelIdentifier=md1.coSimulation.modelIdentifier,
+        instanceName='instance1')
 
-    res = sim.simulate(final_time=0.1, options={'step_size': 0.025})
+    model1.instantiate()
+    model1.setupExperiment()
+    model1.enterInitializationMode()
+    model1.exitInitializationMode()
 
-    res1 = res[model1]
-    assert res1["realOut"][-1] == pytest.approx(
-        22.0 * 5.0 * (1.0 - math.exp(-1.0 * res1["time"][-1] / 0.1)), rel=1e-7
+    md2 = fmpy.read_model_description(fmu2)
+    unzip_dir = fmpy.extract(fmu2)
+
+    model2 = fmpy.fmi2.FMU2Slave(
+        guid=md2.guid,
+        unzipDirectory=unzip_dir,
+        modelIdentifier=md2.coSimulation.modelIdentifier,
+        instanceName='instance2')
+
+    variables1 = mapped(md1)
+    variables2 = mapped(md2)
+
+    realOut = variables1["realOut"]
+    realIn = variables2["realIn"]
+
+    model2.instantiate()
+    model2.setupExperiment()
+    model2.enterInitializationMode()
+
+    value = model1.getReal([realOut.valueReference])[0]
+    model2.setReal([realIn.valueReference], [value])
+
+    model2.exitInitializationMode()
+
+    time = 0
+    stop_time = 0.1
+    step_size = 0.025
+
+    while time < stop_time:
+
+        model2.setReal([realIn.valueReference], [value])
+
+        model1.doStep(time, step_size)
+        model2.doStep(time, step_size)
+
+        value = model1.getReal([realOut.valueReference])[0]
+
+        time += step_size
+
+    assert value == pytest.approx(
+        22.0 * 5.0 * (1.0 - math.exp(-1.0 * time / 0.1)), rel=1e-7
     )
-    res2 = res[model2]
-    assert res2["realIn"][-1] == pytest.approx(res1["realOut"][-1])
-    # pyfmi master algorithm seems all fmus at once with the output from the previous time step
-    assert res2["realOut"][-1] == pytest.approx(-2.0 * res2["realIn"][-2])
