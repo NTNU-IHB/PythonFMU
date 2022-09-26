@@ -14,8 +14,8 @@ pytestmark = pytest.mark.skipif(
     not FmuBuilder.has_binary(), reason="No binary available for the current platform."
 )
 
-if not sys.platform.startswith("win"):
-    pytest.skip("skipping windows-only tests", allow_module_level=True)
+if True:
+    pytest.skip("This test needs to be manually enabled", allow_module_level=True)
 
 
 @pytest.mark.integration
