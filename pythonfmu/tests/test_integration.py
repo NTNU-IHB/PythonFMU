@@ -49,7 +49,7 @@ def test_integration_reset(tmp_path):
     model.exitInitializationMode()
 
     vars = mapped(md)
-    vr = vars["realOut"]
+    vr = vars["realOut"].valueReference
     dt = 0.1
 
     initial_value = model.getReal([vr])[0]
@@ -88,7 +88,7 @@ def test_integration_get_state(tmp_path):
     model.exitInitializationMode()
 
     vars = mapped(md)
-    vr = vars["realOut"]
+    vr = vars["realOut"].valueReference
     dt = 0.1
     t = 0.0
 
@@ -138,7 +138,7 @@ def test_integration_get_serialize_state(tmp_path):
     model.exitInitializationMode()
 
     vars = mapped(md)
-    vrs = [vars["realOut"]]
+    vrs = [vars["realOut"].valueReference]
     t = 0.0
     dt = 0.1
 
