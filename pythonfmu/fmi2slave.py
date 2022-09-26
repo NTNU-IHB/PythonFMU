@@ -110,6 +110,18 @@ class Fmi2Slave(ABC):
                     )
                 )
 
+        if self.default_experiment is not None:
+            attrib = dict()
+            if self.default_experiment.start_time is not None:
+                attrib["startTime"] = str(self.default_experiment.start_time)
+            if self.default_experiment.stop_time is not None:
+                attrib["stopTime"] = str(self.default_experiment.stop_time)
+            if self.default_experiment.step_size is not None:
+                attrib["stepSize"] = str(self.default_experiment.step_size)
+            if self.default_experiment.tolerance is not None:
+                attrib["tolerance"] = str(self.default_experiment.tolerance)
+            SubElement(root, "DefaultExperiment", attrib)
+
         variables = SubElement(root, "ModelVariables")
         for v in self.vars.values():
             if ScalarVariable.requires_start(v):
@@ -126,16 +138,6 @@ class Fmi2Slave(ABC):
             for i, v in enumerate(self.vars.values()):
                 if v.causality == Fmi2Causality.output:
                     SubElement(outputs_node, "Unknown", attrib=dict(index=str(i + 1)))
-
-        if self.default_experiment is not None:
-            attrib = dict()
-            if self.default_experiment.start_time is not None:
-                attrib["startTime"] = self.default_experiment.start_time
-            if self.default_experiment.stop_time is not None:
-                attrib["stopTime"] = self.default_experiment.stop_time
-            if self.default_experiment.tolerance is not None:
-                attrib["tolerance"] = self.default_experiment.tolerance
-            SubElement(root, "DefaultExperiment", attrib)
 
         return root
 
