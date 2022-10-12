@@ -9,8 +9,8 @@ on:
       - '*'
 
 jobs:
-  build:
 
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -38,7 +38,7 @@ jobs:
           path: dist
 
   test:
-    needs: build-python
+    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
