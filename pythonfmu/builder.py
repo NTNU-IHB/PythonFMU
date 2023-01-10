@@ -68,6 +68,17 @@ class FmuBuilder:
         documentation_folder: Optional[FilePath] = None,
         **options,
     ) -> Path:
+        '''Build the FMU zip package
+
+        Args:
+            script_file (pathlib.Path): python script containing the simulation code. FilePath object with absolute or relative to current path
+            dest (pathlib.Path) ='.': path object denoting the directory where the FMU zip file should be placed
+            project_files (Iterable[pathlib.Path]) = set(): iterable of files to be added to the project (description, icon, etc.)
+            documentation_folder (pathlib.Path) = None: Optional folder containing project documentation, which is then copied to the FMU
+            
+        Returns:
+            (pathlib.Path): FMU as zipped file
+        '''
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")

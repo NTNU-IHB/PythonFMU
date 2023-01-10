@@ -58,7 +58,7 @@ class Fmi2Slave(ABC):
             self.__class__.modelName = self.__class__.__name__
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
-        """Build the XML representation of the model.
+        """Build the XML representation of the model, i.e. modelDescription.xml
         
         Args:
             model_options (Dict[str, str]) : FMU model options
