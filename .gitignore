@@ -28,3 +28,6 @@ build/
 /**/*_log.txt
 /**/*_result.mat
 /**/*.fmu
+
+# Generated TensorFlow model
+/examples/tensorflow-model-export/stored-model/
