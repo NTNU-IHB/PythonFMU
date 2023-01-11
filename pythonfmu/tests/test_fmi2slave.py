@@ -13,18 +13,21 @@ def test_Fmi2Slave_constructor(model):
 
     class Slave(Fmi2Slave):
 
-        modelName = model
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            if model is not None:
+                self.modelName = model
 
         def do_step(self, t, dt):
             return True
 
     if model is None:
         slave = Slave(instance_name="slaveInstance")
-        assert Slave.modelName == "Slave"
+        assert slave.modelName == "Slave"
         assert slave.instance_name == "slaveInstance"
     else:
         slave = Slave(instance_name="slaveInstance")
-        assert Slave.modelName == model
+        assert slave.modelName == model
         assert slave.instance_name == "slaveInstance"
 
 
