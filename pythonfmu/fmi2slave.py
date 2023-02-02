@@ -29,15 +29,6 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
 class Fmi2Slave(ABC):
     """Abstract facade class to execute Python through FMI standard."""
 
-    guid: ClassVar[str] = uuid1()
-    author: ClassVar[Optional[str]] = None
-    license: ClassVar[Optional[str]] = None
-    version: ClassVar[Optional[str]] = None
-    copyright: ClassVar[Optional[str]] = None
-    modelName: ClassVar[Optional[str]] = None
-    description: ClassVar[Optional[str]] = None
-    default_experiment: ClassVar[Optional[DefaultExperiment]] = None
-
     # Dictionary of (category, description) entries
     log_categories: Dict[str, str] = {
         "logStatusWarning": "Log messages with fmi2Warning status.",
@@ -54,8 +45,14 @@ class Fmi2Slave(ABC):
         self.visible = kwargs.get("visible", False)
         self.log_queue = []
 
-        if self.__class__.modelName is None:
-            self.__class__.modelName = self.__class__.__name__
+        self.guid: str = repr(uuid1())
+        self.author: Optional[str] = None
+        self.license: Optional[str] = None
+        self.version: Optional[str] = None
+        self.copyright: Optional[str] = None
+        self.modelName: Optional[str] = self.__class__.__name__
+        self.description: Optional[str] = None
+        self.default_experiment: Optional[DefaultExperiment] = None
 
     def to_xml(self, model_options: Dict[str, str] = dict()) -> Element:
         """Build the XML representation of the model.
@@ -73,7 +70,7 @@ class Fmi2Slave(ABC):
         attrib = dict(
             fmiVersion="2.0",
             modelName=self.modelName,
-            guid=f"{self.guid!s}",
+            guid=f"{self.guid}",
             generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
             variableNamingConvention="structured"
