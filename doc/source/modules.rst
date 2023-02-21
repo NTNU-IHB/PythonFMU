@@ -114,12 +114,18 @@ FMI enumerations (extensions of standard class Enum) for FMI variables
    * - Imports: 
      - enum
 
-* Fmi2Type
-* Fmi2Causality
-* Fmi2Initial
-* Fmi2Variability
-* Fmi2Status
-* PackageManager (pip or conda)
+.. autoclass:: pythonfmu.enums.Fmi2Type
+   :members:
+.. autoclass:: pythonfmu.enums.Fmi2Causality
+   :members:
+.. autoclass:: pythonfmu.enums.Fmi2Initial
+   :members:
+.. autoclass:: pythonfmu.enums.Fmi2Variability
+   :members:
+.. autoclass:: pythonfmu.enums.Fmi2Status
+   :members:
+.. autoclass:: pythonfmu.enums.PackageManager
+   :members:
 
 fmi2slave
 ---------

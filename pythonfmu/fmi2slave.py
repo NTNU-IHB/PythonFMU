@@ -27,7 +27,10 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
 
 
 class Fmi2Slave(ABC):
-    """Abstract facade class to execute Python through FMI standard."""
+    """Abstract facade class to execute Python through FMI standard.
+
+    The following keywords are pre-defined: guid, author, license, version, copyright, modelName, description, default_experiment
+    """
 
     guid: ClassVar[str] = uuid1()
     author: ClassVar[Optional[str]] = None
@@ -48,6 +51,7 @@ class Fmi2Slave(ABC):
     }
 
     def __init__(self, **kwargs):
+        print("KWARGS", kwargs)
         self.vars = OrderedDict()
         self.instance_name = kwargs["instance_name"]
         self.resources = kwargs.get("resources", None)
@@ -180,6 +184,7 @@ class Fmi2Slave(ABC):
             var.setter = lambda v: setattr(owner, var.local_name, v)
 
     def setup_experiment(self, start_time: float):
+        '''override to do any actions for setting up a simulation run'''
         pass
 
     def enter_initialization_mode(self):
@@ -190,6 +195,7 @@ class Fmi2Slave(ABC):
 
     @abstractmethod
     def do_step(self, current_time: float, step_size: float) -> bool:
+        '''to be implemented as the central method for running simulation steps'''
         pass
 
     def terminate(self):
