@@ -548,7 +548,8 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     const cppfmu::Logger& logger)
 {
 
-    auto resources = std::string(fmuResourceLocation);
+    // Convert URI %20 to space
+    auto resources = std::regex_replace(std::string(fmuResourceLocation), std::regex("%20"), " ");
     auto find = resources.find("file://");
 
     if (find != std::string::npos) {
