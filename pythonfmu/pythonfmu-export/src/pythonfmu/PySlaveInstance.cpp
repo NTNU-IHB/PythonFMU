@@ -104,39 +104,41 @@ void PySlaveInstance::clearLogBuffer() const
     PyObject* categoryField = Py_BuildValue("s", "category");
     PyObject* statusField = Py_BuildValue("s", "status");
 
-    auto size = PyList_Size(pMessages_);
-    for (auto i = 0; i < size; i++) {
-        PyObject* msg = PyList_GetItem(pMessages_, i);
+    if ( pMessages_ != NULL && PyList_Check(pMessages_) ) {
+        auto size = PyList_Size(pMessages_);
+        for (auto i = 0; i < size; i++) {
+            PyObject* msg = PyList_GetItem(pMessages_, i);
 
-        auto debugAttr = PyObject_GetAttr(msg, debugField);
-        auto msgAttr = PyObject_GetAttr(msg, msgField);
-        auto categoryAttr = PyObject_GetAttr(msg, categoryField);
-        auto statusAttr = PyObject_GetAttr(msg, statusField);
+            auto debugAttr = PyObject_GetAttr(msg, debugField);
+            auto msgAttr = PyObject_GetAttr(msg, msgField);
+            auto categoryAttr = PyObject_GetAttr(msg, categoryField);
+            auto statusAttr = PyObject_GetAttr(msg, statusField);
 
-        auto statusValue = static_cast<cppfmu::FMIStatus>(PyLong_AsLong(statusAttr));
+            auto statusValue = static_cast<cppfmu::FMIStatus>(PyLong_AsLong(statusAttr));
 
-        PyObject* msgValue = PyUnicode_AsEncodedString(msgAttr, "utf-8", nullptr);
-        char* msgStr = PyBytes_AsString(msgValue);
-        logStrBuffer.emplace_back(msgValue);
+            PyObject* msgValue = PyUnicode_AsEncodedString(msgAttr, "utf-8", nullptr);
+            char* msgStr = PyBytes_AsString(msgValue);
+            logStrBuffer.emplace_back(msgValue);
 
-        const char* categoryStr = "";
-        if (categoryAttr != Py_None) {
-            PyObject* categoryValue = PyUnicode_AsEncodedString(categoryAttr, "utf-8", nullptr);
-            categoryStr = PyBytes_AsString(categoryValue);
-            logStrBuffer.emplace_back(categoryValue);
+            const char* categoryStr = "";
+            if (categoryAttr != Py_None) {
+                PyObject* categoryValue = PyUnicode_AsEncodedString(categoryAttr, "utf-8", nullptr);
+                categoryStr = PyBytes_AsString(categoryValue);
+                logStrBuffer.emplace_back(categoryValue);
+            }
+
+            if (PyObject_IsTrue(debugAttr)) {
+                const_cast<cppfmu::Logger&>(logger_).DebugLog(statusValue, categoryStr, msgStr);
+            } else {
+                const_cast<cppfmu::Logger&>(logger_).Log(statusValue, categoryStr, msgStr);
+            }
         }
-
-        if (PyObject_IsTrue(debugAttr)) {
-            const_cast<cppfmu::Logger&>(logger_).DebugLog(statusValue, categoryStr, msgStr);
-        } else {
-            const_cast<cppfmu::Logger&>(logger_).Log(statusValue, categoryStr, msgStr);
-        }
+        PyList_SetSlice(pMessages_, 0, size, nullptr);
     }
     Py_DECREF(debugField);
     Py_DECREF(msgField);
     Py_DECREF(categoryField);
     Py_DECREF(statusField);
-    PyList_SetSlice(pMessages_, 0, size, nullptr);
 }
 
 void PySlaveInstance::initialize(PyGILState_STATE gilState)
