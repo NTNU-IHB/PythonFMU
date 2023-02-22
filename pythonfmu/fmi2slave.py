@@ -44,8 +44,8 @@ class Fmi2Slave(ABC):
         self.resources = kwargs.get("resources", None)
         self.visible = kwargs.get("visible", False)
         self.log_queue = []
-
-        self.guid: uuid1()
+        
+        self.guid: str = repr(uuid1())
         self.author: Optional[str] = None
         self.license: Optional[str] = None
         self.version: Optional[str] = None
@@ -70,7 +70,7 @@ class Fmi2Slave(ABC):
         attrib = dict(
             fmiVersion="2.0",
             modelName=self.modelName,
-            guid=f"{self.guid!s}",
+            guid=f"{self.guid}",
             generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
             variableNamingConvention="structured"
