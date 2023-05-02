@@ -70,7 +70,7 @@ class Fmi2Slave(ABC):
         attrib = dict(
             fmiVersion="2.0",
             modelName=self.modelName,
-            guid=f"{self.guid}",
+            guid=f"{self.guid!s}",
             generationTool=f"PythonFMU {VERSION}",
             generationDateAndTime=date_str,
             variableNamingConvention="structured"
