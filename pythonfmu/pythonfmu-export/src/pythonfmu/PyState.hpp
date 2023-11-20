@@ -18,7 +18,9 @@ public:
         if (!was_initialized_) {
             Py_SetProgramName(L"./PythonFMU");
             Py_Initialize();
+#if PY_VERSION_HEX < 0x03070000
             PyEval_InitThreads();
+#endif
             _mainPyThread = PyEval_SaveThread();
         }
     }
