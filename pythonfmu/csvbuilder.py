@@ -171,6 +171,16 @@ class CsvFmuBuilder:
         dest: FilePath = ".",
         **options,
     ) -> Path:
+        ''' Wrapper class to build FMU from CSV file. 
+        A CSV model is basically a table of variables with time variable in first column and setting new values of all variables at fixed points in time (see also test file)
+
+        Args:
+            csv_file (pathlib.Path): CSV file containing the FMU
+            dest (pathlib.Path) ='.': path object denoting the directory where the FMU zip file should be placed
+            
+        Returns:
+            (pathlib.Path): FMU as zipped file (produced via builder.build_FMU)
+        '''
         csv_file = Path(csv_file)
         if not csv_file.exists():
             raise ValueError(f"No such file {csv_file!s}")
