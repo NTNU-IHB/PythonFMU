@@ -8,7 +8,6 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
-#include <Windows.h>
 
 namespace pythonfmu
 {
