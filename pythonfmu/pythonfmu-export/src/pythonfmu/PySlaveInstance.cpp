@@ -1,4 +1,5 @@
 
+#include "pythonfmu/IPyState.hpp"
 #include "pythonfmu/PySlaveInstance.hpp"
 
 #include "pythonfmu/PyState.hpp"
@@ -7,6 +8,7 @@
 
 #include <fstream>
 #include <functional>
+#include <mutex>
 #include <regex>
 #include <sstream>
 #include <utility>
@@ -44,8 +46,9 @@ inline void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
     PyGILState_Release(gil_state);
 }
 
-PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, const bool visible)
-    : instanceName_(std::move(instanceName))
+PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, const bool visible, std::shared_ptr<IPyState> pyState)
+    : pyState_{ std::move(pyState) }
+    , instanceName_(std::move(instanceName))
     , resources_(std::move(resources))
     , logger_(logger)
     , visible_(visible)
@@ -536,7 +539,10 @@ PySlaveInstance::~PySlaveInstance()
 
 } // namespace pythonfmu
 
-std::unique_ptr<pythonfmu::PyState> pyState = nullptr;
+namespace {
+    std::mutex weakPyStateMutex{};
+    std::weak_ptr<pythonfmu::PyState> weakPyState{};
+}
 
 cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIString instanceName,
@@ -562,10 +568,15 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
 #endif
     }
 
-    if (pyState == nullptr) {
-        pyState = std::make_unique<pythonfmu::PyState>();
-    }
+    {
+        auto const getOrCreatePyState = [&]() {
+            auto const lock = std::lock_guard{ weakPyStateMutex };
+            auto const pyState = weakPyState.lock();
+            return nullptr != pyState ? pyState : std::make_shared<pythonfmu::PyState>();
+            };
+        auto pyState = getOrCreatePyState();
 
-    return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
-        memory, instanceName, resources, logger, visible);
+        return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
+            memory, instanceName, resources, logger, visible, std::move(pyState));
+    }
 }
