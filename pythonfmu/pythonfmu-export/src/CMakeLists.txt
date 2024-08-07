@@ -17,6 +17,9 @@ set(sources
         pythonfmu/PySlaveInstance.cpp
         )
 
+SET (CMAKE_SHARED_LINKER_FLAGS
+     "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-rpath,'$ORIGIN'")
+
 add_library(pythonfmu-export ${sources} ${headers})
 target_compile_features(pythonfmu-export PUBLIC "cxx_std_17")
 
