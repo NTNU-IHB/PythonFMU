@@ -44,9 +44,9 @@ jobs:
           cd ..
 
       - name: Archive wrapper library
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: lib-wrapper
+          name: lib-wrapper-${{ matrix.os }}
           path: pythonfmu/resources
 
   build-python:
@@ -62,9 +62,9 @@ jobs:
           architecture: 'x64'
 
       - name: Download wrappers
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: lib-wrapper
+          pattern: lib-wrapper-*
           path: pythonfmu/resources
     
       - name: Build distribution artifacts
@@ -73,7 +73,7 @@ jobs:
           python setup.py sdist bdist_wheel
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-wheel
           path: dist
@@ -98,7 +98,7 @@ jobs:
           architecture: 'x64'
 
       - name: Download python package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: python-wheel
 
