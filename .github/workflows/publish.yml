@@ -38,7 +38,7 @@ jobs:
       - name: Archive wrapper library
         uses: actions/upload-artifact@v4
         with:
-          name: lib-wrapper
+          name: lib-wrapper-${{ matrix.os }}
           path: pythonfmu/resources
 
   deploy:
@@ -53,7 +53,7 @@ jobs:
     - name: Download wrappers
       uses: actions/download-artifact@v4
       with:
-        name: lib-wrapper
+        pattern: lib-wrapper-*
         path: pythonfmu/resources        
     - name: Install dependencies
       run: |
