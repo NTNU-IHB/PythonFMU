@@ -3,6 +3,7 @@
 #define PYTHONFMU_SLAVEINSTANCE_HPP
 
 #include "cppfmu/cppfmu_cs.hpp"
+#include "pythonfmu/IPyState.hpp"
 
 #include <Python.h>
 #include <string>
@@ -15,7 +16,7 @@ class PySlaveInstance : public cppfmu::SlaveInstance
 {
 
 public:
-    PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, bool visible);
+    PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, bool visible, std::shared_ptr<IPyState> pyState);
 
     void initialize(PyGILState_STATE gilState);
 
@@ -49,6 +50,7 @@ public:
     ~PySlaveInstance() override;
 
 private:
+    std::shared_ptr<IPyState> pyState_;
     PyObject* pClass_;
     PyObject* pInstance_{};
     PyObject* pMessages_{};
