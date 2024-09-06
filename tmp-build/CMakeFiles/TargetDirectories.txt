@@ -1,0 +1,3 @@
+C:/Users/JORMEN/Documents/SeaCo/forks/PythonFMU/tmp-build/CMakeFiles/ALL_BUILD.dir
+C:/Users/JORMEN/Documents/SeaCo/forks/PythonFMU/tmp-build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/JORMEN/Documents/SeaCo/forks/PythonFMU/tmp-build/src/CMakeFiles/pythonfmu-export.dir
