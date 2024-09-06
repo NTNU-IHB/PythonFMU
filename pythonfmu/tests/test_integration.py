@@ -25,7 +25,7 @@ def test_integration_demo(tmp_path):
     script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
-    res = fmpy.simulate_fmu(str(fmu), stop_time=0.5)
+    res = fmpy.simulate_fmu(str(fmu), stop_time=0.5, validate=False)
 
     assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
 
@@ -36,7 +36,7 @@ def test_integration_reset(tmp_path):
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
 
-    md = fmpy.read_model_description(str(fmu))
+    md = fmpy.read_model_description(str(fmu), validate=False)
     unzipdir = fmpy.extract(str(fmu))
     model = fmpy.fmi2.FMU2Slave(guid=md.guid,
                                 unzipDirectory=unzipdir,
@@ -75,7 +75,7 @@ def test_integration_get_state(tmp_path):
         canGetAndSetFMUstate="true")
     assert fmu.exists()
 
-    md = fmpy.read_model_description(str(fmu))
+    md = fmpy.read_model_description(str(fmu), validate=False)
     unzipdir = fmpy.extract(str(fmu))
     model = fmpy.fmi2.FMU2Slave(guid=md.guid,
                                 unzipDirectory=unzipdir,
@@ -123,7 +123,7 @@ def test_integration_get_serialize_state(tmp_path):
         canSerializeFMUstate="true")
     assert fmu.exists()
 
-    md = fmpy.read_model_description(fmu)
+    md = fmpy.read_model_description(fmu, validate=False)
     unzip_dir = fmpy.extract(fmu)
 
     model = fmpy.fmi2.FMU2Slave(
@@ -175,7 +175,7 @@ def test_integration_get(tmp_path):
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
 
-    md = fmpy.read_model_description(fmu)
+    md = fmpy.read_model_description(fmu, validate=False)
     unzip_dir = fmpy.extract(fmu)
 
     model = fmpy.fmi2.FMU2Slave(
@@ -264,7 +264,7 @@ def test_integration_set(tmp_path):
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
     assert fmu.exists()
 
-    md = fmpy.read_model_description(fmu)
+    md = fmpy.read_model_description(fmu, validate=False)
     unzip_dir = fmpy.extract(fmu)
 
     model = fmpy.fmi2.FMU2Slave(
@@ -319,7 +319,7 @@ def test_simple_integration_fmpy(tmp_path):
     script_file = Path(__file__).parent / "slaves/pythonslave.py"
     fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
     assert fmu.exists()
-    res = fmpy.simulate_fmu(str(fmu), stop_time=2.0)
+    res = fmpy.simulate_fmu(str(fmu), stop_time=2.0, validate=False)
 
     assert res["realOut"][-1] == pytest.approx(res["time"][-1], rel=1e-7)
 

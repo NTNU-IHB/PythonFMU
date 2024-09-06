@@ -7,6 +7,8 @@
 
 #include <fstream>
 #include <functional>
+#include <filesystem>
+#include <string>
 #include <mutex>
 #include <regex>
 #include <sstream>
@@ -636,6 +638,49 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
         return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
             memory, instanceName, resources, logger, visible, pyState);
     }
+}
+
+extern "C" {
+
+    // The PyState instance owns it's own thread for constructing and destroying the Py* from the same thread.
+    // Creation of an std::thread increments ref counter of a shared library. So, when the client unloads the library
+    // the library won't be freed, as std::thread is alive, and the std::thread itself waits for de-initialization request.
+    // Thus, use DllMain on Windows and __attribute__((destructor)) on Linux for signaling to the PyState about de-initialization.
+    void finalizePythonInterpreter()
+    {
+        pyState = nullptr;
+    }
+}
+
+namespace
+{
+#ifdef _WIN32
+#include <windows.h>
+
+    BOOL APIENTRY DllMain(HMODULE hModule,
+        DWORD ul_reason_for_call,
+        LPVOID lpReserved)
+    {
+        switch (ul_reason_for_call) {
+            case DLL_PROCESS_ATTACH:
+                break;
+            case DLL_THREAD_ATTACH:
+            case DLL_THREAD_DETACH:
+                break;
+            case DLL_PROCESS_DETACH:
+                finalizePythonInterpreter();
+                break;
+        }
+        return TRUE;
+}
+#elif defined(__linux__)
+    __attribute__((destructor)) void onLibraryUnload()
+    {
+        finalizePythonInterpreter();
+}
+#else
+#error port the code
+#endif
 }
 
 extern "C" {
