@@ -30,11 +30,11 @@ def get_class_name(interface) -> str:
         str: The name of the class derived from Fmi2Slave, or None if no such class is found.
     """
     candidate, mro = None, []
-    for cl in [x for x in dir(interface) if inspect.isclass(getattr(interface, x))]: # get all classess in module and go through them
+    for cl in [x for x in dir(interface) if inspect.isclass(getattr(interface, x))]: # get all classes in module and go through them
         if any(m.__name__ == 'Fmi2Slave' for m in inspect.getmro(getattr(interface, cl))): # inspect the class hierarchy and return if 'Fmi2Slave' found
             if getattr(interface, cl) not in mro: # must be a sub-class of the already registered (or first)
                 candidate, mro = cl, inspect.getmro(getattr(interface, cl))
-                
+
     return candidate
 
 def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:

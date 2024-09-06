@@ -150,6 +150,7 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
 
         std::string moduleName = getline(resources_ + "/slavemodule.txt");
 
+        // Find class with deepest inheritance from PythonFMU's Fmi2Slave class.
         pClass_ = findClass(resources_, moduleName);
         if (pClass_ == nullptr) {
             handle_py_exception("[ctor] Py_BuildValue", gilState);
