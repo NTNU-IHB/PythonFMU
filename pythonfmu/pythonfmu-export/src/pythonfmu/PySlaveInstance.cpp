@@ -1,4 +1,5 @@
 
+#include "pythonfmu/IPyState.hpp"
 #include "pythonfmu/PySlaveInstance.hpp"
 
 #include "pythonfmu/PyState.hpp"
@@ -9,6 +10,7 @@
 #include <functional>
 #include <filesystem>
 #include <string>
+#include <mutex>
 #include <regex>
 #include <sstream>
 #include <utility>
@@ -124,8 +126,9 @@ inline void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
     PyGILState_Release(gil_state);
 }
 
-PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, const bool visible)
-    : instanceName_(std::move(instanceName))
+PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, const bool visible, std::shared_ptr<IPyState> pyState)
+    : pyState_{ std::move(pyState) }
+    , instanceName_(std::move(instanceName))
     , resources_(std::move(resources))
     , logger_(logger)
     , visible_(visible)
@@ -599,7 +602,10 @@ PySlaveInstance::~PySlaveInstance()
 
 } // namespace pythonfmu
 
-std::unique_ptr<pythonfmu::PyState> pyState = nullptr;
+namespace {
+    std::mutex pyStateMutex{};
+    std::shared_ptr<pythonfmu::PyState> pyState{};
+}
 
 cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     cppfmu::FMIString instanceName,
@@ -624,10 +630,57 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
 #endif
     }
 
-    if (pyState == nullptr) {
-        pyState = std::make_unique<pythonfmu::PyState>();
-    }
+    {
+        auto const ensurePyStateAlive = [&]() {
+            auto const lock = std::lock_guard{pyStateMutex};
+            if (nullptr == pyState) pyState = std::make_shared<pythonfmu::PyState>();
+            };
 
-    return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
-        memory, instanceName, resources, logger, visible);
+        ensurePyStateAlive();
+        return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
+            memory, instanceName, resources, logger, visible, pyState);
+    }
+}
+
+extern "C" {
+
+    // The PyState instance owns it's own thread for constructing and destroying the Py* from the same thread.
+    // Creation of an std::thread increments ref counter of a shared library. So, when the client unloads the library
+    // the library won't be freed, as std::thread is alive, and the std::thread itself waits for de-initialization request.
+    // Thus, use DllMain on Windows and __attribute__((destructor)) on Linux for signaling to the PyState about de-initialization.
+    void finalizePythonInterpreter()
+    {
+        pyState = nullptr;
+    }
+}
+
+namespace
+{
+#ifdef _WIN32
+#include <windows.h>
+
+    BOOL APIENTRY DllMain(HMODULE hModule,
+        DWORD ul_reason_for_call,
+        LPVOID lpReserved)
+    {
+        switch (ul_reason_for_call) {
+            case DLL_PROCESS_ATTACH:
+                break;
+            case DLL_THREAD_ATTACH:
+            case DLL_THREAD_DETACH:
+                break;
+            case DLL_PROCESS_DETACH:
+                finalizePythonInterpreter();
+                break;
+        }
+        return TRUE;
+}
+#elif defined(__linux__)
+    __attribute__((destructor)) void onLibraryUnload()
+    {
+        finalizePythonInterpreter();
+}
+#else
+#error port the code
+#endif
 }

@@ -20,7 +20,7 @@ struct Component
         cppfmu::FMIBoolean loggingOn)
         : memory{callbackFunctions}
         , loggerSettings{std::make_shared<cppfmu::Logger::Settings>(memory)}
-        , logger{this, cppfmu::CopyString(memory, instanceName), callbackFunctions, loggerSettings}
+        , logger{callbackFunctions.componentEnvironment, cppfmu::CopyString(memory, instanceName), callbackFunctions, loggerSettings}
         , lastSuccessfulTime{std::numeric_limits<cppfmu::FMIReal>::quiet_NaN()}
     {
         loggerSettings->debugLoggingEnabled = (loggingOn == cppfmu::FMITrue);
@@ -87,10 +87,10 @@ fmi2Component fmi2Instantiate(
             component->logger);
         return component.release();
     } catch (const cppfmu::FatalError& e) {
-        functions->logger(nullptr, instanceName, fmi2Fatal, "", e.what());
+        functions->logger(functions->componentEnvironment, instanceName, fmi2Fatal, "", e.what());
         return nullptr;
     } catch (const std::exception& e) {
-        functions->logger(nullptr, instanceName, fmi2Error, "", e.what());
+        functions->logger(functions->componentEnvironment, instanceName, fmi2Error, "", e.what());
         return nullptr;
     }
 }

@@ -36,9 +36,9 @@ jobs:
           cmake --build .
           cd ..
       - name: Archive wrapper library
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: lib-wrapper
+          name: lib-wrapper-${{ matrix.os }}
           path: pythonfmu/resources
 
   deploy:
@@ -51,9 +51,9 @@ jobs:
       with:
         python-version: '3.x'
     - name: Download wrappers
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
-        name: lib-wrapper
+        pattern: lib-wrapper-*
         path: pythonfmu/resources        
     - name: Install dependencies
       run: |
