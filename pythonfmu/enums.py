@@ -22,6 +22,7 @@ class Fmi2Initial(Enum):
     exact = 0
     approx = 1
     calculated = 2
+    none = 3 # additional value to allow for the cases when initial: --
 
 
 class Fmi2Variability(Enum):

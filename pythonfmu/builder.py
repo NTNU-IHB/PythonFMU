@@ -3,11 +3,11 @@ import argparse
 import importlib
 import itertools
 import logging
-import re
 import shutil
 import sys
 import tempfile
 import zipfile
+import inspect
 from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
@@ -21,11 +21,21 @@ HERE = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 
-def get_class_name(file_name: Path) -> str:
-    with open(str(file_name), 'r') as file:
-        data = file.read()
-        return re.search(r'class (\w+)\(\s*Fmi2Slave\s*\)\s*:', data).group(1)
-
+def get_class_name(interface) -> str:
+    """Returns the name of the class derived from Fmi2Slave in the given interface module.
+    
+    Args:
+        interface: The module containing the classes to be inspected.
+    Returns:
+        str: The name of the class derived from Fmi2Slave, or None if no such class is found.
+    """
+    candidate, mro = None, []
+    for cl in [x for x in dir(interface) if inspect.isclass(getattr(interface, x))]: # get all classess in module and go through them
+        if any(m.__name__ == 'Fmi2Slave' for m in inspect.getmro(getattr(interface, cl))): # inspect the class hierarchy and return if 'Fmi2Slave' found
+            if getattr(interface, cl) not in mro: # must be a sub-class of the already registered (or first)
+                candidate, mro = cl, inspect.getmro(getattr(interface, cl))
+                
+    return candidate
 
 def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Element]:
     """Extract the FMU model description as XML.
@@ -45,7 +55,7 @@ def get_model_description(filepath: Path, module_name: str) -> Tuple[str, Elemen
         fmu_interface = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(fmu_interface)
         # Instantiate the interface
-        class_name = get_class_name(filepath)
+        class_name = get_class_name(fmu_interface)
         instance = getattr(fmu_interface, class_name)(instance_name="dummyInstance", resources=str(filepath.parent))
     finally:
         sys.path.remove(str(filepath.parent))  # remove inserted temporary path

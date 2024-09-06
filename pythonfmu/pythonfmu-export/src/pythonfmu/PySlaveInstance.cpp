@@ -7,6 +7,8 @@
 
 #include <fstream>
 #include <functional>
+#include <filesystem>
+#include <string>
 #include <regex>
 #include <sstream>
 #include <utility>
@@ -22,19 +24,97 @@ inline std::string getline(const std::string& fileName)
     return line;
 }
 
-inline std::string findClassName(const std::string& fileName)
-{
-    std::string line;
-    std::ifstream infile(fileName);
-    std::string regexStr(R"(^class (\w+)\(\s*Fmi2Slave\s*\)\s*:)");
-    while (getline(infile, line)) {
-        std::smatch m;
-        std::regex re(regexStr);
-        if (std::regex_search(line, m, re)) {
-            return m[1];
-        }
+PyObject* findClass(const std::string& resources, const std::string& moduleName) {
+    // Initialize the Python interpreter
+    std::string filename = resources + "/" + moduleName + ".py";
+    std::string deepestFile = "";
+    int deepestChain = 0;
+
+    // Read and execute the Python file
+    std::ifstream file;
+    file.open(filename);
+            
+    if (!file.is_open()) {
+        return nullptr;
     }
-    return "";
+
+    std::stringstream fileContents;
+    std::string line;
+
+    while (std::getline(file, line)) {
+        fileContents << line << "\n";
+    }
+
+    // Compile python code so classes are added to the namespace
+    PyObject* pyModule = PyImport_ImportModule(moduleName.c_str());
+        
+    if (pyModule == nullptr) {
+        return nullptr;
+    }
+    PyObject* pGlobals = PyModule_GetDict(pyModule);
+    PyObject* pLocals = PyDict_New();
+    PyObject* pCode = Py_CompileString(fileContents.str().c_str(), moduleName.c_str(), Py_file_input);
+
+    if (pCode != NULL) {
+        PyObject* pResult = PyEval_EvalCode(pCode, pGlobals, pLocals);
+        Py_XDECREF(pResult);
+    } else {
+        PyErr_Print(); // Handle compilation error
+        Py_Finalize();
+        Py_DECREF(pGlobals);
+        Py_DECREF(pyModule);
+        Py_DECREF(pLocals);
+        Py_DECREF(pCode);
+        file.close();
+        return nullptr;
+    }
+
+    fileContents.clear();
+    PyObject* key, * value;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(pLocals, &pos, &key, &value)) {
+        // Check if element in namespace is a class
+        if (!PyType_Check(value)) {
+            continue;
+        }
+
+        PyObject* pMroAttribute = PyObject_GetAttrString(value, "__mro__");
+
+        if (pMroAttribute != NULL && PySequence_Check(pMroAttribute)) {
+            std::regex pattern ("<class '[^']+\\.([^']+)'");
+            PyObject* pMROList = PySequence_List(pMroAttribute);
+
+            for (Py_ssize_t i = 0; i < PyList_Size(pMROList); ++i) {
+                PyObject* pItem = PyList_GetItem(pMROList, i);
+                std::smatch match;
+                Py_ssize_t *size;
+                const char* className = PyBytes_AsString(PyUnicode_AsUTF8String(PyObject_Repr(pItem)));
+                        
+                std::string str (className);
+                bool isMatch = std::regex_search(str, match, pattern);
+
+                // If regex match is successfull, and found Fmi2Slave at the deepest level then update state
+                if (isMatch && i > deepestChain && match[1] == "Fmi2Slave") {
+                    deepestFile = PyBytes_AsString(PyUnicode_AsUTF8String(key));
+                    deepestChain = i;
+                }
+            }
+        }
+        Py_DECREF(pMroAttribute);
+    }
+
+    PyObject* pyClassName = Py_BuildValue("s", deepestFile.c_str());
+    PyObject* pyClass = PyObject_GetAttr(pyModule, pyClassName);
+
+    // Clean up Python objects
+    Py_DECREF(pCode);
+    Py_DECREF(pLocals);
+    Py_DECREF(pyModule);
+    Py_DECREF(pGlobals);
+    file.close();
+    Py_DECREF(pyClassName);
+    return pyClass;
 }
 
 inline void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
@@ -62,33 +142,17 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
             handle_py_exception("[ctor] PyObject_GetAttrString", gilState);
         }
         int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resources_.c_str()));
+        PyList_Append(sys_path, PyUnicode_DecodeFSDefault(resources_.c_str()));
         Py_DECREF(sys_path);
         if (success != 0) {
             handle_py_exception("[ctor] PyList_Insert", gilState);
         }
 
         std::string moduleName = getline(resources_ + "/slavemodule.txt");
-        PyObject* pModule = PyImport_ImportModule(moduleName.c_str());
-        if (pModule == nullptr) {
-            handle_py_exception("[ctor] PyImport_ImportModule", gilState);
-        }
 
-        std::string className = findClassName(resources_ + "/" + moduleName + ".py");
-        if (className.empty()) {
-            cleanPyObject();
-            throw cppfmu::FatalError("Unable to find class extending Fmi2Slave!");
-        }
-
-        PyObject* pyClassName = Py_BuildValue("s", className.c_str());
-        if (pyClassName == nullptr) {
-            handle_py_exception("[ctor] Py_BuildValue", gilState);
-        }
-
-        pClass_ = PyObject_GetAttr(pModule, pyClassName);
-        Py_DECREF(pyClassName);
-        Py_DECREF(pModule);
+        pClass_ = findClass(resources_, moduleName);
         if (pClass_ == nullptr) {
-            handle_py_exception("[ctor] PyObject_GetAttr", gilState);
+            handle_py_exception("[ctor] Py_BuildValue", gilState);
         }
 
         initialize(gilState);
@@ -104,41 +168,39 @@ void PySlaveInstance::clearLogBuffer() const
     PyObject* categoryField = Py_BuildValue("s", "category");
     PyObject* statusField = Py_BuildValue("s", "status");
 
-    if ( pMessages_ != NULL && PyList_Check(pMessages_) ) {
-        auto size = PyList_Size(pMessages_);
-        for (auto i = 0; i < size; i++) {
-            PyObject* msg = PyList_GetItem(pMessages_, i);
+    auto size = PyList_Size(pMessages_);
+    for (auto i = 0; i < size; i++) {
+        PyObject* msg = PyList_GetItem(pMessages_, i);
 
-            auto debugAttr = PyObject_GetAttr(msg, debugField);
-            auto msgAttr = PyObject_GetAttr(msg, msgField);
-            auto categoryAttr = PyObject_GetAttr(msg, categoryField);
-            auto statusAttr = PyObject_GetAttr(msg, statusField);
+        auto debugAttr = PyObject_GetAttr(msg, debugField);
+        auto msgAttr = PyObject_GetAttr(msg, msgField);
+        auto categoryAttr = PyObject_GetAttr(msg, categoryField);
+        auto statusAttr = PyObject_GetAttr(msg, statusField);
 
-            auto statusValue = static_cast<cppfmu::FMIStatus>(PyLong_AsLong(statusAttr));
+        auto statusValue = static_cast<cppfmu::FMIStatus>(PyLong_AsLong(statusAttr));
 
-            PyObject* msgValue = PyUnicode_AsEncodedString(msgAttr, "utf-8", nullptr);
-            char* msgStr = PyBytes_AsString(msgValue);
-            logStrBuffer.emplace_back(msgValue);
+        PyObject* msgValue = PyUnicode_AsEncodedString(msgAttr, "utf-8", nullptr);
+        char* msgStr = PyBytes_AsString(msgValue);
+        logStrBuffer.emplace_back(msgValue);
 
-            const char* categoryStr = "";
-            if (categoryAttr != Py_None) {
-                PyObject* categoryValue = PyUnicode_AsEncodedString(categoryAttr, "utf-8", nullptr);
-                categoryStr = PyBytes_AsString(categoryValue);
-                logStrBuffer.emplace_back(categoryValue);
-            }
-
-            if (PyObject_IsTrue(debugAttr)) {
-                const_cast<cppfmu::Logger&>(logger_).DebugLog(statusValue, categoryStr, msgStr);
-            } else {
-                const_cast<cppfmu::Logger&>(logger_).Log(statusValue, categoryStr, msgStr);
-            }
+        const char* categoryStr = "";
+        if (categoryAttr != Py_None) {
+            PyObject* categoryValue = PyUnicode_AsEncodedString(categoryAttr, "utf-8", nullptr);
+            categoryStr = PyBytes_AsString(categoryValue);
+            logStrBuffer.emplace_back(categoryValue);
         }
-        PyList_SetSlice(pMessages_, 0, size, nullptr);
+
+        if (PyObject_IsTrue(debugAttr)) {
+            const_cast<cppfmu::Logger&>(logger_).DebugLog(statusValue, categoryStr, msgStr);
+        } else {
+            const_cast<cppfmu::Logger&>(logger_).Log(statusValue, categoryStr, msgStr);
+        }
     }
     Py_DECREF(debugField);
     Py_DECREF(msgField);
     Py_DECREF(categoryField);
     Py_DECREF(statusField);
+    PyList_SetSlice(pMessages_, 0, size, nullptr);
 }
 
 void PySlaveInstance::initialize(PyGILState_STATE gilState)
@@ -147,7 +209,7 @@ void PySlaveInstance::initialize(PyGILState_STATE gilState)
     Py_XDECREF(pMessages_);
 
     PyObject* args = PyTuple_New(0);
-    PyObject* kwargs = Py_BuildValue("{ss,ss,sn,si}",
+    PyObject* kwargs = Py_BuildValue("{ss,ss,sL,si}",
         "instance_name", instanceName_.c_str(),
         "resources", resources_.c_str(),
         "logger", &logger_,
@@ -550,8 +612,7 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     const cppfmu::Logger& logger)
 {
 
-    // Convert URI %20 to space
-    auto resources = std::regex_replace(std::string(fmuResourceLocation), std::regex("%20"), " ");
+    auto resources = std::string(fmuResourceLocation);
     auto find = resources.find("file://");
 
     if (find != std::string::npos) {
