@@ -210,7 +210,7 @@ void PySlaveInstance::initialize(PyGILState_STATE gilState)
     Py_XDECREF(pMessages_);
 
     PyObject* args = PyTuple_New(0);
-    PyObject* kwargs = Py_BuildValue("{ss,ss,sL,si}",
+    PyObject* kwargs = Py_BuildValue("{ss,ss,sn,si}",
         "instance_name", instanceName_.c_str(),
         "resources", resources_.c_str(),
         "logger", &logger_,
@@ -681,3 +681,4 @@ namespace
 #else
 #error port the code
 #endif
+}
