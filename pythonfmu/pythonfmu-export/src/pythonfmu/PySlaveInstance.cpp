@@ -153,7 +153,7 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
 
         pClass_ = findClass(resources_, moduleName);
         if (pClass_ == nullptr) {
-            handle_py_exception("[ctor] Py_BuildValue", gilState);
+            handle_py_exception("[ctor] findClass", gilState);
         }
 
         initialize(gilState);
