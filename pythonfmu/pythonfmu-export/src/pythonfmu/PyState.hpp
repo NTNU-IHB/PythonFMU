@@ -48,7 +48,6 @@ namespace pythonfmu
             auto const mainPyThread = []() -> PyThreadState* {
                 auto const justInitialized = !Py_IsInitialized();
                 if (justInitialized) {
-                    Py_SetProgramName(L"./PythonFMU");
                     Py_Initialize();
 #if PY_VERSION_HEX < 0x03070000
                     PyEval_InitThreads();
