@@ -4,6 +4,3 @@ from .enums import Fmi2Causality, Fmi2Initial, Fmi2Variability
 from .fmi2slave import Fmi2Slave
 from .variables import Boolean, Integer, Real, String
 from .default_experiment import DefaultExperiment
-
-if not FmuBuilder.has_binary():
-    raise ValueError("FmuBuilder binary is missing")
