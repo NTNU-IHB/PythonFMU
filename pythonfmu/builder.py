@@ -112,7 +112,7 @@ class FmuBuilder:
             if has_cythonize:
                 setup(
                     script_args=["build_ext", "--inplace"],
-                    ext_modules=cythonize(str(script_file)),
+                    ext_modules=cythonize(str(script_file), compiler_directives={"language_level": "3"}),
                 )
                 for bin_file in glob.glob(f"{script_file.stem}*.{'pyd' if sys.platform == 'win32' else 'so'}"):
                     shutil.copy2(bin_file, temp_dir)
