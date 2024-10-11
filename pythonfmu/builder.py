@@ -8,12 +8,15 @@ import sys
 import tempfile
 import zipfile
 import inspect
+import glob
 from pathlib import Path
 from typing import Iterable, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
+from setuptools import setup
+from Cython.Build import cythonize
 
 FilePath = Union[str, Path]
 HERE = Path(__file__).parent
@@ -78,6 +81,7 @@ class FmuBuilder:
         documentation_folder: Optional[FilePath] = None,
         **options,
     ) -> Path:
+        has_cythonize: bool = options["cythonize"]
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
@@ -100,7 +104,15 @@ class FmuBuilder:
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
-            shutil.copy2(script_file, temp_dir)
+            if has_cythonize:
+                setup(
+                    script_args=["build_ext", "--inplace"],
+                    ext_modules=cythonize(str(script_file)),
+                )
+                for bin_file in glob.glob(f"{script_file.stem}*.{'pyd' if sys.platform == 'win32' else 'so'}"):
+                    shutil.copy2(bin_file, temp_dir)
+            else:
+                shutil.copy2(script_file, temp_dir)
 
             # Embed pythonfmu in the FMU so it does not need to be included
             dep_folder = temp_dir / "pythonfmu"
@@ -129,7 +141,7 @@ class FmuBuilder:
                         shutil.copy2(file_, temp_dir)
 
             model_identifier, xml = get_model_description(
-                temp_dir.absolute() / script_file.name, module_name
+                script_file if cythonize else temp_dir.absolute() / script_file.name, module_name
             )
 
             dest_file = dest / f"{model_identifier}.fmu"
@@ -152,6 +164,11 @@ class FmuBuilder:
 
                 # Add information for the Python loader
                 zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
+
+                if cythonize:
+                    zip_fmu.writestr(str(resource.joinpath("filetype.txt")), "bin")
+                else:
+                    zip_fmu.writestr(str(resource.joinpath("filetype.txt")), "script")
 
                 # Add FMI API wrapping Python class source
                 source_node = SubElement(type_node, "SourceFiles")
@@ -245,3 +262,7 @@ def create_command_parser(parser: argparse.ArgumentParser):
     )
 
     parser.set_defaults(execute=FmuBuilder.build_FMU)
+
+    parser.add_argument(
+        "-c", "--cythonize", dest="cythonize", action="store_true", help="Cythonize the script."
+    )
