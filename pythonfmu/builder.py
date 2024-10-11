@@ -16,7 +16,6 @@ from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
 from setuptools import setup
-from Cython.Build import cythonize
 
 FilePath = Union[str, Path]
 HERE = Path(__file__).parent
@@ -82,6 +81,12 @@ class FmuBuilder:
         **options,
     ) -> Path:
         has_cythonize: bool = options["cythonize"]
+        if has_cythonize:
+            cython_build_module = importlib.util.find_spec("Cython.Build")
+            cython = importlib.util.module_from_spec(cython_build_module)
+            cython_build_module.loader.exec_module(cython)
+            cythonize = cython.cythonize
+            
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
