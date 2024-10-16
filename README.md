@@ -40,6 +40,7 @@ optional arguments:
   -d DEST, --dest DEST  Where to save the FMU.
   --doc DOCUMENTATION_FOLDER
                         Documentation folder to include in the FMU.
+  -c, --cythonize       Compile the Python script into a binary module using Cython.
   --no-external-tool    If given, needsExecutionTool=false
   --no-variable-step    If given, canHandleVariableCommunicationStepSize=false
   --interpolate-inputs  If given, canInterpolateInputs=true

@@ -146,7 +146,7 @@ class FmuBuilder:
                         shutil.copy2(file_, temp_dir)
 
             model_identifier, xml = get_model_description(
-                script_file if cythonize else temp_dir.absolute() / script_file.name, module_name
+                script_file if has_cythonize else temp_dir.absolute() / script_file.name, module_name
             )
 
             dest_file = dest / f"{model_identifier}.fmu"
@@ -170,7 +170,7 @@ class FmuBuilder:
                 # Add information for the Python loader
                 zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
 
-                if cythonize:
+                if has_cythonize:
                     zip_fmu.writestr(str(resource.joinpath("filetype.txt")), "bin")
                 else:
                     zip_fmu.writestr(str(resource.joinpath("filetype.txt")), "script")
