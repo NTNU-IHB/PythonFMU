@@ -25,11 +25,69 @@ inline std::string getline(const std::string& fileName)
     return line;
 }
 
+
+std::string searchLeafClassName(PyObject* pLocals)
+{
+    std::string deepestFile = "";
+    Py_ssize_t deepestChain = 0;
+    PyObject* key, * value;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(pLocals, &pos, &key, &value)) {
+        // Check if element in namespace is a class
+        if (!PyType_Check(value)) {
+            continue;
+        }
+
+        PyObject* pMroAttribute = PyObject_GetAttrString(value, "__mro__");
+
+        if (pMroAttribute != NULL && PySequence_Check(pMroAttribute)) {
+            std::regex pattern("<class '[^']+\\.([^']+)'");
+            PyObject* pMROList = PySequence_List(pMroAttribute);
+
+            for (Py_ssize_t i = 0; i < PyList_Size(pMROList); ++i) {
+                PyObject* pItem = PyList_GetItem(pMROList, i);
+                std::smatch match;
+                const char* className = PyBytes_AsString(PyUnicode_AsUTF8String(PyObject_Repr(pItem)));
+
+                std::string str(className);
+                bool isMatch = std::regex_search(str, match, pattern);
+
+                // If regex match is successfull, and found Fmi2Slave at the deepest level then update state
+                if (isMatch && i > deepestChain && match[1] == "Fmi2Slave") {
+                    deepestFile = PyBytes_AsString(PyUnicode_AsUTF8String(key));
+                    deepestChain = i;
+                }
+            }
+        }
+        Py_DECREF(pMroAttribute);
+    }
+    return deepestFile;
+}
+
+PyObject* findClassFromBinary(const std::string& resources, const std::string& moduleName) {
+
+    PyObject* pyModule = PyImport_ImportModule(moduleName.c_str());
+    if (pyModule == nullptr) {
+        return nullptr;
+    }
+
+    PyObject* pGlobals = PyModule_GetDict(pyModule);
+    auto deepestFile = searchLeafClassName(pGlobals);
+
+    PyObject* pyClassName = Py_BuildValue("s", deepestFile.c_str());
+    PyObject* pyClass = PyObject_GetAttr(pyModule, pyClassName);
+
+    // Clean up Python objects
+    Py_DECREF(pyModule);
+    Py_DECREF(pyClassName);
+    return pyClass;
+
+}
+
 PyObject* findClass(const std::string& resources, const std::string& moduleName) {
     // Initialize the Python interpreter
     std::string filename = resources + "/" + moduleName + ".py";
-    std::string deepestFile = "";
-    int deepestChain = 0;
 
     // Read and execute the Python file
     std::ifstream file;
@@ -71,38 +129,7 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
     }
 
     fileContents.clear();
-    PyObject* key, * value;
-    Py_ssize_t pos = 0;
-
-    while (PyDict_Next(pLocals, &pos, &key, &value)) {
-        // Check if element in namespace is a class
-        if (!PyType_Check(value)) {
-            continue;
-        }
-
-        PyObject* pMroAttribute = PyObject_GetAttrString(value, "__mro__");
-
-        if (pMroAttribute != NULL && PySequence_Check(pMroAttribute)) {
-            std::regex pattern ("<class '[^']+\\.([^']+)'");
-            PyObject* pMROList = PySequence_List(pMroAttribute);
-
-            for (Py_ssize_t i = 0; i < PyList_Size(pMROList); ++i) {
-                PyObject* pItem = PyList_GetItem(pMROList, i);
-                std::smatch match;
-                const char* className = PyBytes_AsString(PyUnicode_AsUTF8String(PyObject_Repr(pItem)));
-                        
-                std::string str (className);
-                bool isMatch = std::regex_search(str, match, pattern);
-
-                // If regex match is successfull, and found Fmi2Slave at the deepest level then update state
-                if (isMatch && i > deepestChain && match[1] == "Fmi2Slave") {
-                    deepestFile = PyBytes_AsString(PyUnicode_AsUTF8String(key));
-                    deepestChain = i;
-                }
-            }
-        }
-        Py_DECREF(pMroAttribute);
-    }
+    auto deepestFile = searchLeafClassName(pLocals);
 
     PyObject* pyClassName = Py_BuildValue("s", deepestFile.c_str());
     PyObject* pyClass = PyObject_GetAttr(pyModule, pyClassName);
@@ -150,8 +177,13 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
         }
 
         std::string moduleName = getline(resources_ + "/slavemodule.txt");
-
-        pClass_ = findClass(resources_, moduleName);
+        std::string fileType = getline(resources_ + "/filetype.txt");
+        
+        if (fileType == "bin") {
+            pClass_ = findClassFromBinary(resources_, moduleName);
+        } else {
+            pClass_ = findClass(resources_, moduleName);
+        }
         if (pClass_ == nullptr) {
             handle_py_exception("[ctor] findClass", gilState);
         }

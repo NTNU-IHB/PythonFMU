@@ -1,2 +1,3 @@
-fmpy
-pytest
+pytest~=8.3.3
+fmpy~=0.3.21
+cython~=3.0.11
