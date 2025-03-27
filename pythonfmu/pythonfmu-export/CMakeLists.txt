@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18)
 project(pythonfmu-export VERSION 0.2.0)
 
 # ==============================================================================
@@ -34,10 +34,13 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 # ==============================================================================
 
 # Force to use stable Python ABI https://docs.python.org/3/c-api/stable.html
-add_compile_definitions(Py_LIMITED_API)
-find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
-if (WIN32)
-  set(Python3_LIBRARIES ${Python3_LIBRARY_DIRS}/python3.lib)
+option (USE_PYTHON_SABI "Use Python stable ABI" ON)
+if (USE_PYTHON_SABI AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.26)
+  add_compile_definitions(Py_LIMITED_API)
+  find_package(Python3 REQUIRED COMPONENTS Development.SABIModule)
+  add_library (Python3::Module ALIAS Python3::SABIModule)
+else ()
+  find_package(Python3 REQUIRED COMPONENTS Development.Module)
 endif ()
 
 if (WIN32)
