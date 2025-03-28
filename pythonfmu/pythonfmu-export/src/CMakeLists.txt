@@ -20,18 +20,9 @@ set(sources
 add_library(pythonfmu-export ${sources} ${headers})
 target_compile_features(pythonfmu-export PUBLIC "cxx_std_17")
 
-target_include_directories(pythonfmu-export
-        PRIVATE
-        "${Python3_INCLUDE_DIRS}"
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-        )
+target_include_directories(pythonfmu-export PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-if (WIN32)
-  target_link_libraries(pythonfmu-export PRIVATE ${Python3_LIBRARIES})
-elseif (APPLE)
-  set_target_properties(pythonfmu-export PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif ()
-# and on linux, dont link!
+target_link_libraries (pythonfmu-export PRIVATE Python3::Module)
 
 if (WIN32)
   set_target_properties(pythonfmu-export
