@@ -21,7 +21,7 @@ class MLDemo(Fmi2Slave):
         if parent_path.name == "resources":
             # __init__ called from within FMU (probably)
             # Path relative to "resources" directory root within the FMU
-            model_dir_path = parent_path / "stored-model"
+            model_dir_path = parent_path / "stored-model.keras"
             if model_dir_path.exists():
                 try:
                     # Fetch saved model from directory included in the FMU
