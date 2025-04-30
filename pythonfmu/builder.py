@@ -5,6 +5,7 @@ import argparse
 import importlib
 import itertools
 import logging
+import re
 import shutil
 import sys
 import tempfile
@@ -102,16 +103,16 @@ def get_model_class(src: Path) -> Fmi2Slave:
 def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
     """
     Update the model parameters in the __init__ function of a given module.
-    This function modifies the default values of the parameters in the __init__ 
-    function of the specified model with the new values provided in the newargs 
+    This function modifies the default values of the parameters in the __init__
+    function of the specified model with the new values provided in the newargs
     dictionary. It returns the updated module code as a string.
 
     Args:
         src (Path): The path to the source file containing the module.
-        model (Fmi2Slave): The model object whose __init__ function parameters 
+        model (Fmi2Slave): The model object whose __init__ function parameters
                            need to be updated.
-        newargs (dict): A dictionary containing the new parameter values. The 
-                        keys should be the parameter names and the values should 
+        newargs (dict): A dictionary containing the new parameter values. The
+                        keys should be the parameter names and the values should
                         be the new default values.
     Returns:
         str: The updated module code as a string.
@@ -143,7 +144,7 @@ def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
         else:
             par = pars[p]
         newpars.append(par)
-        signew = inspect.Signature(parameters=newpars)
+    signew = inspect.Signature(parameters=newpars)
 
     # Replace the signature of the __init__ function
     init_line = inspect.getsourcelines(init)[1]
@@ -153,7 +154,10 @@ def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
 
     from_init = from_init.replace(from_init[start - 1 : end], str(signew), 1)
     module_code = "".join(line for line in module_lines[0][: init_line - 1]) + from_init
-    
+
+    # Ensure that Optional is imported from typing.
+    module_code = "from typing import Optional\n" + module_code
+
     return module_code
 
 def get_model_description(filepath: Path, module_name: str, class_name: str) -> Tuple[str, Element]:
