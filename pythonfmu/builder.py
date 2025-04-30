@@ -156,17 +156,7 @@ def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
     module_code = "".join(line for line in module_lines[0][: init_line - 1]) + from_init
 
     # Ensure that Optional is imported from typing.
-    # Check for an existing "from typing import ..." line, including multi-line imports.
-    typing_import_pattern = r"(?s)^(from\s+typing\s+import\s+)([\s\S]*?)(?=\n[^ \t]|$)"
-    match = re.search(typing_import_pattern, module_code, re.MULTILINE)
-    if match:
-        imports = match.group(2).replace("\n", "").replace("(", "").replace(")", "").strip()
-        if "Optional" not in [imp.strip() for imp in imports.split(",")]:
-            new_import_line = match.group(1) + imports + ", Optional"
-            module_code = module_code.replace(match.group(0), new_import_line, 1)
-    else:
-        # No import from typing exists, so prepend the required import.
-        module_code = "from typing import Optional\n" + module_code
+    module_code = "from typing import Optional\n" + module_code
 
     return module_code
 
