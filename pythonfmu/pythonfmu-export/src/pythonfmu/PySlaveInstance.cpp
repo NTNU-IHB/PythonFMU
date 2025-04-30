@@ -167,7 +167,6 @@ public:
     {
         clearLogStrBuffer();
 
-        PyObject* debugField = Py_BuildValue("s", "debug");
         PyObject* msgField = Py_BuildValue("s", "msg");
         PyObject* categoryField = Py_BuildValue("s", "category");
         PyObject* statusField = Py_BuildValue("s", "status");
@@ -199,7 +198,7 @@ public:
             }
             PyList_SetSlice(pMessages_, 0, size, nullptr);
         }
-        Py_DECREF(debugField);
+
         Py_DECREF(msgField);
         Py_DECREF(categoryField);
         Py_DECREF(statusField);
