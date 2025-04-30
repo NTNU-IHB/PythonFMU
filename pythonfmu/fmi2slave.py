@@ -176,10 +176,7 @@ class Fmi2Slave(ABC):
         if var.setter is None and hasattr(owner, var.local_name) and var.variability != Fmi2Variability.constant:
             var.setter = lambda v: setattr(owner, var.local_name, v)
 
-    def setup_experiment(self, start_time: float):
-        pass
-
-    def enter_initialization_mode(self):
+    def enter_initialization_mode(self, start_time: float):
         pass
 
     def exit_initialization_mode(self):

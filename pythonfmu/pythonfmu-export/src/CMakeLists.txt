@@ -1,20 +1,20 @@
 
 set(headers
 
-        fmi/fmi2Functions.h
-        fmi/fmi2FunctionTypes.h
-        fmi/fmi2TypesPlatform.h
+        "fmi/fmi2Functions.h"
+        "fmi/fmi2FunctionTypes.h"
+        "fmi/fmi2TypesPlatform.h"
 
-        pythonfmu/fmu_except.hpp
-        pythonfmu/Logger.hpp
+        "pythonfmu/fmu_except.hpp"
+        "pythonfmu/Logger.hpp"
 
-        pythonfmu/PySlaveInstance.hpp
-        pythonfmu/PyState.hpp
+        "pythonfmu/SlaveInstance.hpp"
+        "pythonfmu/PyState.hpp"
         )
 
 set(sources
-        pythonfmu/fmi_functions.cpp
-        pythonfmu/PySlaveInstance.cpp
+        "pythonfmu/fmi2.cpp"
+        "pythonfmu/PySlaveInstance.cpp"
         )
 
 add_library(pythonfmu-export ${sources} ${headers})
