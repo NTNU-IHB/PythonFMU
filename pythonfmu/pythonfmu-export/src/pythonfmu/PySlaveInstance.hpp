@@ -1,41 +1,51 @@
 
-#ifndef PYTHONFMU_SLAVEINSTANCE_HPP
-#define PYTHONFMU_SLAVEINSTANCE_HPP
+#ifndef PYTHONFMU_PYSLAVEINSTANCE_HPP
+#define PYTHONFMU_PYSLAVEINSTANCE_HPP
 
-#include "cppfmu/cppfmu_cs.hpp"
 #include "pythonfmu/IPyState.hpp"
+#include "pythonfmu/Logger.hpp"
+#include "pythonfmu/SlaveInstance.hpp"
 
 #include <Python.h>
+#include <filesystem>
 #include <string>
 #include <vector>
 
 namespace pythonfmu
 {
 
-class PySlaveInstance : public cppfmu::SlaveInstance
+struct fmu_data
+{
+    PyLogger* fmiLogger{nullptr};
+    bool visible{false};
+    std::string instanceName;
+    std::string resourceLocation;
+    std::shared_ptr<IPyState> pyState;
+};
+
+class PySlaveInstance : public SlaveInstance
 {
 
 public:
-    PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, bool visible, std::shared_ptr<IPyState> pyState);
+    PySlaveInstance(const fmu_data& data);
 
     void initialize(PyGILState_STATE gilState);
 
-    void SetupExperiment(cppfmu::FMIBoolean toleranceDefined, cppfmu::FMIReal tolerance, cppfmu::FMIReal tStart, cppfmu::FMIBoolean stopTimeDefined, cppfmu::FMIReal tStop) override;
     void EnterInitializationMode() override;
     void ExitInitializationMode() override;
     void Terminate() override;
     void Reset() override;
-    bool DoStep(cppfmu::FMIReal currentCommunicationPoint, cppfmu::FMIReal communicationStepSize, cppfmu::FMIBoolean newStep, cppfmu::FMIReal& endOfStep) override;
+    bool DoStep(fmi2Real currentCommunicationPoint, fmi2Real communicationStepSize, fmi2Boolean newStep, fmi2Real& endOfStep) override;
 
-    void SetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* value) override;
-    void SetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIInteger* value) override;
-    void SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* value) override;
-    void SetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString const* value) override;
+    void SetReal(const fmi2ValueReference* vr, std::size_t nvr, const fmi2Real* value) override;
+    void SetInteger(const fmi2ValueReference* vr, std::size_t nvr, const fmi2Integer* value) override;
+    void SetBoolean(const fmi2ValueReference* vr, std::size_t nvr, const fmi2Boolean* value) override;
+    void SetString(const fmi2ValueReference* vr, std::size_t nvr, fmi2String const* value) override;
 
-    void GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* value) const override;
-    void GetInteger(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIInteger* value) const override;
-    void GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* value) const override;
-    void GetString(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIString* value) const override;
+    void GetReal(const fmi2ValueReference* vr, std::size_t nvr, fmi2Real* value) const override;
+    void GetInteger(const fmi2ValueReference* vr, std::size_t nvr, fmi2Integer* value) const override;
+    void GetBoolean(const fmi2ValueReference* vr, std::size_t nvr, fmi2Boolean* value) const override;
+    void GetString(const fmi2ValueReference* vr, std::size_t nvr, fmi2String* value) const override;
 
     void GetFMUstate(fmi2FMUstate& state) override;
     void SetFMUstate(const fmi2FMUstate& state) override;
@@ -49,23 +59,35 @@ public:
 
     ~PySlaveInstance() override;
 
+protected:
+    fmu_data data_;
 private:
-    std::shared_ptr<IPyState> pyState_;
+
     PyObject* pClass_;
     PyObject* pInstance_{};
     PyObject* pMessages_{};
-
-    const bool visible_;
-    const std::string instanceName_;
-    const std::string resources_;
-    const cppfmu::Logger& logger_;
 
     mutable std::vector<PyObject*> strBuffer;
     mutable std::vector<PyObject*> logStrBuffer;
 
     void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const;
 
-    inline void clearStrBuffer() const
+    std::string resourceLocation() const
+    {
+        return data_.resourceLocation;
+    }
+
+    void log(fmi2Status s, const std::string& message) const
+    {
+        data_.fmiLogger->log(s, message);
+    }
+
+    void log(fmi2Status s, const std::string& category, const std::string& message) const
+    {
+        data_.fmiLogger->log(s, category, message);
+    }
+
+    void clearStrBuffer() const
     {
         if (!strBuffer.empty()) {
             for (auto obj : strBuffer) {
@@ -75,7 +97,7 @@ private:
         }
     }
 
-    inline void clearLogStrBuffer() const
+    void clearLogStrBuffer() const
     {
         if (!logStrBuffer.empty()) {
             for (auto obj : logStrBuffer) {
@@ -85,7 +107,7 @@ private:
         }
     }
 
-    inline void cleanPyObject() const
+    void cleanPyObject() const
     {
         clearLogBuffer();
         clearLogStrBuffer();

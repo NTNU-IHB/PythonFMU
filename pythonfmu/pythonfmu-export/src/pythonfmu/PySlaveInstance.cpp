@@ -1,23 +1,24 @@
-#include "pythonfmu/IPyState.hpp"
 #include "pythonfmu/PySlaveInstance.hpp"
 
+#include "pythonfmu/IPyState.hpp"
+#include "pythonfmu/Logger.hpp"
 #include "pythonfmu/PyState.hpp"
 
-#include "cppfmu/cppfmu_cs.hpp"
-
+#include <filesystem>
 #include <fstream>
 #include <functional>
-#include <filesystem>
-#include <string>
 #include <mutex>
+#include <optional>
 #include <regex>
 #include <sstream>
+#include <string>
 #include <utility>
 
-namespace pythonfmu
-{
+using namespace pythonfmu;
 
-inline std::string getline(const std::string& fileName)
+namespace
+{
+std::string getline(const std::filesystem::path& fileName)
 {
     std::string line;
     std::ifstream infile(fileName);
@@ -25,16 +26,17 @@ inline std::string getline(const std::string& fileName)
     return line;
 }
 
-PyObject* findClass(const std::string& resources, const std::string& moduleName) {
+PyObject* findClass(const std::string& resources, const std::string& moduleName)
+{
     // Initialize the Python interpreter
     std::string filename = resources + "/" + moduleName + ".py";
-    std::string deepestFile = "";
+    std::string deepestFile;
     int deepestChain = 0;
 
     // Read and execute the Python file
     std::ifstream file;
     file.open(filename);
-            
+
     if (!file.is_open()) {
         return nullptr;
     }
@@ -48,7 +50,7 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
 
     // Compile python code so classes are added to the namespace
     PyObject* pyModule = PyImport_ImportModule(moduleName.c_str());
-        
+
     if (pyModule == nullptr) {
         return nullptr;
     }
@@ -56,7 +58,7 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
     PyObject* pLocals = PyDict_New();
     PyObject* pCode = Py_CompileString(fileContents.str().c_str(), moduleName.c_str(), Py_file_input);
 
-    if (pCode != NULL) {
+    if (pCode != nullptr) {
         PyObject* pResult = PyEval_EvalCode(pCode, pGlobals, pLocals);
         Py_XDECREF(pResult);
     } else {
@@ -71,7 +73,7 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
     }
 
     fileContents.clear();
-    PyObject* key, * value;
+    PyObject *key, *value;
     Py_ssize_t pos = 0;
 
     while (PyDict_Next(pLocals, &pos, &key, &value)) {
@@ -82,17 +84,17 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
 
         PyObject* pMroAttribute = PyObject_GetAttrString(value, "__mro__");
 
-        if (pMroAttribute != NULL && PySequence_Check(pMroAttribute)) {
-            std::regex pattern ("<class '[^']+\\.([^']+)'");
+        if (pMroAttribute != nullptr && PySequence_Check(pMroAttribute)) {
+            std::regex pattern("<class '[^']+\\.([^']+)'");
             PyObject* pMROList = PySequence_List(pMroAttribute);
 
             for (Py_ssize_t i = 0; i < PyList_Size(pMROList); ++i) {
                 PyObject* pItem = PyList_GetItem(pMROList, i);
                 std::smatch match;
                 const char* className = PyBytes_AsString(PyUnicode_AsUTF8String(PyObject_Repr(pItem)));
-                        
-                std::string str (className);
-                bool isMatch = std::regex_search(str, match, pattern);
+
+                std::string str(className);
+                const bool isMatch = std::regex_search(str, match, pattern);
 
                 // If regex match is successfull, and found Fmi2Slave at the deepest level then update state
                 if (isMatch && i > deepestChain && match[1] == "Fmi2Slave") {
@@ -117,19 +119,17 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
     return pyClass;
 }
 
-inline void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
+void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
 {
     PyGILState_STATE gil_state = PyGILState_Ensure();
     f(gil_state);
     PyGILState_Release(gil_state);
 }
 
-PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources, const cppfmu::Logger& logger, const bool visible, std::shared_ptr<IPyState> pyState)
-    : pyState_{ std::move(pyState) }
-    , instanceName_(std::move(instanceName))
-    , resources_(std::move(resources))
-    , logger_(logger)
-    , visible_(visible)
+} // namespace
+
+PySlaveInstance::PySlaveInstance(const fmu_data& data)
+    : data_(data)
 {
     py_safe_run([this](PyGILState_STATE gilState) {
         // Append resources path to python sys path
@@ -142,16 +142,16 @@ PySlaveInstance::PySlaveInstance(std::string instanceName, std::string resources
         if (sys_path == nullptr) {
             handle_py_exception("[ctor] PyObject_GetAttrString", gilState);
         }
-        int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resources_.c_str()));
+        int success = PyList_Insert(sys_path, 0, PyUnicode_FromString(resourceLocation().c_str()));
 
         Py_DECREF(sys_path);
         if (success != 0) {
             handle_py_exception("[ctor] PyList_Insert", gilState);
         }
 
-        std::string moduleName = getline(resources_ + "/slavemodule.txt");
+        std::string moduleName = getline(resourceLocation() + "/slavemodule.txt");
 
-        pClass_ = findClass(resources_, moduleName);
+        pClass_ = findClass(resourceLocation(), moduleName);
         if (pClass_ == nullptr) {
             handle_py_exception("[ctor] findClass", gilState);
         }
@@ -169,17 +169,16 @@ void PySlaveInstance::clearLogBuffer() const
     PyObject* categoryField = Py_BuildValue("s", "category");
     PyObject* statusField = Py_BuildValue("s", "status");
 
-    if ( pMessages_ != NULL && PyList_Check(pMessages_) ) {
-        auto size = PyList_Size(pMessages_);
+    if (pMessages_ != nullptr && PyList_Check(pMessages_)) {
+        const auto size = PyList_Size(pMessages_);
         for (auto i = 0; i < size; i++) {
             PyObject* msg = PyList_GetItem(pMessages_, i);
+            
+            const auto msgAttr = PyObject_GetAttr(msg, msgField);
+            const auto categoryAttr = PyObject_GetAttr(msg, categoryField);
+            const auto statusAttr = PyObject_GetAttr(msg, statusField);
 
-            auto debugAttr = PyObject_GetAttr(msg, debugField);
-            auto msgAttr = PyObject_GetAttr(msg, msgField);
-            auto categoryAttr = PyObject_GetAttr(msg, categoryField);
-            auto statusAttr = PyObject_GetAttr(msg, statusField);
-
-            auto statusValue = static_cast<cppfmu::FMIStatus>(PyLong_AsLong(statusAttr));
+            const auto statusValue = static_cast<fmi2Status>(PyLong_AsLong(statusAttr));
 
             PyObject* msgValue = PyUnicode_AsEncodedString(msgAttr, "utf-8", nullptr);
             char* msgStr = PyBytes_AsString(msgValue);
@@ -192,11 +191,8 @@ void PySlaveInstance::clearLogBuffer() const
                 logStrBuffer.emplace_back(categoryValue);
             }
 
-            if (PyObject_IsTrue(debugAttr)) {
-                const_cast<cppfmu::Logger&>(logger_).DebugLog(statusValue, categoryStr, msgStr);
-            } else {
-                const_cast<cppfmu::Logger&>(logger_).Log(statusValue, categoryStr, msgStr);
-            }
+
+            log(statusValue, categoryStr, msgStr);
         }
         PyList_SetSlice(pMessages_, 0, size, nullptr);
     }
@@ -213,10 +209,10 @@ void PySlaveInstance::initialize(PyGILState_STATE gilState)
 
     PyObject* args = PyTuple_New(0);
     PyObject* kwargs = Py_BuildValue("{ss,ss,sn,si}",
-        "instance_name", instanceName_.c_str(),
-        "resources", resources_.c_str(),
-        "logger", &logger_,
-        "visible", visible_);
+        "instance_name", data_.instanceName.c_str(),
+        "resources", data_.resourceLocation.c_str(),
+        "logger", data_.fmiLogger,
+        "visible", data_.visible);
     pInstance_ = PyObject_Call(pClass_, args, kwargs);
     Py_DECREF(args);
     Py_DECREF(kwargs);
@@ -224,18 +220,6 @@ void PySlaveInstance::initialize(PyGILState_STATE gilState)
         handle_py_exception("[initialize] PyObject_Call", gilState);
     }
     pMessages_ = PyObject_CallMethod(pInstance_, "_get_log_queue", nullptr);
-}
-
-void PySlaveInstance::SetupExperiment(cppfmu::FMIBoolean, cppfmu::FMIReal, cppfmu::FMIReal startTime, cppfmu::FMIBoolean, cppfmu::FMIReal)
-{
-    py_safe_run([this, startTime](PyGILState_STATE gilState) {
-        auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(d)", startTime);
-        if (f == nullptr) {
-            handle_py_exception("[setupExperiment] PyObject_CallMethod", gilState);
-        }
-        Py_DECREF(f);
-        clearLogBuffer();
-    });
 }
 
 void PySlaveInstance::EnterInitializationMode()
@@ -262,7 +246,7 @@ void PySlaveInstance::ExitInitializationMode()
     });
 }
 
-bool PySlaveInstance::DoStep(cppfmu::FMIReal currentTime, cppfmu::FMIReal stepSize, cppfmu::FMIBoolean, cppfmu::FMIReal& endOfStep)
+bool PySlaveInstance::DoStep(fmi2Real currentTime, fmi2Real stepSize, fmi2Boolean, fmi2Real& endOfStep)
 {
     bool status;
     py_safe_run([this, &status, currentTime, stepSize](PyGILState_STATE gilState) {
@@ -297,7 +281,7 @@ void PySlaveInstance::Terminate()
     });
 }
 
-void PySlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIReal* values)
+void PySlaveInstance::SetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, const fmi2Real* values)
 {
     py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
         PyObject* vrs = PyList_New(nvr);
@@ -339,7 +323,7 @@ void PySlaveInstance::SetInteger(const cppfmu::FMIValueReference* vr, std::size_
     });
 }
 
-void PySlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const cppfmu::FMIBoolean* values)
+void PySlaveInstance::SetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, const fmi2Boolean* values)
 {
     py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
         PyObject* vrs = PyList_New(nvr);
@@ -381,7 +365,7 @@ void PySlaveInstance::SetString(const cppfmu::FMIValueReference* vr, std::size_t
     });
 }
 
-void PySlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIReal* values) const
+void PySlaveInstance::GetReal(const cppfmu::FMIValueReference* vr, std::size_t nvr, fmi2Real* values) const
 {
     py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
         PyObject* vrs = PyList_New(nvr);
@@ -426,7 +410,7 @@ void PySlaveInstance::GetInteger(const cppfmu::FMIValueReference* vr, std::size_
     });
 }
 
-void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, cppfmu::FMIBoolean* values) const
+void PySlaveInstance::GetBoolean(const cppfmu::FMIValueReference* vr, std::size_t nvr, fmi2Boolean* values) const
 {
     py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
         PyObject* vrs = PyList_New(nvr);
@@ -599,28 +583,25 @@ PySlaveInstance::~PySlaveInstance()
     });
 }
 
-} // namespace pythonfmu
+namespace
+{
+std::mutex pyStateMutex{};
+std::shared_ptr<pythonfmu::PyState> pyState{};
 
-namespace {
-    std::mutex pyStateMutex{};
-    std::shared_ptr<pythonfmu::PyState> pyState{};
-}
+} // namespace
 
-cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
-    cppfmu::FMIString instanceName,
-    cppfmu::FMIString,
-    cppfmu::FMIString fmuResourceLocation,
-    cppfmu::FMIString,
-    cppfmu::FMIReal,
-    cppfmu::FMIBoolean visible,
-    cppfmu::FMIBoolean,
-    cppfmu::Memory memory,
-    const cppfmu::Logger& logger)
+fmi2Component fmi2Instantiate(fmi2String instanceName,
+    fmi2Type fmuType,
+    fmi2String fmuGUID,
+    fmi2String fmuResourceLocation,
+    const fmi2CallbackFunctions* functions,
+    fmi2Boolean /*visible*/,
+    fmi2Boolean loggingOn)
 {
 
     // Convert URI %20 to space
     auto resources = std::regex_replace(std::string(fmuResourceLocation), std::regex("%20"), " ");
-    auto find = resources.find("file://");
+    const auto find = resources.find("file://");
 
     if (find != std::string::npos) {
 #ifdef _MSC_VER
@@ -633,8 +614,8 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
     {
         auto const ensurePyStateAlive = [&]() {
             auto const lock = std::lock_guard{pyStateMutex};
-            if (nullptr == pyState) pyState = std::make_shared<pythonfmu::PyState>();
-            };
+            if (nullptr == pyState) pyState = std::make_shared<PyState>();
+        };
 
         ensurePyStateAlive();
         return cppfmu::AllocateUnique<pythonfmu::PySlaveInstance>(
@@ -644,43 +625,43 @@ cppfmu::UniquePtr<cppfmu::SlaveInstance> CppfmuInstantiateSlave(
 
 extern "C" {
 
-    // The PyState instance owns it's own thread for constructing and destroying the Py* from the same thread.
-    // Creation of an std::thread increments ref counter of a shared library. So, when the client unloads the library
-    // the library won't be freed, as std::thread is alive, and the std::thread itself waits for de-initialization request.
-    // Thus, use DllMain on Windows and __attribute__((destructor)) on Linux for signaling to the PyState about de-initialization.
-    void finalizePythonInterpreter()
-    {
-        pyState = nullptr;
-    }
+// The PyState instance owns it's own thread for constructing and destroying the Py* from the same thread.
+// Creation of an std::thread increments ref counter of a shared library. So, when the client unloads the library
+// the library won't be freed, as std::thread is alive, and the std::thread itself waits for de-initialization request.
+// Thus, use DllMain on Windows and __attribute__((destructor)) on Linux for signaling to the PyState about de-initialization.
+void finalizePythonInterpreter()
+{
+    pyState = nullptr;
+}
 }
 
 namespace
 {
 #ifdef _WIN32
-#include <windows.h>
+#    include <windows.h>
 
-    BOOL APIENTRY DllMain(HMODULE hModule,
-        DWORD ul_reason_for_call,
-        LPVOID lpReserved)
-    {
-        switch (ul_reason_for_call) {
-            case DLL_PROCESS_ATTACH:
-                break;
-            case DLL_THREAD_ATTACH:
-            case DLL_THREAD_DETACH:
-                break;
-            case DLL_PROCESS_DETACH:
-                finalizePythonInterpreter();
-                break;
-        }
-        return TRUE;
+BOOL APIENTRY DllMain(HMODULE hModule,
+    DWORD ul_reason_for_call,
+    LPVOID lpReserved)
+{
+    switch (ul_reason_for_call) {
+        case DLL_PROCESS_ATTACH:
+            break;
+        case DLL_THREAD_ATTACH:
+        case DLL_THREAD_DETACH:
+            break;
+        case DLL_PROCESS_DETACH:
+            finalizePythonInterpreter();
+            break;
+    }
+    return TRUE;
 }
 #elif defined(__linux__)
-    __attribute__((destructor)) void onLibraryUnload()
-    {
-        finalizePythonInterpreter();
+__attribute__((destructor)) void onLibraryUnload()
+{
+    finalizePythonInterpreter();
 }
 #else
-#error port the code
+#    error port the code
 #endif
-}
+} // namespace

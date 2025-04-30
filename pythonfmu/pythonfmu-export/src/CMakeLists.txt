@@ -1,19 +1,19 @@
 
 set(headers
-        cppfmu/cppfmu_cs.hpp
-        cppfmu/cppfmu_common.hpp
 
         fmi/fmi2Functions.h
         fmi/fmi2FunctionTypes.h
         fmi/fmi2TypesPlatform.h
+
+        pythonfmu/fmu_except.hpp
+        pythonfmu/Logger.hpp
 
         pythonfmu/PySlaveInstance.hpp
         pythonfmu/PyState.hpp
         )
 
 set(sources
-        cppfmu/cppfmu_cs.cpp
-        cppfmu/fmi_functions.cpp
+        pythonfmu/fmi_functions.cpp
         pythonfmu/PySlaveInstance.cpp
         )
 
