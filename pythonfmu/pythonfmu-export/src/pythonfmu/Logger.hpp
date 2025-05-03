@@ -3,8 +3,8 @@
 #define PYTHONFMU_LOGGER_HPP
 
 #include <fmi/fmi2Functions.h>
-
 #include <string>
+#include <vector>
 
 namespace pythonfmu {
 
@@ -14,8 +14,9 @@ namespace pythonfmu {
         explicit PyLogger(std::string instanceName)
             : instanceName_(std::move(instanceName)) {}
 
-        void setDebugLogging(bool flag) {
+        void setDebugLogging(bool flag, const std::vector<std::string>& categories = {}) {
             debugLogging_ = flag;
+            categories_ = categories;
         }
 
         // Logs a message.
@@ -25,7 +26,9 @@ namespace pythonfmu {
 
         void log(fmi2Status s, const std::string& category, const std::string &message) {
             if (debugLogging_) {
-                debugLog(s, category, message);
+                if (categories_.empty() || std::find(categories_.begin(), categories_.end(), category) != categories_.end()) {
+                    debugLog(s, category, message);
+                }
             }
         }
 
@@ -36,6 +39,7 @@ namespace pythonfmu {
 
     protected:
         std::string instanceName_;
+        std::vector<std::string> categories_;
 
         virtual void debugLog(fmi2Status s, const std::string& category, const std::string &message) = 0;
     };

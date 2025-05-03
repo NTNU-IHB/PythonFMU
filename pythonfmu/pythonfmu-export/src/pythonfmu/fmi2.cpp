@@ -134,7 +134,17 @@ fmi2Status fmi2SetDebugLogging(
     const fmi2String categories[])
 {
     const auto component = static_cast<Fmi2Component*>(c);
-    component->logger->setDebugLogging(loggingOn);
+
+    std::vector<std::string> categoriesVec;
+    if (nCategories > 0) {
+        // Convert categories to std::vector<std::string>
+        categoriesVec.reserve(nCategories);
+        for (size_t i = 0; i < nCategories; ++i) {
+            categoriesVec.emplace_back(categories[i]);
+        }
+    }
+
+    component->logger->setDebugLogging(loggingOn, categoriesVec);
 
     return fmi2OK;
 }
