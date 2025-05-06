@@ -102,16 +102,17 @@ class Fmi2Slave(ABC):
                     )
                 )
 
-        if self.default_experiment is not None:
+        def_ex = getattr(self.__class__, "default_experiment", getattr(self, "default_experiment", None))
+        if def_ex is not None:
             attrib = dict()
-            if self.default_experiment.start_time is not None:
-                attrib["startTime"] = str(self.default_experiment.start_time)
-            if self.default_experiment.stop_time is not None:
-                attrib["stopTime"] = str(self.default_experiment.stop_time)
-            if self.default_experiment.step_size is not None:
-                attrib["stepSize"] = str(self.default_experiment.step_size)
-            if self.default_experiment.tolerance is not None:
-                attrib["tolerance"] = str(self.default_experiment.tolerance)
+            if def_ex.start_time is not None:
+                attrib["startTime"] = str(def_ex.start_time)
+            if def_ex.stop_time is not None:
+                attrib["stopTime"] = str(def_ex.stop_time)
+            if def_ex.step_size is not None:
+                attrib["stepSize"] = str(def_ex.step_size)
+            if def_ex.tolerance is not None:
+                attrib["tolerance"] = str(def_ex.tolerance)
             SubElement(root, "DefaultExperiment", attrib)
 
         variables = SubElement(root, "ModelVariables")
