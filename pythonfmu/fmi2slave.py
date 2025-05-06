@@ -75,16 +75,11 @@ class Fmi2Slave(ABC):
             generationDateAndTime=date_str,
             variableNamingConvention="structured"
         )
-        if self.description is not None:
-            attrib["description"] = self.description
-        if self.author is not None:
-            attrib["author"] = self.author
-        if self.license is not None:
-            attrib["license"] = self.license
-        if self.version is not None:
-            attrib["version"] = self.version
-        if self.copyright is not None:
-            attrib["copyright"] = self.copyright
+        # use getattr to allow either class or instance attributes to be used
+        for attr in ["description", "author", "license", "version", "copyright"]:
+            value = getattr(self.__class__, attr, getattr(self, attr, None))
+            if value is not None:
+                attrib[attr] = value
 
         root = Element("fmiModelDescription", attrib)
 
