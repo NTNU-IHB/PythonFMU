@@ -176,7 +176,10 @@ class Fmi2Slave(ABC):
         if var.setter is None and hasattr(owner, var.local_name) and var.variability != Fmi2Variability.constant:
             var.setter = lambda v: setattr(owner, var.local_name, v)
 
-    def enter_initialization_mode(self, start_time: float):
+    def setup_experiment(self, start_time: float):
+        pass
+
+    def enter_initialization_mode(self):
         pass
 
     def exit_initialization_mode(self):
@@ -305,10 +308,11 @@ class Fmi2Slave(ABC):
         return self.log_queue
 
     def log(
-        self,
-        msg: str,
-        status: Fmi2Status = Fmi2Status.ok,
-        category: Optional[str] = None
+            self,
+            msg: str,
+            status: Fmi2Status = Fmi2Status.ok,
+            category: Optional[str] = None,
+            debug=None
     ):
         """Log a message to the FMU logger.
         
@@ -316,7 +320,11 @@ class Fmi2Slave(ABC):
             msg (str) : Log message
             status (Fmi2Status) : Optional, message status (default ok)
             category (str or None) : Optional, message category (default derived from status)
+            debug (bool) : Deprecated (has no effect)
         """
+        if debug is not None:
+            print(f"WARNING: 'debug' argument is deprecated and has no effect.")
+
         if category is None:
             category = f"logStatus{status.name.capitalize()}"
             if category not in self.log_categories:

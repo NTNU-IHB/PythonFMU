@@ -159,11 +159,19 @@ fmi2Status fmi2SetupExperiment(
     fmi2Real stopTime)
 {
     const auto component = static_cast<Fmi2Component*>(c);
-    component->start = startTime;
-    component->stop = stopTimeDefined ? std::optional<double>(stopTime) : std::nullopt;
-    component->tolerance = toleranceDefined ? std::optional<double>(tolerance) : std::nullopt;
-
-    return fmi2OK;
+    try {
+        component->slave->SetupExperiment(
+            startTime,
+            stopTimeDefined ? std::optional(stopTime) : std::nullopt,
+            toleranceDefined ? std::optional(tolerance) : std::nullopt);
+        return fmi2OK;
+    }catch (const pythonfmu::fatal_error& e) {
+        component->logger->log(fmi2Fatal, e.what());
+        return fmi2Fatal;
+    } catch (const std::exception& e) {
+        component->logger->log(fmi2Error, e.what());
+        return fmi2Error;
+    }
 }
 
 
@@ -171,9 +179,7 @@ fmi2Status fmi2EnterInitializationMode(fmi2Component c)
 {
     const auto component = static_cast<Fmi2Component*>(c);
     try {
-        component->slave->EnterInitializationMode(component->start,
-            component->stop,
-            component->tolerance);
+        component->slave->EnterInitializationMode();
         return fmi2OK;
     } catch (const pythonfmu::fatal_error& e) {
         component->logger->log(fmi2Fatal, e.what());

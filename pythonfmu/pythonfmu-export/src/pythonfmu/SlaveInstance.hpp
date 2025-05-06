@@ -23,14 +23,8 @@ struct fmu_data
 class SlaveInstance
 {
 public:
-    void EnterInitializationMode(double start, std::optional<double> stop, std::optional<double> tolerance)
-    {
-        time_ = start;
-        stop_ = stop;
-        tolerance_ = tolerance;
 
-        EnterInitializationMode();
-    }
+    virtual void SetupExperiment(double start, std::optional<double> stop, std::optional<double> tolerance) = 0;
 
     virtual void EnterInitializationMode() = 0;
 
@@ -57,9 +51,6 @@ public:
         std::size_t nvr,
         const char* const value[]) = 0;
 
-    /* Called from fmi2GetXxx()/fmiGetXxx().
-     * Throws std::logic_error by default.
-     */
     virtual void GetReal(
         const unsigned int vr[],
         std::size_t nvr,
@@ -77,7 +68,6 @@ public:
         std::size_t nvr,
         const char* value[]) const = 0;
 
-    // Called from fmi2DoStep()/fmiDoStep(). Must be implemented in model code.
     bool DoStep(
         double currentCommunicationPoint,
         double communicationStepSize)
@@ -95,13 +85,8 @@ public:
     virtual void SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte bytes[], size_t size) = 0;
     virtual void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) = 0;
 
-    // The instance is destroyed in fmi2FreeInstance()/fmiFreeSlaveInstance().
     virtual ~SlaveInstance() = default;
-
-protected:
-    double time_{0};
-    std::optional<double> stop_;
-    std::optional<double> tolerance_;
+    ;
 };
 
 std::unique_ptr<SlaveInstance> createInstance(fmu_data data);

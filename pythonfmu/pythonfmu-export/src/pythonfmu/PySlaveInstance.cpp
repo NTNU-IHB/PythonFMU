@@ -131,7 +131,7 @@ void py_safe_run(const std::function<void(PyGILState_STATE gilState)>& f)
 class PySlaveInstance : public SlaveInstance
 {
 public:
-    PySlaveInstance(fmu_data data)
+    explicit PySlaveInstance(fmu_data data)
         : data_(std::move(data))
     {
         py_safe_run([this](PyGILState_STATE gilState) {
@@ -224,10 +224,22 @@ public:
         pMessages_ = PyObject_CallMethod(pInstance_, "_get_log_queue", nullptr);
     }
 
+    void SetupExperiment(double startTime, std::optional<double> stop, std::optional<double> tolerance) override
+    {
+        py_safe_run([this, startTime](PyGILState_STATE gilState) {
+            auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(d)", startTime);
+            if (f == nullptr) {
+                handle_py_exception("[setupExperiment] PyObject_CallMethod", gilState);
+            }
+            Py_DECREF(f);
+            clearLogBuffer();
+        });
+    }
+
     void EnterInitializationMode() override
     {
         py_safe_run([this](PyGILState_STATE gilState) {
-            auto f = PyObject_CallMethod(pInstance_, "enter_initialization_mode", "(d)", time_);
+            auto f = PyObject_CallMethod(pInstance_, "enter_initialization_mode", nullptr);
             if (f == nullptr) {
                 handle_py_exception("[enterInitializationMode] PyObject_CallMethod", gilState);
             }
@@ -526,7 +538,7 @@ public:
         });
     }
 
-    void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state)
+    void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) override
     {
         py_safe_run([this, &bytes, size, &state](PyGILState_STATE gilState) {
             PyObject* pyStateBytes = PyBytes_FromStringAndSize(bytes, size);
