@@ -308,11 +308,11 @@ class Fmi2Slave(ABC):
         return self.log_queue
 
     def log(
-        self,
-        msg: str,
-        status: Fmi2Status = Fmi2Status.ok,
-        category: Optional[str] = None,
-        debug: bool = False
+            self,
+            msg: str,
+            status: Fmi2Status = Fmi2Status.ok,
+            category: Optional[str] = None,
+            debug=None
     ):
         """Log a message to the FMU logger.
         
@@ -320,11 +320,14 @@ class Fmi2Slave(ABC):
             msg (str) : Log message
             status (Fmi2Status) : Optional, message status (default ok)
             category (str or None) : Optional, message category (default derived from status)
-            debug (bool) : Optional, is this a debug message (default False)
+            debug (bool) : Deprecated (has no effect)
         """
+        if debug is not None:
+            print(f"WARNING: 'debug' argument is deprecated and has no effect.")
+
         if category is None:
             category = f"logStatus{status.name.capitalize()}"
             if category not in self.log_categories:
                 category = "logAll"
-        log_msg = LogMsg(status, category, msg, debug)
+        log_msg = LogMsg(status, category, msg)
         self.log_queue.append(log_msg)

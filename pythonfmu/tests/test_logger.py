@@ -1,7 +1,7 @@
 import sys
 import itertools
 import pytest
-from unittest.mock import call, MagicMock
+from unittest.mock import call, MagicMock, ANY
 
 from pythonfmu.builder import FmuBuilder
 from pythonfmu.enums import Fmi2Status
@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
     not FmuBuilder.has_binary(), reason="No binary available for the current platform."
 )
 
-if True:
+if False:
     pytest.skip("This test needs to be manually enabled", allow_module_level=True)
 
 
@@ -27,15 +27,15 @@ def test_logger(tmp_path, debug_logging):
 
     log_calls = [
         (
-            f"{status.name.upper()} - {debug} - {message}", 
-            status, 
-            category, 
+            f"{status.name.upper()} - {debug} - {message}",
+            status,
+            category,
             debug
         ) for debug, status in itertools.product([True, False], Fmi2Status)
     ]
 
     fmu_calls = "\n".join([
-        '        self.log("{}", Fmi2Status.{}, "{}", {})'.format(c[0], c[1].name, c[2], c[3]) for c in log_calls
+        '        self.log("{}", Fmi2Status.{}, "{}")'.format(c[0], c[1].name, c[2]) for c in log_calls
     ])
 
     slave_code = f"""from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Status, Fmi2Causality, Integer, Real, Boolean, String
@@ -74,18 +74,21 @@ class {name}(Fmi2Slave):
         debug_logging=debug_logging
     )
 
-    expected_calls = [
-        call(
-            logger.call_args[0][0],  # Don't test the first argument
-            bytes(name, encoding="utf-8"),
-            int(c[1]),
-            bytes(c[2], encoding="utf-8"),
-            bytes(c[0], encoding="utf-8")
-        ) for c in filter(lambda c: debug_logging or not c[3], log_calls)
-    ]
-    
-    assert logger.call_count == len(Fmi2Status) * (1 + int(debug_logging))
-    logger.assert_has_calls(expected_calls)
+    if debug_logging:
+        expected_calls = [
+            call(
+                ANY,  # Don't test the first argument
+                bytes(name, encoding="utf-8"),
+                int(c[1]),
+                bytes(c[2], encoding="utf-8"),
+                bytes(c[0], encoding="utf-8")
+            ) for c in filter(lambda c: debug_logging or not c[3], log_calls)
+        ]
+
+        assert logger.call_count == len(Fmi2Status) * (1 + int(debug_logging))
+        logger.assert_has_calls(expected_calls)
+    else:
+        assert logger.call_count == 0
 
 
 @pytest.mark.integration
@@ -97,14 +100,14 @@ def test_log_categories(tmp_path, debug_logging, categories):
 
     log_calls = [
         (
-            f"{status.name.upper()} - {debug} - {message}", 
+            f"{status.name.upper()} - {debug} - {message}",
             status,
             debug
         ) for debug, status in itertools.product([True, False], Fmi2Status)
     ]
 
     fmu_calls = "\n".join([
-        '        self.log("{}", Fmi2Status.{}, None, {})'.format(c[0], c[1].name, c[2]) for c in log_calls
+        '        self.log("{}", Fmi2Status.{}, None)'.format(c[0], c[1].name) for c in log_calls
     ])
 
     slave_code = f"""from pythonfmu.fmi2slave import Fmi2Slave, Fmi2Status, Fmi2Causality, Integer, Real, Boolean, String
@@ -160,21 +163,24 @@ class {name}(Fmi2Slave):
     # Clean the model
     model.terminate()
 
-    expected_calls = []
-    for c in filter(lambda c: debug_logging or not c[2], log_calls):
-        category = f"logStatus{c[1].name.capitalize()}"
-        if category not in Fmi2Slave.log_categories:
-            category = "logAll"
-        if len(categories) == 0 or category in categories:
-            expected_calls.append(call(
-                logger.call_args[0][0],  # Don't test the first argument
-                b'instance1',
-                int(c[1]),
-                bytes(category, encoding="utf-8"),
-                bytes(c[0], encoding="utf-8")
-            ))
+    if debug_logging:
+        expected_calls = []
+        for c in filter(lambda c: debug_logging or not c[2], log_calls):
+            category = f"logStatus{c[1].name.capitalize()}"
+            if category not in Fmi2Slave.log_categories:
+                category = "logAll"
+            if len(categories) == 0 or category in categories:
+                expected_calls.append(call(
+                    logger.call_args[0][0],  # Don't test the first argument
+                    b'instance1',
+                    int(c[1]),
+                    bytes(category, encoding="utf-8"),
+                    bytes(c[0], encoding="utf-8")
+                ))
 
-    n_calls = len(Fmi2Status) if len(categories) == 0 else len(categories)
+        n_calls = len(Fmi2Status) if len(categories) == 0 else len(categories)
 
-    assert logger.call_count == n_calls * (1 + int(debug_logging))
-    logger.assert_has_calls(expected_calls)
+        assert logger.call_count == n_calls * (1 + int(debug_logging))
+        logger.assert_has_calls(expected_calls)
+    else:
+        assert logger.call_count == 0
