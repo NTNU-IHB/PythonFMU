@@ -288,19 +288,6 @@ class FmuBuilder:
                 # Add information for the Python loader
                 zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
 
-                # Add FMI API wrapping Python class source
-                source_node = SubElement(type_node, "SourceFiles")
-                sources = Path("sources")
-                src = HERE / "pythonfmu-export"
-                for f in itertools.chain(
-                    src.rglob("*.hpp"), src.rglob("*.cpp"), src.rglob("CMakeLists.txt")
-                ):
-                    relative_f = f.relative_to(src)
-                    SubElement(
-                        source_node, "File", attrib={"name": relative_f.as_posix()}
-                    )
-                    zip_fmu.write(f, arcname=(sources / relative_f))
-
                 # Add FMI API wrapping Python class library
                 binaries = Path("binaries")
                 src_binaries = HERE / "resources" / "binaries"
