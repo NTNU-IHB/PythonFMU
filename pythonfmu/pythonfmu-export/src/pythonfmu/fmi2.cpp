@@ -44,13 +44,10 @@ struct Fmi2Component
     { }
 
     double lastSuccessfulTime{0};
+    bool wantsToTerminate{false};
 
     std::unique_ptr<pythonfmu::SlaveInstance> slave;
     std::unique_ptr<Fmi2Logger> logger;
-
-    double start{0};
-    std::optional<double> stop;
-    std::optional<double> tolerance;
 };
 
 } // namespace
@@ -165,7 +162,7 @@ fmi2Status fmi2SetupExperiment(
             stopTimeDefined ? std::optional(stopTime) : std::nullopt,
             toleranceDefined ? std::optional(tolerance) : std::nullopt);
         return fmi2OK;
-    }catch (const pythonfmu::fatal_error& e) {
+    } catch (const pythonfmu::fatal_error& e) {
         component->logger->log(fmi2Fatal, e.what());
         return fmi2Fatal;
     } catch (const std::exception& e) {
@@ -564,6 +561,7 @@ fmi2Status fmi2DoStep(
         }
 
         component->lastSuccessfulTime = endTime;
+        component->wantsToTerminate = true;
         return fmi2Discard;
     } catch (const pythonfmu::fatal_error& e) {
         component->logger->log(fmi2Fatal, e.what());
@@ -606,9 +604,9 @@ fmi2Status fmi2GetRealStatus(
         return fmi2OK;
     } else {
         component->logger->log(
-            fmi2Error,
+            fmi2Discard,
             "Invalid status inquiry for fmi2GetRealStatus");
-        return fmi2Error;
+        return fmi2Discard;
     }
 }
 
@@ -618,19 +616,24 @@ fmi2Status fmi2GetIntegerStatus(
     fmi2Integer*)
 {
     static_cast<Fmi2Component*>(c)->logger->log(
-        fmi2Error,
+        fmi2Discard,
         "FMI function not supported: fmi2GetIntegerStatus");
-    return fmi2Error;
+    return fmi2Discard;
 }
 
 fmi2Status fmi2GetBooleanStatus(
     fmi2Component c,
-    const fmi2StatusKind,
-    fmi2Boolean*)
+    const fmi2StatusKind s,
+    fmi2Boolean* value)
 {
-    static_cast<Fmi2Component*>(c)->logger->log(
-        fmi2Error, "FMI function not supported: fmi2GetBooleanStatus");
-    return fmi2Error;
+    const auto component = static_cast<Fmi2Component*>(c);
+    if (s == fmi2Terminated) {
+        *value = component->wantsToTerminate ? fmi2True : fmi2False;
+        return fmi2OK;
+    }
+    component->logger->log(
+        fmi2Discard, "FMI function not supported: fmi2GetBooleanStatus");
+    return fmi2Discard;
 }
 
 fmi2Status fmi2GetStringStatus(
@@ -639,7 +642,7 @@ fmi2Status fmi2GetStringStatus(
     fmi2String*)
 {
     static_cast<Fmi2Component*>(c)->logger->log(
-        fmi2Error, "FMI function not supported: fmi2GetStringStatus");
-    return fmi2Error;
+        fmi2Discard, "FMI function not supported: fmi2GetStringStatus");
+    return fmi2Discard;
 }
 }
