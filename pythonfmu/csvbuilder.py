@@ -150,7 +150,7 @@ class {classname}(Fmi2Slave):
                     self.next_index += 1
                     next_t = self.times[self.next_index]
 
-    def setup_experiment(self, start_time: float):
+    def setup_experiment(self, start_time: float, stop_time, step_size):
         self.current_time = start_time
         self.find_indices(start_time, 0)
 
