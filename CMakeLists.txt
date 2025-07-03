@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(pythonfmu-export VERSION 0.2.0)
+project(pythonfmu-export)
 
 # ==============================================================================
 # Build settings

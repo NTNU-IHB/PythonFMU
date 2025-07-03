@@ -13,7 +13,7 @@ jobs:
         os: [ubuntu-22.04, windows-2022]
     
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Python 3.x
         uses: actions/setup-python@v2
         with:
@@ -22,19 +22,13 @@ jobs:
       - name: Compile wrapper on Windows
         if: startsWith(runner.os, 'Windows')
         run: |
-          mkdir tmp-build
-          cd tmp-build
-          cmake $Env:github_workspace/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release -A x64
-          cmake --build . --config Release
-          cd ..
+          cmake . -B build -DCMAKE_BUILD_TYPE=Release -A x64
+          cmake --build build --config Release
       - name: Compile wrapper on Linux / macOS
         if: startsWith(runner.os, 'Linux') || startsWith(runner.os, 'macOS')
         run: |
-          mkdir tmp-build
-          cd tmp-build
-          cmake $GITHUB_WORKSPACE/pythonfmu/pythonfmu-export -DCMAKE_BUILD_TYPE=Release
-          cmake --build .
-          cd ..
+          cmake . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
       - name: Archive wrapper library
         uses: actions/upload-artifact@v4
         with:
@@ -45,7 +39,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
