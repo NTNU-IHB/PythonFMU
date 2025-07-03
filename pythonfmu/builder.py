@@ -218,7 +218,9 @@ class FmuBuilder:
             raise ValueError(f"File {script_file!s} must have extension '.py'!")
         
         dest = Path(dest)
-        if dest.is_file() or (not dest.is_dir() and dest.suffix == '.fmu'): # explicit FMU file name is provided
+        if ( dest.suffix == '.fmu' and # explicit FMU file name shall always have suffix '.fmu'
+             ( dest.is_file() or # Note that .is_file() returns False if the file does not yet exist
+               not dest.is_dir())): # if dest represents an (existing) directory we cannot interpret as file!
             dest_file = dest
             dest = dest.parent
         else:
