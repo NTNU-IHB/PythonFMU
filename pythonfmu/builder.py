@@ -189,7 +189,6 @@ def get_model_description(filepath: Path, module_name: str, class_name: str) -> 
     # Produce the xml
     return instance.modelName, instance.to_xml()
 
-
 class FmuBuilder:
 
     @staticmethod
@@ -201,13 +200,31 @@ class FmuBuilder:
         newargs: dict | None = None,
         **options,
     ) -> Path:
+        """ Build the FMU from the Python script, additional project files and documentatiion.
+
+        Args:
+            script_file (FilePath): The main Python script containing the Python model class
+            dest (FilePath)='.': Optional destination path.
+               If this is a full file name with '.fmu' extension, it is used as FMU file name.
+               Otherwise the FMU file name is constructed automatically from the script file name.
+            project_files (Iterable[FilePath]): Optional list/tuple of additional project files needed to run model
+            documentation_folder (FilePath): Optional additional documentation (beyond modelDescription)
+            newargs (dict): Optional dict of replacements of model class __init__() arguments.
+        """
         script_file = Path(script_file)
         if not script_file.exists():
             raise ValueError(f"No such file {script_file!s}")
         if not script_file.suffix.endswith(".py"):
             raise ValueError(f"File {script_file!s} must have extension '.py'!")
-
+        
         dest = Path(dest)
+        if ( dest.suffix == '.fmu' and # explicit FMU file name shall always have suffix '.fmu'
+             ( dest.is_file() or # Note that .is_file() returns False if the file does not yet exist
+               not dest.is_dir())): # if dest represents an (existing) directory we cannot interpret as file!
+            dest_file = dest
+            dest = dest.parent
+        else:
+            dest_file = "" # FMU file name is automatically generated below
         if not dest.exists():
             dest.mkdir(parents=True)
         project_files = set(map(Path, project_files))
@@ -261,13 +278,14 @@ class FmuBuilder:
                         temp_dest = temp_dir / file_.name
                         shutil.copytree(file_, temp_dest)
                     else:
+                        assert file_.name != script_file.name, ( # avoid the inclusion of the script in project files
+                            "It seems that the script file is included a second time in the project_files")
                         shutil.copy2(file_, temp_dir)
 
             model_identifier, xml = get_model_description(
                 temp_dir.absolute() / script_file.name, module_name, model_class.__name__
             )
-
-            dest_file = dest / f"{model_identifier}.fmu"
+            dest_file = dest / f"{model_identifier}.fmu" if dest_file == "" else dest_file
 
             type_node = xml.find("CoSimulation")
             option_names = [opt.name for opt in FMI2_MODEL_OPTIONS]
@@ -317,6 +335,8 @@ class FmuBuilder:
                 zip_fmu.writestr(
                     "modelDescription.xml", xml_str.toprettyxml(encoding="UTF-8")
                 )
+            if newargs is not None:
+                sys.modules.pop(Path(script_file).stem)  # otherwise old script may be active when loading the FMU!
 
             return dest_file
 
