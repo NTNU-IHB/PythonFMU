@@ -137,6 +137,8 @@ the [GitHub workflow](./.github/workflows/main.yml).
 
 PythonFMU does not automatically resolve 3rd party dependencies. If your code includes e.g. `numpy`, the target system also needs to have `numpy` installed.
 
+Loading an FMU under linux in a non-Python host, requires setting `LD_PRELOAD=path/to/libpython3.version.so`. E.g.: `LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libpython3.11.so`
+
 ---
 
 Would you rather build FMUs in Java? Check out [FMI4j](https://github.com/NTNU-IHB/FMI4j)!  
