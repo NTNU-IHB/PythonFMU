@@ -226,8 +226,15 @@ public:
 
     void SetupExperiment(double startTime, std::optional<double> stop, std::optional<double> tolerance) override
     {
-        py_safe_run([this, startTime](PyGILState_STATE gilState) {
-            auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(d)", startTime);
+        py_safe_run([this, startTime, stop, tolerance](PyGILState_STATE gilState) {
+            PyObject* pyStop = stop ? Py_BuildValue("d", *stop) : (Py_INCREF(Py_None), Py_None);
+            PyObject* pyTol = tolerance ? Py_BuildValue("d", *tolerance) : (Py_INCREF(Py_None), Py_None);
+
+            auto f = PyObject_CallMethod(pInstance_, "setup_experiment", "(dOO)", startTime, pyStop, pyTol);
+
+            Py_DECREF(pyStop);
+            Py_DECREF(pyTol);
+
             if (f == nullptr) {
                 handle_py_exception("[setupExperiment] PyObject_CallMethod", gilState);
             }
