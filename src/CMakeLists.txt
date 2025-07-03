@@ -27,11 +27,11 @@ target_link_libraries (pythonfmu-export PRIVATE Python3::Module)
 if (WIN32)
   set_target_properties(pythonfmu-export
           PROPERTIES
-          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
+          RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/pythonfmu/resources/binaries/${TARGET_PLATFORM}"
           )
 else ()
   set_target_properties(pythonfmu-export
           PROPERTIES
-          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../resources/binaries/${TARGET_PLATFORM}"
+          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/pythonfmu/resources/binaries/${TARGET_PLATFORM}"
           )
 endif ()
