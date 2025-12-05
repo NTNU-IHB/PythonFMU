@@ -122,7 +122,9 @@ def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
 
     init: FunctionType = None
     modulename = src.stem
+    importlib.invalidate_caches()
     module = importlib.import_module(modulename)
+    module = importlib.reload( module) # to avoid that the finder looks in temporary folders previously created 
 
     # Find the __init__ function in the module
     for name, obj in inspect.getmembers(model):
@@ -241,13 +243,13 @@ class FmuBuilder:
 
         module_name = script_file.stem
         model_class = get_model_class(script_file)
+        updated_code = update_model_parameters(script_file, model_class, newargs) if newargs else None
 
         with tempfile.TemporaryDirectory(prefix="pythonfmu_") as tempd:
             temp_dir = Path(tempd)
 
             if newargs:
                 model_file = temp_dir / f"{module_name}.py"
-                updated_code = update_model_parameters(script_file, model_class, newargs)
 
                 # Write the updated code to a new file
                 model_file.write_text(updated_code)
