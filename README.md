@@ -40,6 +40,7 @@ optional arguments:
   -d DEST, --dest DEST  Where to save the FMU.
   --doc DOCUMENTATION_FOLDER
                         Documentation folder to include in the FMU.
+  -c, --cythonize       Compile the Python script into a binary module using Cython.
   --no-external-tool    If given, needsExecutionTool=false
   --no-variable-step    If given, canHandleVariableCommunicationStepSize=false
   --interpolate-inputs  If given, canInterpolateInputs=true
@@ -79,6 +80,61 @@ optional arguments:
   -f FMU, --file FMU    Path to the Python FMU.
   -e ENVIRONMENT, --env ENVIRONMENT
                         Requirements or environment file.
+```
+
+### How do I inspect a generated FMU?
+
+Use `pythonfmu info` to display information about a generated FMU. It reports the supported platforms,
+compiled models (`.pyd` / `.so`) with their Python implementation (e.g. CPython) and version,
+and Python package dependencies.
+
+> **Note:** Compiled models are only present when the FMU was built with the `--cythonize` (`-c`) flag,
+> which compiles the Python script into a native binary module using Cython.
+> Currently, only the main Python script is compiled — additional Python dependencies
+> included as project files are **not** compiled.
+
+> **Warning:** `--cythonize` **does not guarantee** protection against reverse
+> engineering and **should not be** used for that purpose. Furthermore, without proper use of Cython-specific
+> constructs (e.g., `cdef`, `cfunc`, `cdef class`), the
+> compiled binary
+> still exposes all public interfaces. Refer to
+> the [Cython Extension Types](https://cython.readthedocs.io/en/latest/src/userguide/extension_types.html) for
+> constructs
+> that can help restrict visibility of functions and class attributes when importing binary modules.
+
+```
+pythonfmu info -f my.fmu
+```
+
+```
+usage: pythonfmu info [-h] -f FMU
+
+Display information about a generated FMU: supported platforms, compiled
+models (.pyd/.so) with Python implementation and version, and package
+dependencies.
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -f, --file FMU  Path to the FMU file to inspect.
+```
+
+Example output:
+
+```
+Supported platforms:
+  macOS (x64)
+  Linux (x64)
+  Windows (x64)
+
+Compiled model(s):
+  demoslave.cp314-win_amd64.pyd
+    Python impl    : CPython
+    Python version : cp314 (CPython 3.14)
+    Platform arch  : win_amd64
+
+Python package dependencies (requirements.txt):
+  numpy
+  scipy
 ```
 
 ### Example:

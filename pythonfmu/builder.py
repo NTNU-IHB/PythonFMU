@@ -12,12 +12,14 @@ import tempfile
 from types import FunctionType
 import zipfile
 import inspect
+import glob
 from pathlib import Path
 from typing import Iterable, Literal, Optional, Tuple, Union
 from xml.dom.minidom import parseString
 from xml.etree.ElementTree import Element, SubElement, tostring
 from .osutil import get_lib_extension, get_platform
 from .fmi2slave import FMI2_MODEL_OPTIONS, Fmi2Slave
+from setuptools import setup
 
 FilePath = Union[str, Path]
 HERE = Path(__file__).parent
@@ -27,14 +29,14 @@ logger = logging.getLogger(__name__)
 def match_par(txt: str, left: str = "(", right: str = ")") -> tuple[int, Literal[-1]] | tuple[int, int]:
     """
     Finds the position of the matching closing parenthesis for the first opening parenthesis in a given string.
-    
+
     Args:
         txt (str): The input string to search within.
         left (str, optional): The character representing the opening parenthesis. Defaults to "(".
         right (str, optional): The character representing the closing parenthesis. Defaults to ")".
     Returns:
-        tuple[int, Literal[-1]] | tuple[int, int]: A tuple containing the position of the first opening parenthesis 
-        and the position of the matching closing parenthesis. If no matching closing parenthesis is found, 
+        tuple[int, Literal[-1]] | tuple[int, int]: A tuple containing the position of the first opening parenthesis
+        and the position of the matching closing parenthesis. If no matching closing parenthesis is found,
         returns the position of the first opening parenthesis and -1.
     Raises:
         AssertionError: If the first opening parenthesis is not found in the input string.
@@ -60,7 +62,7 @@ def match_par(txt: str, left: str = "(", right: str = ")") -> tuple[int, Literal
 
 def get_model_class(src: Path) -> Fmi2Slave:
     """
-    Given a source file path, dynamically import the module and find the class that 
+    Given a source file path, dynamically import the module and find the class that
     inherits from Fmi2Slave with the longest hierarchy.
     
     Args:
@@ -99,7 +101,7 @@ def get_model_class(src: Path) -> Fmi2Slave:
             raise ValueError(f"Non-unique Fmi2Slave-derived class in module {src}. Found {classes}.") from None
         else:
             return classes[0]
-        
+
 def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
     """
     Update the model parameters in the __init__ function of a given module.
@@ -124,7 +126,7 @@ def update_model_parameters(src: Path, model: Fmi2Slave, newargs: dict) -> str:
     modulename = src.stem
     importlib.invalidate_caches()
     module = importlib.import_module(modulename)
-    module = importlib.reload( module) # to avoid that the finder looks in temporary folders previously created 
+    module = importlib.reload( module) # to avoid that the finder looks in temporary folders previously created
 
     # Find the __init__ function in the module
     for name, obj in inspect.getmembers(model):
@@ -218,7 +220,7 @@ class FmuBuilder:
             raise ValueError(f"No such file {script_file!s}")
         if not script_file.suffix.endswith(".py"):
             raise ValueError(f"File {script_file!s} must have extension '.py'!")
-        
+
         dest = Path(dest)
         if ( dest.suffix == '.fmu' and # explicit FMU file name shall always have suffix '.fmu'
              ( dest.is_file() or # Note that .is_file() returns False if the file does not yet exist
@@ -256,6 +258,31 @@ class FmuBuilder:
             else:
                 shutil.copy2(script_file, temp_dir)
 
+            has_cythonize: bool = options["cythonize"]
+
+            if has_cythonize:
+                cython_build_module = importlib.util.find_spec("Cython.Build")
+                cython = importlib.util.module_from_spec(cython_build_module)
+                cython_build_module.loader.exec_module(cython)
+                cythonize = cython.cythonize
+
+                with tempfile.TemporaryDirectory(prefix="pythonfmu_build_") as _build_dir:
+                    build_dir = Path(_build_dir)
+                    setup(
+                        script_args=["build_ext"],
+                        ext_modules=cythonize(
+                            str(temp_dir.absolute() / script_file.name),
+                            language_level="3",
+                            build_dir=str(build_dir.absolute()),
+                        ),
+                        options={
+                            "build": {"build_lib": str(build_dir.absolute())}
+                        }
+                    )
+                    for bin_file in glob.glob(
+                            f"{build_dir / script_file.stem}*.{'pyd' if sys.platform == 'win32' else 'so'}"):
+                        shutil.copy2(bin_file, temp_dir)
+
             # Embed pythonfmu in the FMU so it does not need to be included
             dep_folder = temp_dir / "pythonfmu"
             dep_folder.mkdir()
@@ -287,6 +314,11 @@ class FmuBuilder:
             model_identifier, xml = get_model_description(
                 temp_dir.absolute() / script_file.name, module_name, model_class.__name__
             )
+
+            # Remove source file
+            if has_cythonize:
+                (temp_dir / script_file.name).unlink()
+
             dest_file = dest / f"{model_identifier}.fmu" if dest_file == "" else dest_file
 
             type_node = xml.find("CoSimulation")
@@ -307,6 +339,11 @@ class FmuBuilder:
 
                 # Add information for the Python loader
                 zip_fmu.writestr(str(resource.joinpath("slavemodule.txt")), module_name)
+
+                if has_cythonize:
+                    zip_fmu.writestr(str(resource.joinpath("filetype.txt")), "bin")
+                else:
+                    zip_fmu.writestr(str(resource.joinpath("filetype.txt")), "script")
 
                 # Add FMI API wrapping Python class library
                 binaries = Path("binaries")
@@ -389,3 +426,7 @@ def create_command_parser(parser: argparse.ArgumentParser):
     )
 
     parser.set_defaults(execute=FmuBuilder.build_FMU)
+
+    parser.add_argument(
+        "-c", "--cythonize", dest="cythonize", action="store_true", help="Cythonize the script."
+    )
