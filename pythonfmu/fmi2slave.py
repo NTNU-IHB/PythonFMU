@@ -12,7 +12,8 @@ from .logmsg import LogMsg
 from .default_experiment import DefaultExperiment
 from ._version import __version__ as VERSION
 from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
-from .variables import Boolean, Integer, Real, ScalarVariable, String
+from .variables import Boolean, Integer, Real, ScalarVariable, String, Enumeration
+from .type import SimpleType, Real as TypeReal, Integer as TypeInteger, Item, Enumeration as TypeEnum
 
 ModelOptions = namedtuple("ModelOptions", ["name", "value", "cli"])
 
@@ -40,6 +41,7 @@ class Fmi2Slave(ABC):
 
     def __init__(self, **kwargs):
         self.vars = OrderedDict()
+        self.types = []
         self.instance_name = kwargs["instance_name"]
         self.resources = kwargs.get("resources", None)
         self.visible = kwargs.get("visible", False)
@@ -91,6 +93,11 @@ class Fmi2Slave(ABC):
         options["canNotUseMemoryManagementFunctions"] = "true"
 
         SubElement(root, "CoSimulation", attrib=options)
+
+        if len(self.types) > 0:
+            types = SubElement(root, "TypeDefinitions")
+            for type_ in self.types:
+                types.append(type_.to_xml())
 
         if len(self.log_categories) > 0:
             categories = SubElement(root, "LogCategories")
@@ -145,6 +152,8 @@ class Fmi2Slave(ABC):
             refs = self.get_boolean(vrs)
         elif isinstance(var, String):
             refs = self.get_string(vrs)
+        elif isinstance(var, Enumeration):
+            refs = self.get_integer(vrs)
         else:
             raise Exception(f"Unsupported type!")
 
@@ -172,6 +181,14 @@ class Fmi2Slave(ABC):
         if var.setter is None and hasattr(owner, var.local_name) and var.variability != Fmi2Variability.constant:
             var.setter = lambda v: setattr(owner, var.local_name, v)
 
+    def register_type(self, type: SimpleType):
+        """Register a type as FMU interface.
+
+        Args:
+            type (SimpleType): The type to be registered
+        """
+        self.types.append(type)
+
     def setup_experiment(self, start_time: float, stop_time: Optional[float], tolerance: Optional[float]):
         pass
 
@@ -192,7 +209,7 @@ class Fmi2Slave(ABC):
         refs = list()
         for vr in vrs:
             var = self.vars[vr]
-            if isinstance(var, Integer):
+            if isinstance(var, Integer) or isinstance(var, Enumeration):
                 refs.append(int(var.getter()))
             else:
                 raise TypeError(
@@ -239,7 +256,7 @@ class Fmi2Slave(ABC):
     def set_integer(self, vrs: List[int], values: List[int]):
         for vr, value in zip(vrs, values):
             var = self.vars[vr]
-            if isinstance(var, Integer):
+            if isinstance(var, Integer) or isinstance(var, Enumeration):
                 var.setter(value)
             else:
                 raise TypeError(
