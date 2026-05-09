@@ -256,7 +256,7 @@ class Fmi2Slave(ABC):
     def set_integer(self, vrs: List[int], values: List[int]):
         for vr, value in zip(vrs, values):
             var = self.vars[vr]
-            if isinstance(var, Integer):
+            if isinstance(var, Integer) or isinstance(var, Enumeration):
                 var.setter(value)
             else:
                 raise TypeError(
