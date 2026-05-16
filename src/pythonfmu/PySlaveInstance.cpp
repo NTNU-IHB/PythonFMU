@@ -62,8 +62,6 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
         PyObject* pResult = PyEval_EvalCode(pCode, pGlobals, pLocals);
         Py_XDECREF(pResult);
     } else {
-        PyErr_Print(); // Handle compilation error
-        Py_Finalize();
         Py_DECREF(pGlobals);
         Py_DECREF(pyModule);
         Py_DECREF(pLocals);
@@ -718,7 +716,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     }
     return TRUE;
 }
-#elif defined(__linux__)
+#elif defined(__GNUC__) || defined(__clang__)
 __attribute__((destructor)) void onLibraryUnload()
 {
     finalizePythonInterpreter();
