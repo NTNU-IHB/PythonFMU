@@ -12,6 +12,7 @@ from .logmsg import LogMsg
 from .default_experiment import DefaultExperiment
 from ._version import __version__ as VERSION
 from .enums import Fmi2Type, Fmi2Status, Fmi2Causality, Fmi2Initial, Fmi2Variability
+from .log_categories_data import LOG_ALL_CATEGORY, LOG_ALL_DESCRIPTION, LOG_CATEGORIES
 from .variables import Boolean, Integer, Real, ScalarVariable, String
 
 ModelOptions = namedtuple("ModelOptions", ["name", "value", "cli"])
@@ -29,13 +30,11 @@ FMI2_MODEL_OPTIONS: List[ModelOptions] = [
 class Fmi2Slave(ABC):
     """Abstract facade class to execute Python through FMI standard."""
 
-    # Dictionary of (category, description) entries
+    # Dictionary of (category, description) entries; canonical source is
+    # pythonfmu/log_categories_data.py, shared with the native library.
     log_categories: Dict[str, str] = {
-        "logStatusWarning": "Log messages with fmi2Warning status.",
-        "logStatusDiscard": "Log messages with fmi2Discard status.",
-        "logStatusError": "Log messages with fmi2Error status.",
-        "logStatusFatal": "Log messages with fmi2Fatal status.",
-        "logAll": "Log all messages."
+        **{name: description for _, name, description in LOG_CATEGORIES},
+        LOG_ALL_CATEGORY: LOG_ALL_DESCRIPTION,
     }
 
     def __init__(self, **kwargs):

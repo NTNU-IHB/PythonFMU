@@ -1,5 +1,6 @@
 import math
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -354,3 +355,46 @@ def test_integration_throw_py_error(tmp_path):
 
     with pytest.raises(Exception):
         fmpy.simulate_fmu(str(fmu), stop_time=1.0)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "categories,expect_logged",
+    [(("logStatusFatal",), True), (("logStatusError",), False)],
+)
+def test_integration_throw_py_error_respects_log_categories(tmp_path, categories, expect_logged):
+    """A RuntimeError raised in do_step is caught in fmi2DoStep as fmi2Fatal and
+    logged with category 'logStatusFatal'; it must not be dropped just because it
+    originates from the internal C++ exception handler (regression test)."""
+    script_file = Path(__file__).parent / "slaves/PythonSlaveWithException.py"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path)
+    assert fmu.exists()
+
+    logger = MagicMock()
+
+    callbacks = fmpy.fmi2.fmi2CallbackFunctions()
+    callbacks.logger = fmpy.fmi2.fmi2CallbackLoggerTYPE(logger)
+    callbacks.allocateMemory = fmpy.fmi2.fmi2CallbackAllocateMemoryTYPE(fmpy.calloc)
+    callbacks.freeMemory = fmpy.fmi2.fmi2CallbackFreeMemoryTYPE(fmpy.free)
+
+    model_description = fmpy.read_model_description(str(fmu))
+    unzip_dir = fmpy.extract(str(fmu))
+
+    model = fmpy.fmi2.FMU2Slave(
+        guid=model_description.guid,
+        unzipDirectory=unzip_dir,
+        modelIdentifier=model_description.coSimulation.modelIdentifier,
+        instanceName="instance1")
+    model.instantiate(callbacks=callbacks)
+    model.setDebugLogging(True, categories)
+    model.setupExperiment()
+    model.enterInitializationMode()
+    model.exitInitializationMode()
+
+    with pytest.raises(Exception):
+        model.doStep(0.0, 0.1)
+
+    fatal_calls = [
+        c for c in logger.call_args_list if c.args[3] == b"logStatusFatal"
+    ]
+    assert (len(fatal_calls) == 1) == expect_logged
