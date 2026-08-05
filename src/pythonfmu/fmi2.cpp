@@ -509,7 +509,6 @@ fmi2Status fmi2GetDirectionalDerivative(
 {
     static_cast<Fmi2Component*>(c)->logger->log(
         fmi2Error,
-        "cppfmu",
         "FMI function not supported: fmi2GetDirectionalDerivative");
     return fmi2Error;
 }
@@ -523,7 +522,6 @@ fmi2Status fmi2SetRealInputDerivatives(
 {
     static_cast<Fmi2Component*>(c)->logger->log(
         fmi2Error,
-        "cppfmu",
         "FMI function not supported: fmi2SetRealInputDerivatives");
     return fmi2Error;
 }
@@ -537,7 +535,6 @@ fmi2Status fmi2GetRealOutputDerivatives(
 {
     static_cast<Fmi2Component*>(c)->logger->log(
         fmi2Error,
-        "cppfmu",
         "FMI function not supported: fmiGetRealOutputDerivatives");
     return fmi2Error;
 }
