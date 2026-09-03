@@ -62,12 +62,10 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
         PyObject* pResult = PyEval_EvalCode(pCode, pGlobals, pLocals);
         Py_XDECREF(pResult);
     } else {
-        PyErr_Print(); // Handle compilation error
-        Py_Finalize();
-        Py_DECREF(pGlobals);
+        // Compilation failed: leave the exception set so the caller reports it
+        // through handle_py_exception().
         Py_DECREF(pyModule);
         Py_DECREF(pLocals);
-        Py_DECREF(pCode);
         file.close();
         return nullptr;
     }
@@ -113,7 +111,7 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
     Py_DECREF(pCode);
     Py_DECREF(pLocals);
     Py_DECREF(pyModule);
-    Py_DECREF(pGlobals);
+    // Borrowed reference (PyModule_GetDict); do not DECREF.
     file.close();
     Py_DECREF(pyClassName);
     return pyClass;
@@ -664,21 +662,26 @@ namespace
 {
 
 std::mutex pyStateMutex{};
-std::shared_ptr<PyState> pyState{};
+// Intentionally heap-allocated and never deleted. A namespace-scope
+// std::shared_ptr<PyState> is destroyed by its static destructor at process exit
+// and released again by the platform unload hook; the order of those two is
+// unspecified, so the second release read a freed control block
+// (heap-use-after-free -> "corrupted double-linked list" at exit).
+std::shared_ptr<PyState>* pyState = new std::shared_ptr<PyState>();
 
 } // namespace
 
 std::unique_ptr<SlaveInstance> pythonfmu::createInstance(fmu_data data)
 {
     {
-        auto const ensurePyStateAlive = [&]() {
+        auto const ensurePyStateAlive = [&]() -> std::shared_ptr<PyState> {
             auto const lock = std::lock_guard{pyStateMutex};
-            if (nullptr == pyState) pyState = std::make_shared<PyState>();
+            if (nullptr == *pyState) *pyState = std::make_shared<PyState>();
+            return *pyState;
         };
 
-        ensurePyStateAlive();
+        data.pyState = ensurePyStateAlive();
         auto c = std::make_unique<PySlaveInstance>(data);
-        data.pyState = pyState;
         return c;
     }
 }
@@ -689,10 +692,11 @@ extern "C" {
 // The PyState instance owns it's own thread for constructing and destroying the Py* from the same thread.
 // Creation of an std::thread increments ref counter of a shared library. So, when the client unloads the library
 // the library won't be freed, as std::thread is alive, and the std::thread itself waits for de-initialization request.
-// Thus, use DllMain on Windows and __attribute__((destructor)) on Linux for signaling to the PyState about de-initialization.
+// Thus, use the platform unload hook to signal PyState about de-initialization.
 void finalizePythonInterpreter()
 {
-    pyState = nullptr;
+    auto const lock = std::lock_guard{pyStateMutex};
+    pyState->reset();
 }
 }
 
