@@ -354,3 +354,43 @@ def test_integration_throw_py_error(tmp_path):
 
     with pytest.raises(Exception):
         fmpy.simulate_fmu(str(fmu), stop_time=1.0)
+
+
+@pytest.mark.integration
+def test_integration_reinstantiate_same_fmu_keeps_module_dict_alive(tmp_path):
+    """findClass() must not Py_DECREF the borrowed PyModule_GetDict() result.
+
+    The FMU runs inside this interpreter, so the reference count of the slave
+    module's __dict__ can be compared with the objects that visibly refer to it.
+    A stolen reference shows up as a count lower than the referrer count, one per
+    fmi2Instantiate of the same FMU.
+    """
+    import gc
+    import sys
+
+    script_file = Path(__file__).parent / "slaves/pythonslave.py"
+    fmu = FmuBuilder.build_FMU(script_file, dest=tmp_path, needsExecutionTool="false")
+    md = fmpy.read_model_description(fmu, validate=False)
+    unzip_dir = fmpy.extract(fmu)
+
+    models = []
+    for i in range(3):
+        model = fmpy.fmi2.FMU2Slave(
+            guid=md.guid,
+            unzipDirectory=unzip_dir,
+            modelIdentifier=md.coSimulation.modelIdentifier,
+            instanceName=f"instance{i}",
+        )
+        model.instantiate()
+        models.append(model)
+
+    gc.collect()
+    module_dict = sys.modules[script_file.stem].__dict__
+    referrers = gc.get_referrers(module_dict)
+    # getrefcount() counts its own argument; every visible referrer must own a reference.
+    assert sys.getrefcount(module_dict) - 1 >= len(referrers)
+
+    for model in models:
+        model.terminate()
+        model.fmi2FreeInstance(model.component)
+        model.component = None

@@ -62,12 +62,10 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
         PyObject* pResult = PyEval_EvalCode(pCode, pGlobals, pLocals);
         Py_XDECREF(pResult);
     } else {
-        PyErr_Print(); // Handle compilation error
-        Py_Finalize();
-        Py_DECREF(pGlobals);
+        // Compilation failed: leave the exception set so the caller reports it
+        // through handle_py_exception().
         Py_DECREF(pyModule);
         Py_DECREF(pLocals);
-        Py_DECREF(pCode);
         file.close();
         return nullptr;
     }
@@ -113,7 +111,7 @@ PyObject* findClass(const std::string& resources, const std::string& moduleName)
     Py_DECREF(pCode);
     Py_DECREF(pLocals);
     Py_DECREF(pyModule);
-    Py_DECREF(pGlobals);
+    // Borrowed reference (PyModule_GetDict); do not DECREF.
     file.close();
     Py_DECREF(pyClassName);
     return pyClass;
