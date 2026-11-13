@@ -204,8 +204,8 @@ public:
 
     void initialize(PyGILState_STATE gilState)
     {
-        Py_XDECREF(pInstance_);
-        Py_XDECREF(pMessages_);
+        Py_CLEAR(pInstance_);
+        Py_CLEAR(pMessages_);
 
         PyObject* args = PyTuple_New(0);
         PyObject* kwargs = Py_BuildValue("{ss,ss,sn,si}",
@@ -220,10 +220,14 @@ public:
             handle_py_exception("[initialize] PyObject_Call", gilState);
         }
         pMessages_ = PyObject_CallMethod(pInstance_, "_get_log_queue", nullptr);
+        if (pMessages_ == nullptr) {
+            handle_py_exception("[initialize] _get_log_queue", gilState);
+        }
     }
 
     void SetupExperiment(double startTime, std::optional<double> stop, std::optional<double> tolerance) override
     {
+        ensureUsable("[setupExperiment]");
         py_safe_run([this, startTime, stop, tolerance](PyGILState_STATE gilState) {
             PyObject* pyStop = stop ? Py_BuildValue("d", *stop) : (Py_INCREF(Py_None), Py_None);
             PyObject* pyTol = tolerance ? Py_BuildValue("d", *tolerance) : (Py_INCREF(Py_None), Py_None);
@@ -243,6 +247,7 @@ public:
 
     void EnterInitializationMode() override
     {
+        ensureUsable("[enterInitializationMode]");
         py_safe_run([this](PyGILState_STATE gilState) {
             auto f = PyObject_CallMethod(pInstance_, "enter_initialization_mode", nullptr);
             if (f == nullptr) {
@@ -255,6 +260,7 @@ public:
 
     void ExitInitializationMode() override
     {
+        ensureUsable("[exitInitializationMode]");
         py_safe_run([this](PyGILState_STATE gilState) {
             auto f = PyObject_CallMethod(pInstance_, "exit_initialization_mode", nullptr);
             if (f == nullptr) {
@@ -267,6 +273,7 @@ public:
 
     bool Step(double currentTime, double stepSize) override
     {
+        ensureUsable("[doStep]");
         bool status;
         py_safe_run([this, &status, currentTime, stepSize](PyGILState_STATE gilState) {
             auto f = PyObject_CallMethod(pInstance_, "do_step", "(dd)", currentTime, stepSize);
@@ -283,6 +290,7 @@ public:
 
     void Reset() override
     {
+        ensureUsable("[reset]");
         py_safe_run([this](PyGILState_STATE gilState) {
             initialize(gilState);
         });
@@ -290,6 +298,7 @@ public:
 
     void Terminate() override
     {
+        ensureUsable("[terminate]");
         py_safe_run([this](PyGILState_STATE gilState) {
             auto f = PyObject_CallMethod(pInstance_, "terminate", nullptr);
             if (f == nullptr) {
@@ -302,6 +311,7 @@ public:
 
     void SetReal(const fmi2ValueReference* vr, std::size_t nvr, const fmi2Real* values) override
     {
+        ensureUsable("[setReal]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             PyObject* refs = PyList_New(nvr);
@@ -323,6 +333,7 @@ public:
 
     void SetInteger(const fmi2ValueReference* vr, std::size_t nvr, const fmi2Integer* values) override
     {
+        ensureUsable("[setInteger]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             PyObject* refs = PyList_New(nvr);
@@ -344,6 +355,7 @@ public:
 
     void SetBoolean(const fmi2ValueReference* vr, std::size_t nvr, const fmi2Boolean* values) override
     {
+        ensureUsable("[setBoolean]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             PyObject* refs = PyList_New(nvr);
@@ -365,6 +377,7 @@ public:
 
     void SetString(const fmi2ValueReference* vr, std::size_t nvr, fmi2String const* values) override
     {
+        ensureUsable("[setString]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             PyObject* refs = PyList_New(nvr);
@@ -386,6 +399,7 @@ public:
 
     void GetReal(const fmi2ValueReference* vr, std::size_t nvr, fmi2Real* values) const override
     {
+        ensureUsable("[getReal]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             for (int i = 0; i < nvr; i++) {
@@ -409,6 +423,7 @@ public:
 
     void GetInteger(const fmi2ValueReference* vr, std::size_t nvr, fmi2Integer* values) const override
     {
+        ensureUsable("[getInteger]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             for (int i = 0; i < nvr; i++) {
@@ -431,6 +446,7 @@ public:
 
     void GetBoolean(const fmi2ValueReference* vr, std::size_t nvr, fmi2Boolean* values) const override
     {
+        ensureUsable("[getBoolean]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             PyObject* vrs = PyList_New(nvr);
             for (int i = 0; i < nvr; i++) {
@@ -453,6 +469,7 @@ public:
 
     void GetString(const fmi2ValueReference* vr, std::size_t nvr, fmi2String* values) const override
     {
+        ensureUsable("[getString]");
         py_safe_run([this, &vr, nvr, &values](PyGILState_STATE gilState) {
             clearStrBuffer();
             PyObject* vrs = PyList_New(nvr);
@@ -477,6 +494,7 @@ public:
 
     void GetFMUstate(fmi2FMUstate& state) override
     {
+        ensureUsable("[_get_fmu_state]");
         py_safe_run([this, &state](PyGILState_STATE gilState) {
             auto f = PyObject_CallMethod(pInstance_, "_get_fmu_state", nullptr);
             if (f == nullptr) {
@@ -489,6 +507,7 @@ public:
 
     void SetFMUstate(const fmi2FMUstate& state) override
     {
+        ensureUsable("[_set_fmu_state]");
         py_safe_run([this, &state](PyGILState_STATE gilState) {
             auto pyState = reinterpret_cast<PyObject*>(state);
             auto f = PyObject_CallMethod(pInstance_, "_set_fmu_state", "(O)", pyState);
@@ -501,6 +520,7 @@ public:
 
     void FreeFMUstate(fmi2FMUstate& state) override
     {
+        ensureUsable("[FreeFMUstate]");
         py_safe_run([this, &state](PyGILState_STATE gilState) {
             auto f = reinterpret_cast<PyObject*>(state);
             Py_XDECREF(f);
@@ -509,6 +529,7 @@ public:
 
     size_t SerializedFMUstateSize(const fmi2FMUstate& state) override
     {
+        ensureUsable("[SerializedFMUstateSize]");
         size_t size;
         py_safe_run([this, &state, &size](PyGILState_STATE gilState) {
             auto pyState = reinterpret_cast<PyObject*>(state);
@@ -525,6 +546,7 @@ public:
 
     void SerializeFMUstate(const fmi2FMUstate& state, fmi2Byte* bytes, size_t size) override
     {
+        ensureUsable("[SerializeFMUstate]");
         py_safe_run([this, &state, &bytes, size](PyGILState_STATE gilState) {
             auto pyState = reinterpret_cast<PyObject*>(state);
             PyObject* pyStateBytes = PyObject_CallMethod(pClass_, "_fmu_state_to_bytes", "(O)", pyState);
@@ -545,6 +567,7 @@ public:
 
     void DeSerializeFMUstate(const fmi2Byte bytes[], size_t size, fmi2FMUstate& state) override
     {
+        ensureUsable("[DeSerializeFMUstate]");
         py_safe_run([this, &bytes, size, &state](PyGILState_STATE gilState) {
             PyObject* pyStateBytes = PyBytes_FromStringAndSize(bytes, size);
             if (pyStateBytes == nullptr) {
@@ -570,9 +593,15 @@ public:
 private:
     fmu_data data_;
 
-    PyObject* pClass_;
-    PyObject* pInstance_{};
-    PyObject* pMessages_{};
+    // Owned references, released with Py_CLEAR so no path can release one twice.
+    mutable PyObject* pClass_{};
+    mutable PyObject* pInstance_{};
+    mutable PyObject* pMessages_{};
+
+    // Set by the first Python exception, whose handler releases the slave object.
+    // Every later operation fails fast (fmi2Fatal) without touching Python, and the
+    // destructor (fmi2FreeInstance) only releases what is still held.
+    mutable bool failed_{false};
 
     mutable std::vector<PyObject*> strBuffer;
     mutable std::vector<PyObject*> logStrBuffer;
@@ -617,44 +646,51 @@ private:
         clearLogBuffer();
         clearLogStrBuffer();
         clearStrBuffer();
-        Py_XDECREF(pClass_);
-        Py_XDECREF(pInstance_);
-        Py_XDECREF(pMessages_);
+        Py_CLEAR(pClass_);
+        Py_CLEAR(pInstance_);
+        Py_CLEAR(pMessages_);
     }
 
-
-    void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const
+    void ensureUsable(const char* what) const
     {
-        const auto err = PyErr_Occurred();
-        if (err != nullptr) {
-            cleanPyObject();
-
-            PyObject *pExcType, *pExcValue, *pExcTraceback;
-            PyErr_Fetch(&pExcType, &pExcValue, &pExcTraceback);
-
-            std::ostringstream oss;
-            oss << "Fatal py exception encountered: ";
-            oss << what << "\n";
-            if (pExcValue != nullptr) {
-                PyObject* pRepr = PyObject_Repr(pExcValue);
-                PyObject* pyStr = PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr);
-                oss << PyBytes_AsString(pyStr);
-                Py_DECREF(pyStr);
-                Py_DECREF(pRepr);
-            } else {
-                oss << "unknown error";
-            }
-
-            PyErr_Clear();
-
-            Py_XDECREF(pExcType);
-            Py_XDECREF(pExcValue);
-            Py_XDECREF(pExcTraceback);
-
-            PyGILState_Release(gilState);
-
-            throw fatal_error(oss.str());
+        if (failed_) {
+            throw fatal_error(std::string(what) +
+                " refused: an earlier Python exception was fatal and released this "
+                "instance's slave object; only fmi2FreeInstance is valid now");
         }
+    }
+
+    // Never returns: marks this instance failed, releases its Python objects and the
+    // GIL taken by py_safe_run, and throws fatal_error (reported as fmi2Fatal).
+    [[noreturn]] void handle_py_exception(const std::string& what, PyGILState_STATE gilState) const
+    {
+        failed_ = true;
+
+        std::ostringstream oss;
+        oss << "Fatal py exception encountered: ";
+        oss << what << "\n";
+
+        // Take the pending exception first, so the cleanup below never runs Python
+        // code (log flushing, __del__) with an exception already set.
+        PyObject *pExcType, *pExcValue, *pExcTraceback;
+        PyErr_Fetch(&pExcType, &pExcValue, &pExcTraceback);
+        PyObject* pRepr = pExcValue != nullptr ? PyObject_Repr(pExcValue) : nullptr;
+        PyObject* pyStr = pRepr != nullptr ? PyUnicode_AsEncodedString(pRepr, "utf-8", nullptr) : nullptr;
+        const char* text = pyStr != nullptr ? PyBytes_AsString(pyStr) : nullptr;
+        oss << (text != nullptr ? text : "unknown error");
+        Py_XDECREF(pyStr);
+        Py_XDECREF(pRepr);
+        Py_XDECREF(pExcType);
+        Py_XDECREF(pExcValue);
+        Py_XDECREF(pExcTraceback);
+        PyErr_Clear(); // a failed repr/encode above
+
+        cleanPyObject();
+        PyErr_Clear(); // anything the cleanup raised
+
+        PyGILState_Release(gilState);
+
+        throw fatal_error(oss.str());
     }
 };
 
